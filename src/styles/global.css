@@ -1,0 +1,285 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Class-based dark-mode strategy (shadcn default). This app never applies
+   the shadcn `.dark` class — the *product* is still light-first for content
+   surfaces — so `dark:` variants shipped inside shadcn primitives simply
+   never trigger. The dark icon-rail/list-panel surfaces introduced by
+   MASTER.md are implemented as explicit, always-on utility classes
+   (bg-dark, bg-dark-card, etc. — see the @theme block below), not via this
+   `.dark` mechanism. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * shadcn/ui CSS variables, mapped 1:1 onto the hex design tokens in
+ * tokens.css (loaded just before this file, sourced from
+ * design-system/elle-coaching-crm/MASTER.md). No new colors are invented
+ * here — every value below is a direct alias of a --color-* token.
+ */
+:root {
+  /* Page canvas is the faint off-white --color-surface token, distinct from
+     --card's pure white — this is what lets light cards read as separated
+     from the canvas via border + shadow (MASTER.md: soft shadows are back
+     in use for depth). See card.jsx. */
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+  --card: var(--color-bg-light);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-bg-light);
+  --popover-foreground: var(--color-ink);
+
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-on-primary);
+  --secondary: var(--color-surface-2);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-muted);
+
+  /* shadcn's --accent drives subtle selection/hover backgrounds (menu
+     items, select-item focus state, etc.) — kept a neutral tint, not lime,
+     so the two decorative accents stay reserved for the deliberate
+     structural moments MASTER.md calls out rather than every hover state. */
+  --accent: var(--color-surface-2);
+  --accent-foreground: var(--color-ink);
+
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-on-primary);
+
+  --border: var(--color-border-light);
+  --input: var(--color-border-light-strong);
+  --ring: var(--color-focus-ring);
+
+  /* Semantic status colors, consumed directly by badge/alert variants. */
+  --success: var(--color-success);
+  --success-foreground: var(--color-on-primary);
+  --warning: var(--color-warning);
+  --warning-foreground: var(--color-on-primary);
+
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-bg: var(--color-success-bg);
+  --color-success-text: var(--color-success-text);
+  --color-success-border: var(--color-success-border);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-warning-text: var(--color-warning-text);
+  --color-warning-border: var(--color-warning-border);
+  --color-danger: var(--destructive);
+  --color-danger-bg: var(--color-destructive-bg);
+  --color-danger-text: var(--color-destructive-text);
+  --color-danger-border: var(--color-destructive-border);
+
+  /* The two decorative accents (MASTER.md Color Palette) — registered as
+     Tailwind theme colors so every component can reach them via plain
+     utility classes (bg-lime, text-on-lime, bg-violet, ...) rather than
+     arbitrary-value var() references scattered through the codebase. */
+  --color-lime: var(--color-lime);
+  --color-lime-hover: var(--color-lime-hover);
+  --color-on-lime: var(--color-on-lime);
+  --color-violet: var(--color-violet);
+  --color-violet-hover: var(--color-violet-hover);
+  --color-on-violet: var(--color-on-violet);
+  --color-priority-high: var(--color-priority-high);
+  --color-priority-low: var(--color-priority-low);
+  --color-on-priority: var(--color-on-priority);
+
+  /* Dark scaffold (icon rail / list panels / stat tiles) — same reasoning:
+     registered as theme colors, e.g. bg-dark, bg-dark-card, border-dark-border. */
+  --color-dark: var(--color-bg-dark);
+  --color-dark-card: var(--color-card-dark);
+  --color-dark-card-hover: var(--color-card-dark-hover);
+  --color-dark-border: var(--color-border-dark);
+  --color-dark-muted: var(--color-muted-dark);
+
+  /* Dashboard widget palette (tokens.css) — bg-tag-lime-light,
+     bg-tag-violet-light, bg-tag-coral. */
+  --color-tag-lime-light: var(--color-tag-lime-light);
+  --color-tag-violet-light: var(--color-tag-violet-light);
+  --color-tag-coral: var(--color-tag-coral);
+
+  /* Restrained, single-layer shadows only — no glassmorphism. Ported from
+     tokens.css exactly rather than Tailwind's stock multi-layer shadow
+     presets. MASTER.md: soft shadows are back in use for depth on both
+     dark and light cards. */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+}
+
+/* Static design tokens (radius, type scale, font) — these never vary by
+   theme, so they're registered directly rather than via `inline` var()
+   indirection. Type scale ports tokens.css's --text-* rem values exactly
+   onto Tailwind's own text-xs..text-2xl utility names. */
+@theme {
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-heading: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+
+  /* MASTER.md Radius & Shadow: generous rounding, reversing the previous
+     Minimalism & Swiss Style 0px mandate. --radius-sm covers inputs/small
+     buttons, --radius-md covers cards, --radius-lg covers large
+     panels/hero/insight cards; --radius-xl aliases --radius-lg since no
+     component in this app needs a role beyond "large panel". */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 1.5rem;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.55;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.55;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-md: 1.125rem;
+  --text-md--line-height: 1.25;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.25;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.25;
+}
+
+/*
+ * Base resets, plus a small set of bare-element rules still relied on.
+ * The focus-visible rule below is a fallback ring for plain anchors and
+ * native elements not wrapped in a shadcn component — it uses the ink ring,
+ * correct for the overwhelming majority (light-surface) case. Components
+ * rendered on the dark sidebar/list-panel surfaces (AppShell nav, dark
+ * RecordCard) opt into the lime ring explicitly via `focus-visible:outline-lime`,
+ * since a class selector + pseudo-class beats this element-level rule's
+ * specificity. The loading-text and route-loading rules belong to
+ * ProtectedRoute.jsx, which is out of scope for this pass (auth code) and
+ * still references those class names for its initializing-session screen.
+ */
+#root {
+  min-height: 100vh;
+}
+
+body {
+  min-height: 100vh;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.loading-text {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* "Inverted tab" notch (SurveyDetailPage's day-tab bar) -- the active
+   tab's bottom corners curve inward to meet the flat tab strip, like
+   browser tabs / the reference screenshot's tab row, rather than a hard
+   90deg corner. Not expressible as Tailwind utilities (needs paired
+   ::before/::after radial-gradient corners), so it lives here as the one
+   bespoke rule for this effect. The radial-gradient is transparent near
+   the box's outer corner (revealing the page behind) and solid lime
+   beyond that radius (continuing the tab's own fill) -- verified in an
+   isolated prototype to render as a smooth quarter-circle fillet, not a
+   visible seam, at 16px radius. */
+.day-tab-active {
+  position: relative;
+  z-index: 10;
+}
+.day-tab-active::before,
+.day-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+}
+.day-tab-active::before {
+  left: -16px;
+  background: radial-gradient(circle at top left, transparent 16px, var(--color-lime) 17px);
+}
+.day-tab-active::after {
+  right: -16px;
+  background: radial-gradient(circle at top right, transparent 16px, var(--color-lime) 17px);
+}
+/* When the active tab is the first one in the row, there's no sibling tab
+   to its left for the curve to hand off to -- the left notch would just
+   read as a stray curl detached from the panel's flush-left edge, so it's
+   suppressed and that corner stays a plain 90deg join instead. */
+.day-tab-active-first::before {
+  content: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.route-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* MASTER.md Typography: Nunito ExtraBold/Black for headings, applied once
+     here rather than per-component, so every real heading element in the
+     app (this codebase already favors real h1-h4 over shadcn's div-based
+     CardTitle for screen-reader navigation) automatically gets the
+     bold-rounded-geometric heading treatment. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+  }
+}

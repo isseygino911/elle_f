@@ -1,0 +1,179 @@
+/*
+ * Design tokens — Elle Coaching CRM.
+ * Sourced directly from design-system/elle-coaching-crm/MASTER.md v3.1 (the
+ * ui-ux-pro-max skill's corrected output, RonDesignLab Microsoft Dynamics
+ * CRM reference — dark icon-rail sidebar + master-detail-insight layout).
+ * Every --color-* value below is either a literal hex from that file's
+ * Color Palette table, or a derived state/tint value in the same family
+ * (hover, tint, on-dark text) since MASTER.md's palette entry only
+ * specifies the base roles. Colors are plain hex, not hand-converted to
+ * OKLCH. This fully replaces the v1/v2 Minimalism & Swiss Style token set
+ * (navy/blue, 0px radius, no shadow) per MASTER.md's revision history.
+ */
+:root {
+  color-scheme: light;
+
+  /* ---- Color: dark scaffold (icon rail, list panels, stat tiles) ---- */
+  --color-bg-dark: #0b0f1a; /* MASTER "Background (app canvas / sidebar / list panel)" */
+  --color-card-dark: #151b2c; /* MASTER "Sidebar/list-panel card (unselected)" */
+  --color-card-dark-hover: #1c2338; /* derived, one step lighter than card-dark for hover */
+  --color-border-dark: #2a3145; /* MASTER "Dark-surface border" */
+  --color-muted-dark: #94a3b8; /* MASTER "Dark-surface muted text" */
+
+  /* ---- Color: light scaffold (main content, insight rail, auth) ---- */
+  --color-bg-light: #ffffff; /* MASTER "Main content / insight-rail canvas" */
+  --color-card-light: #ffffff; /* MASTER "Light-surface card" */
+  --color-surface: #f5f6fa; /* derived, faint canvas tint distinct from pure-white cards */
+  --color-surface-2: #eef0f5; /* derived, one step deeper than surface, for muted fills */
+  --color-border-light: #e2e8f0; /* MASTER "Light-surface border" */
+  --color-border-light-strong: #cbd5e1; /* derived, one step darker than border-light */
+  --color-ink: #0f172a; /* MASTER "Ink (text on light)" */
+  --color-muted: #64748b; /* derived, slate-500, muted text on light surfaces */
+
+  /* ---- Color: neutral "primary" action tone (buttons/links on light
+     surfaces) — a restrained dark-ink action color, distinct from the two
+     decorative accents below per MASTER's "lime/violet are the only two
+     decorative accents" discipline. Ordinary buttons/links keep using this
+     ink-derived tone; lime/violet are reserved for the specific structural
+     moments MASTER.md calls out (selection, active nav, card "type",
+     spotlight highlights). ---- */
+  --color-primary: var(--color-ink);
+  --color-primary-hover: #1e293b; /* derived, one step lighter than ink */
+  --color-primary-active: #020617; /* derived, darkest slate for pressed state */
+  --color-on-primary: #ffffff;
+
+  /* ---- Color: Accent 1 — Lime (selection state, primary highlight, one
+     card "type") ---- */
+  --color-lime: #c6e83a;
+  --color-lime-hover: #b4d62c; /* derived, darker lime for hover */
+  --color-on-lime: #1a2100; /* derived, near-black — 11.89:1 on lime, verified */
+
+  /* ---- Color: Accent 2 — Violet (second card "type" / Mid priority) ---- */
+  --color-violet: #8b7cf0;
+  --color-violet-hover: #7a69ec; /* derived, darker violet for hover */
+  --color-on-violet: #0f172a; /* derived, dark ink — 5.30:1 on violet, verified. White
+    fails at 3.37:1 (below 4.5:1 body-text AA) — dark ink text only, except
+    headline-scale bold text >=24px per MASTER.md. */
+
+  /* ---- Color: priority / status pills ---- */
+  --color-priority-high: #f0645a; /* reference coral/red pill */
+  --color-priority-mid: var(--color-violet); /* higher-res reference view confirms this is
+    the same violet as Accent 2, not amber — reuse, per MASTER.md */
+  --color-priority-low: #4cc9e8; /* reference cyan pill */
+  --color-on-priority: #0f172a; /* derived, dark ink — High 5.68:1, Mid 10.07:1, Low
+    9.20:1, all verified. White fails on High (3.15:1) — dark ink on every
+    priority pill, not white, per MASTER.md. */
+
+  /* ---- Color: dashboard widget palette — per-widget differentiation,
+     matching the RonDesignLab reference screenshot exactly (lighter
+     lime/purple card fills + a coral pill/button) rather than an invented
+     hue set. -light variants are literally lighter tints of the app's own
+     lime/violet accents (not new brand colors); coral reuses
+     --color-priority-high directly (already an established token). Dark ink
+     text verified >=5.6:1 against all three. */
+  --color-tag-lime-light: #dcee7e;
+  --color-tag-violet-light: #c9c1f6;
+  --color-tag-coral: var(--color-priority-high);
+
+  /* ---- Color: semantic ---- */
+  --color-destructive: #ef4444; /* MASTER "Destructive/error" */
+  --color-destructive-hover: #dc2626;
+  --color-destructive-bg: #fef2f2;
+  --color-destructive-text: #b91c1c;
+  --color-destructive-border: #fecaca;
+
+  --color-success: #22c55e; /* MASTER "Success" — distinct from the lime brand accent */
+  --color-success-bg: #f0fdf4;
+  --color-success-text: #15803d;
+  --color-success-border: #bbf7d0;
+
+  --color-warning: #f59e0b; /* derived, conventional amber — semantic-only, not one of
+    the two decorative accents */
+  --color-warning-bg: #fffbeb;
+  --color-warning-text: #b45309;
+  --color-warning-border: #fde68a;
+
+  /* Default (light-surface) focus ring — high contrast against white/light
+     content surfaces. Components rendered on the dark sidebar/list-panel
+     surfaces instead opt into the registered --color-lime token directly
+     via Tailwind's border-lime/ring-lime/outline-lime utilities (see
+     AppShell.jsx, RecordCard.jsx, VideosLayout.jsx), since a single blanket
+     ring color can't clear 3:1 contrast against both a near-black and a
+     white background. */
+  --color-focus-ring: var(--color-ink);
+
+  /* ---- Typography ---- */
+  --font-heading: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.75rem;
+  --leading-tight: 1.25;
+  --leading-normal: 1.55;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ---- Spacing ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* ---- Radii ----
+     Reference uses generous rounding throughout — reverses the previous
+     Swiss/Minimalism 0px mandate entirely, per MASTER.md's Radius & Shadow
+     section. */
+  --radius-sm: 0.75rem; /* 12px — inputs, small buttons */
+  --radius-md: 1rem; /* 16px — cards */
+  --radius-lg: 1.5rem; /* 24px — large panels, hero/insight cards */
+  --radius-full: 999px; /* pill badges, avatars — functionally-circular shapes */
+
+  /* ---- Shadows ----
+     Soft, moderate elevation is back in use per MASTER.md — used on both
+     dark and light cards for depth, since the dark sidebar/list panel need
+     it more than the previous light-only system did. Values unchanged from
+     the prior token set (MASTER.md: "unchanged values"). */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* ---- Motion ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* ---- Semantic z-index scale ---- */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  /* ---- Layout ---- */
+  --content-max-width: 64rem;
+  --narrow-max-width: 26rem;
+  --sidebar-width: 15rem;
+  --sidebar-width-collapsed: 4.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

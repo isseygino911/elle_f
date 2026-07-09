@@ -1,0 +1,25 @@
+# --- Dependencies ---
+node_modules/
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Build output ---
+dist/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- Design tooling cache ---
+.impeccable/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Editor ---
+.vscode/
+.idea/
