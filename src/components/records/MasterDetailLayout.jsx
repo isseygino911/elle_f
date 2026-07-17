@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 // primary view; opening a record hides the list and shows the detail
 // full-width with a back link. Detected from the URL, not local state, so
 // each item's route is still the single source of truth for what's shown.
-export default function MasterDetailLayout({ basePath, title, actions, statTiles, list, listEmpty }) {
+export default function MasterDetailLayout({ basePath, title, actions, statTiles, list, listEmpty, outletContext }) {
   const location = useLocation()
   const isDetailRoute = location.pathname.replace(/\/+$/, '') !== basePath
 
@@ -44,7 +44,7 @@ export default function MasterDetailLayout({ basePath, title, actions, statTiles
             Back to list
           </Link>
         )}
-        <Outlet />
+        <Outlet context={outletContext} />
       </div>
     </div>
   )

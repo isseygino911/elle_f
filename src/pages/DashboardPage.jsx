@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Bell, Video, MessageSquare, CheckSquare, GraduationCap, CalendarDays } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import {
@@ -40,11 +40,8 @@ const POLL_INTERVAL_MS = 15000
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuth()
-  const navigate = useNavigate()
   const isElle = Boolean(user && user.role === 'elle')
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
-
-  const [messageStudentId, setMessageStudentId] = useState('')
 
   const [dashboardStatus, setDashboardStatus] = useState('loading') // loading | success | error
   const [dashboard, setDashboard] = useState(null)
@@ -155,12 +152,6 @@ export default function DashboardPage() {
     }
   }
 
-  function handleGoToMessages(event) {
-    event.preventDefault()
-    if (!messageStudentId.trim()) return
-    navigate(`/messages/${encodeURIComponent(messageStudentId.trim())}`)
-  }
-
   // dashboard.upcoming_bookings.bookings already comes back ordered ascending
   // by scheduled_at (see server/src/routes/bookings.helpers.js's
   // `ORDER BY b.scheduled_at ASC`), so the first entry is the soonest
@@ -248,32 +239,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {isElle && (
-        <Card>
-          <CardContent>
-            <form onSubmit={handleGoToMessages}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="message-student-id">Go to a student&apos;s message thread</FieldLabel>
-                  <StudentSelect
-                    id="message-student-id"
-                    value={messageStudentId}
-                    onChange={setMessageStudentId}
-                    students={students}
-                    status={studentsStatus}
-                  />
-                  <FieldDescription>
-                    {studentsStatus === 'error' ? studentsError : 'Select a student to view their message thread.'}
-                  </FieldDescription>
-                </Field>
-                <div>
-                  <Button type="submit">Go</Button>
-                </div>
-              </FieldGroup>
-            </form>
-          </CardContent>
-        </Card>
-      )}
     </PageContainer>
   )
 }

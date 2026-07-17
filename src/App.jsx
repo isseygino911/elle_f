@@ -16,6 +16,7 @@ import VideoUploadPage from './pages/videos/VideoUploadPage.jsx'
 import VideosLayout from './components/videos/VideosLayout.jsx'
 import VideoDetailPage from './pages/videos/VideoDetailPage.jsx'
 import MessageThreadPage from './pages/messages/MessageThreadPage.jsx'
+import MessagesLayout, { MessagesIndex } from './components/messages/MessagesLayout.jsx'
 import BookingCalendarPage from './pages/bookings/BookingCalendarPage.jsx'
 import JitsiCallPage from './pages/bookings/JitsiCallPage.jsx'
 import EmptyDetailState from './components/records/EmptyDetailState.jsx'
@@ -106,14 +107,25 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          {/*
+            Email-style master-detail: every student on the left (elle only
+            — a student has just one correspondent, so MessagesLayout skips
+            the list panel and renders the thread directly for them), the
+            selected thread on the right. Same nested-routing composition as
+            /students, /videos, /surveys — /messages/:studentId keeps
+            working exactly as it did as a standalone route.
+          */}
           <Route
-            path="/messages/:studentId"
+            path="/messages"
             element={
               <ProtectedRoute>
-                <MessageThreadPage />
+                <MessagesLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<MessagesIndex />} />
+            <Route path=":studentId" element={<MessageThreadPage />} />
+          </Route>
           <Route
             path="/bookings"
             element={

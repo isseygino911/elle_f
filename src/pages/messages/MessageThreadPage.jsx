@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useOutletContext, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { listMessages, sendMessage, markThreadRead } from '../../api/client.js'
 import { cn } from '@/lib/utils'
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { PageContainer, PageHeader, BackLink, LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
+import { LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
 
 const POLL_INTERVAL_MS = 15000
 
@@ -23,6 +23,11 @@ function initials(label) {
 export default function MessageThreadPage() {
   const { studentId } = useParams()
   const { accessToken, user } = useAuth()
+  // Populated by MessagesLayout (elle's student-list view) so the detail
+  // pane can show who this thread is with; absent for a student's own
+  // single-thread view, where there's only ever one correspondent anyway.
+  const outletContext = useOutletContext()
+  const student = outletContext?.students?.find((candidate) => String(candidate.id) === String(studentId))
 
   const [status, setStatus] = useState('loading') // loading | success | error
   const [messages, setMessages] = useState([])
@@ -108,13 +113,17 @@ export default function MessageThreadPage() {
   }
 
   return (
-    <PageContainer>
-      <PageHeader title="Messages" />
+    <div className="flex h-full flex-col gap-4 p-6">
+      <div className="border-b border-border pb-4">
+        <h2 className="m-0">{student ? student.name : 'Messages'}</h2>
+        {student && <p className="m-0 text-sm text-muted-foreground">{student.email}</p>}
+      </div>
+
       {status === 'loading' && <LoadingText>Loading messages...</LoadingText>}
       {status === 'error' && <ErrorAlert>{error}</ErrorAlert>}
       {status === 'success' && (
         <>
-          <ScrollArea className="h-[28rem] rounded-md border border-border bg-muted/40">
+          <ScrollArea className="h-[28rem] flex-1 rounded-md border border-border bg-muted/40">
             <ul className="flex flex-col gap-3 p-4">
               {messages.length === 0 && <EmptyState>No messages yet.</EmptyState>}
               {messages.map((message) => {
@@ -167,7 +176,6 @@ export default function MessageThreadPage() {
           </form>
         </>
       )}
-      <BackLink to="/dashboard">Back to dashboard</BackLink>
-    </PageContainer>
+    </div>
   )
 }

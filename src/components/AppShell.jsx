@@ -126,8 +126,8 @@ export default function AppShell({ children }) {
     { to: '/videos/upload', label: 'Upload Video', icon: 'upload' },
     { to: '/bookings', label: 'Bookings', icon: 'bookings' },
     isElle && { to: '/invitations', label: 'Invitations', icon: 'invitations' },
-    !isElle && user && {
-      to: `/messages/${encodeURIComponent(user.id)}`,
+    user && {
+      to: isElle ? '/messages' : `/messages/${encodeURIComponent(user.id)}`,
       label: 'Messages',
       icon: 'messages',
     },
