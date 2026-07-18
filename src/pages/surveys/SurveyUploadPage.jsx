@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { uploadSurvey } from '../../api/client.js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ import { PageContainer, PageHeader, BackLink, ErrorAlert } from '@/components/Pa
 
 export default function SurveyUploadPage() {
   const { accessToken } = useAuth()
+  const { t } = useLanguage()
 
   const [title, setTitle] = useState('')
   const [file, setFile] = useState(null)
@@ -49,7 +51,7 @@ export default function SurveyUploadPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Upload Survey" />
+      <PageHeader title={t('uploadSurvey.title')} />
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -108,7 +110,7 @@ export default function SurveyUploadPage() {
           </ol>
         </section>
       )}
-      <BackLink to="/surveys">View all surveys</BackLink>
+      <BackLink to="/surveys">{t('uploadSurvey.viewAll')}</BackLink>
     </PageContainer>
   )
 }

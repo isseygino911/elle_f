@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays, Clock3, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   listOpenSlots,
   listBookings,
@@ -42,6 +43,7 @@ function shiftDate(dateStr, days) {
 
 export default function BookingCalendarPage() {
   const { accessToken, user } = useAuth()
+  const { t } = useLanguage()
   const isElle = Boolean(user && user.role === 'elle')
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
 
@@ -155,19 +157,19 @@ export default function BookingCalendarPage() {
   return (
     <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
       <div className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-b border-dark-border bg-dark p-5 lg:h-full lg:w-[22rem] lg:border-r lg:border-b-0">
-        <h1 className="m-0 font-heading text-xl font-extrabold text-white">Bookings</h1>
+        <h1 className="m-0 font-heading text-xl font-extrabold text-white">{t('bookings.title')}</h1>
         <StatTiles
           tiles={[
             { label: 'Upcoming', value: ownBookings.length, icon: CalendarDays },
             { label: 'Open today', value: slots.length, icon: Clock3 },
           ]}
         />
-        <h2 className="m-0 text-xs font-semibold tracking-wide text-dark-muted uppercase">Your upcoming bookings</h2>
+        <h2 className="m-0 text-xs font-semibold tracking-wide text-dark-muted uppercase">{t('bookings.yourUpcoming')}</h2>
         <ul className="flex flex-col gap-2">
           {ownBookingsStatus === 'loading' && <li className="px-1 text-sm text-dark-muted">Loading bookings…</li>}
           {ownBookingsStatus === 'error' && <li className="px-1 text-sm text-priority-high">{ownBookingsError}</li>}
           {ownBookingsStatus === 'success' && ownBookings.length === 0 && (
-            <li className="px-1 text-sm text-dark-muted">No upcoming bookings.</li>
+            <li className="px-1 text-sm text-dark-muted">{t('bookings.emptyUpcoming')}</li>
           )}
           {ownBookingsStatus === 'success' &&
             ownBookings.map((booking) => (

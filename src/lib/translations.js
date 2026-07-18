@@ -1,0 +1,145 @@
+// Plain-object translation dictionary — intentionally not a full i18n
+// library (see the frontend task notes): this app only needs ~9 nav labels
+// plus a handful of page headings/primary actions translated, so a Context +
+// lookup table is the right amount of engineering. Keys are dot-paths
+// resolved by `t()` in LanguageContext.jsx (e.g. t('nav.dashboard')).
+export const translations = {
+  en: {
+    nav: {
+      dashboard: 'Dashboard',
+      students: 'Students',
+      surveys: 'Surveys',
+      uploadSurvey: 'Upload Survey',
+      videos: 'Videos',
+      uploadVideo: 'Upload Video',
+      bookings: 'Bookings',
+      invitations: 'Invitations',
+      messages: 'Messages',
+      logout: 'Log out',
+    },
+    language: {
+      toggleLabel: 'Language',
+      switchToEnglish: 'Switch to English',
+      switchToChinese: 'Switch to Chinese',
+    },
+    dashboard: {
+      title: 'Dashboard',
+      loggedInAs: 'Logged in as',
+    },
+    students: {
+      title: 'Students',
+      loading: 'Loading students…',
+      empty: 'No students yet.',
+      emptyDetail: 'Select a student from the list to see their survey progress.',
+    },
+    surveys: {
+      title: 'Surveys',
+      loading: 'Loading surveys…',
+      empty: 'No surveys yet.',
+      select: 'Select',
+      cancel: 'Cancel',
+      emptyDetail: 'Select a survey from the list to see its details.',
+    },
+    uploadSurvey: {
+      title: 'Upload Survey',
+      viewAll: 'View all surveys',
+    },
+    videos: {
+      title: 'Videos',
+      loading: 'Loading videos…',
+      empty: 'No videos yet.',
+      emptyDetail: 'Select a video from the list to see its details.',
+    },
+    uploadVideo: {
+      title: 'Upload Video',
+      viewAll: 'View all videos',
+    },
+    bookings: {
+      title: 'Bookings',
+      yourUpcoming: 'Your upcoming bookings',
+      emptyUpcoming: 'No upcoming bookings.',
+    },
+    invitations: {
+      title: 'Create Invitation',
+      generate: 'Generate invitation link',
+      generating: 'Generating...',
+      backToDashboard: 'Back to dashboard',
+    },
+    messages: {
+      title: 'Messages',
+      loading: 'Loading students…',
+      empty: 'No students yet.',
+      loadError: 'Could not load students.',
+      emptyDetail: 'Select a student from the list to see their conversation.',
+    },
+  },
+  zh: {
+    nav: {
+      dashboard: '仪表盘',
+      students: '学生',
+      surveys: '问卷',
+      uploadSurvey: '上传问卷',
+      videos: '视频',
+      uploadVideo: '上传视频',
+      bookings: '预约',
+      invitations: '邀请',
+      messages: '消息',
+      logout: '退出登录',
+    },
+    language: {
+      toggleLabel: '语言',
+      switchToEnglish: '切换到英文',
+      switchToChinese: '切换到中文',
+    },
+    dashboard: {
+      title: '仪表盘',
+      loggedInAs: '当前登录',
+    },
+    students: {
+      title: '学生',
+      loading: '正在加载学生…',
+      empty: '暂无学生。',
+      emptyDetail: '从左侧列表中选择一位学生，查看其问卷完成进度。',
+    },
+    surveys: {
+      title: '问卷',
+      loading: '正在加载问卷…',
+      empty: '暂无问卷。',
+      select: '选择',
+      cancel: '取消',
+      emptyDetail: '从左侧列表中选择一份问卷，查看详情。',
+    },
+    uploadSurvey: {
+      title: '上传问卷',
+      viewAll: '查看全部问卷',
+    },
+    videos: {
+      title: '视频',
+      loading: '正在加载视频…',
+      empty: '暂无视频。',
+      emptyDetail: '从左侧列表中选择一个视频，查看详情。',
+    },
+    uploadVideo: {
+      title: '上传视频',
+      viewAll: '查看全部视频',
+    },
+    bookings: {
+      title: '预约',
+      yourUpcoming: '即将开始的预约',
+      emptyUpcoming: '暂无即将开始的预约。',
+    },
+    invitations: {
+      title: '创建邀请',
+      generate: '生成邀请链接',
+      generating: '生成中...',
+      backToDashboard: '返回仪表盘',
+    },
+    messages: {
+      title: '消息',
+      loading: '正在加载学生…',
+      empty: '暂无学生。',
+      loadError: '学生列表加载失败。',
+      emptyDetail: '从左侧列表中选择一位学生，查看对话内容。',
+    },
+  },
+}

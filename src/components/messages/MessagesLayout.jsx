@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useParams } from 'react-router-dom'
 import { MessageSquare } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { useStudents } from '../../hooks/useStudents.js'
 import { getDashboard } from '../../api/client.js'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
@@ -19,6 +20,7 @@ import EmptyDetailState from '@/components/records/EmptyDetailState'
 // list — the layout renders the thread directly, full-width.
 export default function MessagesLayout() {
   const { user, accessToken } = useAuth()
+  const { t } = useLanguage()
   const isElle = Boolean(user && user.role === 'elle')
   const { studentId: activeId } = useParams()
   const { students, status } = useStudents(accessToken, { enabled: isElle })
@@ -71,9 +73,9 @@ export default function MessagesLayout() {
   return (
     <MasterDetailLayout
       basePath="/messages"
-      title="Messages"
+      title={t('messages.title')}
       list={list}
-      listEmpty={status === 'loading' ? 'Loading students…' : status === 'error' ? 'Could not load students.' : 'No students yet.'}
+      listEmpty={status === 'loading' ? t('messages.loading') : status === 'error' ? t('messages.loadError') : t('messages.empty')}
       outletContext={{ students }}
     />
   )
@@ -84,11 +86,12 @@ export default function MessagesLayout() {
 // they're sent straight into their one thread instead of a dead end.
 export function MessagesIndex() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const isElle = Boolean(user && user.role === 'elle')
 
   if (!isElle && user) {
     return <Navigate to={`/messages/${encodeURIComponent(user.id)}`} replace />
   }
 
-  return <EmptyDetailState>Select a student from the list to see their conversation.</EmptyDetailState>
+  return <EmptyDetailState>{t('messages.emptyDetail')}</EmptyDetailState>
 }

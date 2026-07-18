@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { createInvitation } from '../api/client.js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +13,7 @@ import RecordCard from '@/components/records/RecordCard'
 
 export default function InvitationsPage() {
   const { accessToken } = useAuth()
+  const { t } = useLanguage()
 
   const [studentNameHint, setStudentNameHint] = useState('')
   const [link, setLink] = useState(null)
@@ -36,7 +38,7 @@ export default function InvitationsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Create Invitation" />
+      <PageHeader title={t('invitations.title')} />
 
       <Card>
         <CardContent>
@@ -57,7 +59,7 @@ export default function InvitationsPage() {
                 </Alert>
               )}
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'Generating...' : 'Generate invitation link'}
+                {submitting ? t('invitations.generating') : t('invitations.generate')}
               </Button>
             </FieldGroup>
           </form>
@@ -93,7 +95,7 @@ export default function InvitationsPage() {
         </Field>
       )}
 
-      <BackLink to="/dashboard">Back to dashboard</BackLink>
+      <BackLink to="/dashboard">{t('invitations.backToDashboard')}</BackLink>
     </PageContainer>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Video, MessageSquare, CheckSquare, GraduationCap, CalendarDays } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   getDashboard,
   listNotifications,
@@ -40,6 +41,7 @@ const POLL_INTERVAL_MS = 15000
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuth()
+  const { t } = useLanguage()
   const isElle = Boolean(user && user.role === 'elle')
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
 
@@ -162,7 +164,7 @@ export default function DashboardPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Dashboard" meta={`Logged in as ${(user && (user.name || user.email)) || 'user'}`} />
+      <PageHeader title={t('dashboard.title')} meta={`${t('dashboard.loggedInAs')} ${(user && (user.name || user.email)) || 'user'}`} />
 
       {dashboardStatus === 'success' && nextBooking && (
         <NextSessionSpotlight booking={nextBooking} isElle={isElle} onCancelBooking={handleCancelBooking} />

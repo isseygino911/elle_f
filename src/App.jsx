@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import LandingPage from './pages/LandingPage.jsx'
@@ -21,9 +22,29 @@ import MessagesLayout, { MessagesIndex } from './components/messages/MessagesLay
 import BookingCalendarPage from './pages/bookings/BookingCalendarPage.jsx'
 import JitsiCallPage from './pages/bookings/JitsiCallPage.jsx'
 import EmptyDetailState from './components/records/EmptyDetailState.jsx'
+import { useLanguage } from './lib/LanguageContext.jsx'
+
+// Thin wrappers so the index-route empty states can call useLanguage() —
+// these render as descendants of <LanguageProvider> below, unlike App's own
+// render body which constructs that provider and can't consume its context.
+function SurveysEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('surveys.emptyDetail')}</EmptyDetailState>
+}
+
+function StudentsEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('students.emptyDetail')}</EmptyDetailState>
+}
+
+function VideosEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('videos.emptyDetail')}</EmptyDetailState>
+}
 
 export default function App() {
   return (
+    <LanguageProvider>
     <TooltipProvider>
       <AuthProvider>
         <BrowserRouter>
@@ -67,7 +88,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<EmptyDetailState>Select a survey from the list to see its details.</EmptyDetailState>} />
+            <Route index element={<SurveysEmptyDetail />} />
             <Route path=":id" element={<SurveyDetailPage />} />
           </Route>
           <Route
@@ -86,7 +107,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<EmptyDetailState>Select a student from the list to see their survey progress.</EmptyDetailState>} />
+            <Route index element={<StudentsEmptyDetail />} />
             <Route path=":id" element={<StudentDetailPage />} />
           </Route>
           <Route
@@ -97,7 +118,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<EmptyDetailState>Select a video from the list to see its details.</EmptyDetailState>} />
+            <Route index element={<VideosEmptyDetail />} />
             <Route path=":id" element={<VideoDetailPage />} />
           </Route>
           <Route
@@ -147,5 +168,6 @@ export default function App() {
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
+    </LanguageProvider>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Video as VideoIcon, Clock3, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { listVideos } from '../../api/client.js'
 import { formatDuration } from '../../utils/formatDuration.js'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -33,6 +34,7 @@ const DARK_TRIGGER_CLASS =
 // URLs keep resolving exactly as before.
 export default function VideosLayout() {
   const { accessToken, user } = useAuth()
+  const { t } = useLanguage()
   const { id: activeId } = useParams()
   const isElle = Boolean(user && user.role === 'elle')
 
@@ -100,10 +102,10 @@ export default function VideosLayout() {
   return (
     <MasterDetailLayout
       basePath="/videos"
-      title="Videos"
+      title={t('videos.title')}
       statTiles={statTiles}
       list={list}
-      listEmpty={status === 'loading' ? 'Loading videos…' : status === 'error' ? error : 'No videos yet.'}
+      listEmpty={status === 'loading' ? t('videos.loading') : status === 'error' ? error : t('videos.empty')}
       actions={
         isElle ? (
           <div className="flex w-32 flex-col gap-1.5">

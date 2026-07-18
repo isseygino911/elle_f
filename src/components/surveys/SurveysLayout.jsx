@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ClipboardList, FileText } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { listSurveys, deleteSurvey } from '../../api/client.js'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
@@ -32,6 +33,7 @@ function isWithinLastWeek(isoDate) {
 // from the fetched list (total surveys, surveys added this week).
 export default function SurveysLayout() {
   const { accessToken, user } = useAuth()
+  const { t } = useLanguage()
   const { id: activeId } = useParams()
   const isElle = Boolean(user && user.role === 'elle')
 
@@ -155,7 +157,7 @@ export default function SurveysLayout() {
     <>
       <MasterDetailLayout
         basePath="/surveys"
-        title="Surveys"
+        title={t('surveys.title')}
         statTiles={
           <>
             {statTiles}
@@ -168,11 +170,11 @@ export default function SurveysLayout() {
           </>
         }
         list={list}
-        listEmpty={status === 'loading' ? 'Loading surveys…' : status === 'error' ? error : 'No surveys yet.'}
+        listEmpty={status === 'loading' ? t('surveys.loading') : status === 'error' ? error : t('surveys.empty')}
         actions={
           isElle ? (
             <Button size="sm" variant={selectMode ? 'secondary' : 'outline'} onClick={toggleSelectMode}>
-              {selectMode ? 'Cancel' : 'Select'}
+              {selectMode ? t('surveys.cancel') : t('surveys.select')}
             </Button>
           ) : null
         }

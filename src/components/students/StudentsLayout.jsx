@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { GraduationCap, Users } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { listStudentsProgress } from '../../api/client.js'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
@@ -18,6 +19,7 @@ function completionPercent(student) {
 // opening every student individually.
 export default function StudentsLayout() {
   const { accessToken } = useAuth()
+  const { t } = useLanguage()
   const { id: activeId } = useParams()
 
   const [status, setStatus] = useState('loading') // loading | success | error
@@ -80,10 +82,10 @@ export default function StudentsLayout() {
   return (
     <MasterDetailLayout
       basePath="/students"
-      title="Students"
+      title={t('students.title')}
       statTiles={statTiles}
       list={list}
-      listEmpty={status === 'loading' ? 'Loading students…' : status === 'error' ? error : 'No students yet.'}
+      listEmpty={status === 'loading' ? t('students.loading') : status === 'error' ? error : t('students.empty')}
     />
   )
 }

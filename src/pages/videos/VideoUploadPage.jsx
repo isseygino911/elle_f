@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { requestVideoUploadUrl, uploadFileToS3, confirmVideoUpload } from '../../api/client.js'
 import { MAX_FILE_SIZE_BYTES, ALLOWED_CONTENT_TYPES } from '../../constants/video.js'
 import { useStudents } from '../../hooks/useStudents.js'
@@ -40,6 +41,7 @@ function readVideoDuration(file) {
 
 export default function VideoUploadPage() {
   const { accessToken, user } = useAuth()
+  const { t } = useLanguage()
   const isStudent = Boolean(user && user.role === 'student')
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: !isStudent })
 
@@ -116,7 +118,7 @@ export default function VideoUploadPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Upload Video" />
+      <PageHeader title={t('uploadVideo.title')} />
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -193,7 +195,7 @@ export default function VideoUploadPage() {
           </Alert>
         </section>
       )}
-      <BackLink to="/videos">View all videos</BackLink>
+      <BackLink to="/videos">{t('uploadVideo.viewAll')}</BackLink>
     </PageContainer>
   )
 }
