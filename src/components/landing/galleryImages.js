@@ -13,6 +13,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-performance-hall.jpg',
     alt: 'Elle performing violin on stage at a recital hall, accompanied by piano.',
+    caption: 'Recital Hall',
     width: 1206,
     height: 789,
     variant: 'feature',
@@ -20,6 +21,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-camp-helping.jpg',
     alt: 'Elle helping younger students carry their violin cases into the lesson room.',
+    caption: 'Camp Day',
     width: 1280,
     height: 1707,
     variant: 'tall',
@@ -27,6 +29,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-teaching-student.jpg',
     alt: 'Elle helping a young student rest her violin correctly on her shoulder.',
+    caption: 'Hands-On Teaching',
     width: 1280,
     height: 1707,
     variant: 'tall',
@@ -34,6 +37,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-violin-shop.jpg',
     alt: 'Rows of violins hanging on display at the violin shop where students pick out their own instrument on the first day of camp.',
+    caption: 'Choosing a Violin',
     width: 1707,
     height: 1280,
     variant: 'wide',
@@ -41,6 +45,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-violin-detail.jpg',
     alt: "Close-up of a violin's bridge and strings.",
+    caption: 'Fine Details',
     width: 1280,
     height: 1707,
     variant: 'standard',
@@ -48,6 +53,7 @@ export const galleryImages = [
   {
     src: '/landing/gallery-camp-group.jpg',
     alt: 'Elle standing with a group of camp students, each holding their violin case, before a lesson.',
+    caption: 'The Group',
     width: 1707,
     height: 1280,
     variant: 'standard',

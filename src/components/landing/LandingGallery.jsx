@@ -1,10 +1,8 @@
 import { galleryImages } from './galleryImages.js'
 
-// Replaces the previous flat, uniform 3-col grid of identically-cropped
-// squares with an editorial bento layout — a large feature tile plus varied
-// tile sizes, reading as curated rather than auto-generated (ui-ux-pro-max
-// "Portfolio Grid" pattern: masonry-style project grid, not a uniform
-// thumbnail wall).
+// Editorial bento layout — a large feature tile plus varied tile sizes,
+// reading as curated rather than auto-generated (ui-ux-pro-max "Portfolio
+// Grid" pattern: masonry-style project grid, not a uniform thumbnail wall).
 //
 // On mobile each `variant` gets a fixed aspect-ratio wrapper (natural
 // document flow). At md+, the grid switches to 4 columns with a fixed
@@ -21,9 +19,13 @@ const variantClasses = {
   standard: 'col-span-1 aspect-square md:aspect-auto md:row-span-1',
 }
 
+// Hover caption + bottom gradient scrim on each tile — the Stitch "Lumina
+// Precision" reference gallery treatment (image tiles reveal a caption on
+// hover via a black-to-transparent gradient). Captions are real, short
+// descriptions of each real photo, not invented gallery titles.
 export default function LandingGallery() {
   return (
-    <section className="mx-auto w-full max-w-(--content-max-width) px-5 py-16 [--content-max-width:64rem] sm:py-20">
+    <section id="photos" className="mx-auto w-full max-w-(--content-max-width) px-5 py-16 [--content-max-width:64rem] sm:py-20 md:px-8">
       <h2 className="m-0 mb-8 text-[clamp(1.875rem,1.5rem+1.5vw,2.75rem)] leading-tight font-extrabold tracking-tight text-balance sm:mb-10">
         A few moments together
       </h2>
@@ -31,7 +33,7 @@ export default function LandingGallery() {
         {galleryImages.map((image) => (
           <figure
             key={image.src}
-            className={`relative m-0 overflow-hidden rounded-md shadow-sm ${variantClasses[image.variant]}`}
+            className={`group relative m-0 overflow-hidden rounded-md border border-border shadow-sm ${variantClasses[image.variant]}`}
           >
             <img
               src={image.src}
@@ -40,8 +42,11 @@ export default function LandingGallery() {
               height={image.height}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover transition-transform duration-200 ease-out hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             />
+            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <span className="text-sm font-semibold text-white">{image.caption}</span>
+            </div>
           </figure>
         ))}
       </div>

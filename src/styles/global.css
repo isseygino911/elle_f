@@ -260,6 +260,31 @@ textarea:focus-visible,
   justify-content: center;
 }
 
+/*
+ * Landing page dark theme — scoped via the `.landing-theme` wrapper on
+ * LandingPage.jsx's root element only. Sourced from the Stitch "Lumina
+ * Precision" design system (dark navy scaffold + lime accent, DM
+ * Sans/Nunito Sans) generated for this page's redesign. Reuses the app's
+ * existing --color-lime/--color-on-lime accent tokens (tokens.css) rather
+ * than introducing a second, near-identical lime hex, so the CRM and the
+ * public landing page share one accent color. Only surface/text tokens
+ * flip here — the CRM app itself stays light-first and untouched (no
+ * `.dark` class is ever applied there).
+ */
+.landing-theme {
+  --background: #0b1323;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --muted-foreground: #94a3b8;
+  --border: rgba(148, 163, 184, 0.16);
+  --primary: var(--color-lime);
+  --primary-foreground: var(--color-on-lime);
+
+  --landing-bg-alt: #060e1d;
+  --landing-bg-soft: #131c2b;
+}
+
 @layer base {
   * {
     @apply border-border;

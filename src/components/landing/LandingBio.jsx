@@ -27,35 +27,81 @@ const letterSections = [
   },
 ]
 
-// Replaces the previous inset "card" (a bordered white box sitting on the
-// page background) with a full-width surface change instead — the whole
-// section becomes a distinct white "sheet" between two rules, letting the
-// portrait and letter breathe edge-to-edge rather than being boxed a second
-// time inside their own container (impeccable: "cards are the lazy answer").
-// The portrait grows from a 220px thumbnail to a real column that holds its
-// own weight, and stays in view (md:sticky) as the letter scrolls beside it
-// — a standard magazine-profile technique, not new chrome.
+// Stitch "Lumina Precision" reference layout for this section: a framed
+// portrait with corner-bracket accents beside a short intro + a pair of
+// stat tiles, followed by the longer-form content below. The two stats are
+// real facts pulled straight from her letter (five years old / twelve years
+// now) rather than the reference's invented "500+ Students Mentored" —
+// this is one tutor with one two-week camp, not a multi-decade studio.
+const stats = [
+  { value: '12+', label: 'Years Playing' },
+  { value: '5', label: 'Age She Started' },
+]
+
 export default function LandingBio() {
   return (
-    <section className="border-y border-border bg-card">
-      <div className="mx-auto grid w-full max-w-(--content-max-width) gap-10 px-5 py-16 [--content-max-width:64rem] sm:py-20 md:grid-cols-[minmax(240px,34%)_1fr] md:gap-14">
-        <div className="mx-auto w-48 shrink-0 sm:w-56 md:mx-0 md:w-full">
-          <div className="aspect-[3/4] overflow-hidden rounded-lg shadow-md md:sticky md:top-24">
-            <img
-              src="/landing/portrait-headshot.jpg"
-              alt="Black-and-white studio portrait of Elle holding her violin."
-              width={1179}
-              height={2556}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover"
+    <section id="letter" className="border-y border-border bg-card">
+      <div className="mx-auto flex w-full max-w-(--content-max-width) flex-col gap-16 px-5 py-16 [--content-max-width:64rem] sm:py-20 md:px-8">
+        {/* About: framed portrait + stat pair, matching the reference's
+            corner-bracket + stat-tile treatment. */}
+        <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-14">
+          <div className="relative mx-auto w-48 sm:w-56 md:mx-0 md:w-full">
+            <div
+              aria-hidden="true"
+              className="absolute -top-4 -left-4 hidden size-16 border-t-2 border-l-2 border-primary/40 md:block"
             />
+            <div
+              aria-hidden="true"
+              className="absolute -right-4 -bottom-4 hidden size-16 border-r-2 border-b-2 border-primary/40 md:block"
+            />
+            <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-border shadow-md">
+              <img
+                src="/landing/portrait-headshot.jpg"
+                alt="Black-and-white studio portrait of Elle holding her violin."
+                width={1179}
+                height={2556}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <span className="text-xs font-semibold tracking-widest text-primary uppercase">About me</span>
+              <h2 className="m-0 text-[clamp(1.875rem,1.5rem+1.5vw,2.75rem)] leading-tight font-extrabold tracking-tight text-balance text-foreground">
+                A little about me
+              </h2>
+              <p className="m-0 text-lg leading-relaxed text-muted-foreground">
+                I started lessons when I was five, and twelve years (and more recitals than I can count)
+                later, I still love this instrument as much as ever. This summer, I&rsquo;m looking
+                forward to sharing that with you.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-xl border border-border bg-background px-6 py-5 text-center"
+                >
+                  <div className="text-3xl font-extrabold text-primary">{stat.value}</div>
+                  <div className="mt-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* The full letter — unique real content the reference template has
+            no equivalent for, so it isn't borrowed from Stitch; it keeps
+            running below the About block instead of being cut for layout
+            parity. */}
         <div className="flex flex-col gap-8">
-          <h2 className="m-0 text-[clamp(1.875rem,1.5rem+1.5vw,2.75rem)] leading-tight font-extrabold tracking-tight text-balance">
+          <h3 className="m-0 text-2xl leading-tight font-extrabold tracking-tight text-balance text-foreground">
             A letter to my students
-          </h2>
+          </h3>
           <div className="flex flex-col gap-7">
             {letterSections.map((section) => (
               <div key={section.en} className="flex flex-col gap-2">
