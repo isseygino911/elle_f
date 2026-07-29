@@ -33,7 +33,7 @@ function isWithinLastWeek(isoDate) {
 // from the fetched list (total surveys, surveys added this week).
 export default function SurveysLayout() {
   const { accessToken, user } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { id: activeId } = useParams()
   const isElle = Boolean(user && user.role === 'elle')
 
@@ -135,7 +135,7 @@ export default function SurveysLayout() {
             <RecordCard
               to={`/surveys/${survey.id}`}
               icon={ClipboardList}
-              title={survey.title}
+              title={language === 'zh' && survey.title_zh ? survey.title_zh : survey.title}
               meta={`${survey.original_filename} · ${survey.uploaded_at}`}
               pillLabel={isWithinLastWeek(survey.uploaded_at) ? 'New' : undefined}
               pillVariant="lime"

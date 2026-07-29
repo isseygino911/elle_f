@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Check, Lock } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext.jsx";
+import { useLanguage } from "@/lib/LanguageContext";
 import {
   getSurvey,
   getSurveyDownloadUrl,
@@ -14,9 +15,20 @@ import { Progress } from "@/components/ui/progress";
 import { LoadingText, ErrorAlert } from "@/components/Page";
 import InsightCard from "@/components/records/InsightCard";
 
+// Survey content (title/question/answer text) is per-survey user data from
+// the uploaded XML, not a static UI string -- it can't live in
+// translations.js like the rest of the app's i18n, so it carries its own
+// _zh sibling column (server/migrations/0013_add_survey_zh_translations.sql)
+// and falls back to the English text whenever a translation hasn't been
+// entered for that row yet.
+function localize(en, zh, language) {
+  return language === "zh" && zh ? zh : en;
+}
+
 export default function SurveyDetailPage() {
   const { id } = useParams();
   const { accessToken, user } = useAuth();
+  const { language } = useLanguage();
   const isStudent = Boolean(user && user.role === "student");
 
   // Admin drill-in: elle viewing a specific student's answers/scores for
@@ -152,7 +164,7 @@ export default function SurveyDetailPage() {
         {status === "error" && <ErrorAlert>{error}</ErrorAlert>}
         {status === "success" && survey && (
           <section className="flex flex-col gap-3">
-            <h2>{survey.title}</h2>
+            <h2>{localize(survey.title, survey.title_zh, language)}</h2>
             <p className="m-0 text-sm text-muted-foreground">
               {survey.original_filename} — {survey.uploaded_at}
             </p>
@@ -184,7 +196,13 @@ export default function SurveyDetailPage() {
                     className="border-b border-border py-2 last:border-b-0"
                   >
                     <div className="flex items-baseline justify-between gap-3">
-                      <span>{question.question_text}</span>
+                      <span>
+                        {localize(
+                          question.question_text,
+                          question.question_text_zh,
+                          language,
+                        )}
+                      </span>
                       <Badge variant="outline">{question.points} pts</Badge>
                     </div>
                   </li>
@@ -241,7 +259,11 @@ export default function SurveyDetailPage() {
                         white card surface. */}
                     <div className="bg-lime px-4 py-3">
                       <p className="m-0 font-medium text-on-lime">
-                        {activeQuestion.question_text}
+                        {localize(
+                          activeQuestion.question_text,
+                          activeQuestion.question_text_zh,
+                          language,
+                        )}
                       </p>
                     </div>
 
@@ -272,7 +294,11 @@ export default function SurveyDetailPage() {
                                       readOnly
                                       className="accent-primary"
                                     />
-                                    {answer.answer_text}
+                                    {localize(
+                                      answer.answer_text,
+                                      answer.answer_text_zh,
+                                      language,
+                                    )}
                                   </span>
                                   {isSelected && (
                                     <Badge variant="success">✓ selected</Badge>
@@ -305,7 +331,11 @@ export default function SurveyDetailPage() {
                                 key={answer.id}
                                 className="border-b border-border py-3 last:border-b-0 last:pb-0"
                               >
-                                {answer.answer_text}
+                                {localize(
+                                  answer.answer_text,
+                                  answer.answer_text_zh,
+                                  language,
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -344,7 +374,11 @@ export default function SurveyDetailPage() {
                                       }
                                       className="accent-primary"
                                     />
-                                    {answer.answer_text}
+                                    {localize(
+                                      answer.answer_text,
+                                      answer.answer_text_zh,
+                                      language,
+                                    )}
                                   </label>
                                 </li>
                               ))}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { useLanguage } from '@/lib/LanguageContext'
 import { getStudentScores } from '../../api/client.js'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
@@ -15,6 +16,7 @@ function percent(earned, total) {
 export default function StudentDetailPage() {
   const { id } = useParams()
   const { accessToken } = useAuth()
+  const { language } = useLanguage()
 
   const [status, setStatus] = useState('loading') // loading | success | error
   const [student, setStudent] = useState(null)
@@ -80,7 +82,7 @@ export default function StudentDetailPage() {
                             to={`/surveys/${survey.survey_id}?student_id=${encodeURIComponent(id)}`}
                             className="font-medium text-primary hover:underline"
                           >
-                            {survey.title}
+                            {language === 'zh' && survey.title_zh ? survey.title_zh : survey.title}
                           </Link>
                         </TableCell>
                         <TableCell>
