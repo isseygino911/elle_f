@@ -75,6 +75,10 @@ export default function VideoUploadPage() {
       setError('Student ID is required for practice videos.')
       return
     }
+    if (!title.trim()) {
+      setError('Title is required.')
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -133,7 +137,7 @@ export default function VideoUploadPage() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="title">Title</FieldLabel>
+                <FieldLabel htmlFor="title">Title (required)</FieldLabel>
                 <Input id="title" type="text" value={title} onChange={(event) => setTitle(event.target.value)} />
               </Field>
               {isStudent ? (
