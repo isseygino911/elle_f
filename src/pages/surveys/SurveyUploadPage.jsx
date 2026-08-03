@@ -90,7 +90,7 @@ export default function SurveyUploadPage() {
               <li key={question.id} className="flex flex-col gap-2 border-b border-border py-2 last:border-b-0">
                 <div className="flex items-baseline justify-between gap-3">
                   <span>{question.question_text}</span>
-                  <Badge variant="outline">{question.points} pts</Badge>
+                  <Badge variant="outline">max {question.points} pts</Badge>
                 </div>
                 {question.answers && question.answers.length > 0 && (
                   <ul className="flex flex-col">
@@ -99,7 +99,7 @@ export default function SurveyUploadPage() {
                         <span>{answer.answer_text}</span>
                         <span className="flex shrink-0 items-center gap-2">
                           {answer.category && <Badge variant="accent">{answer.category}</Badge>}
-                          <Badge variant="outline">{answer.points} pts</Badge>
+                          <Badge variant="outline">rated 1-{answer.points}</Badge>
                         </span>
                       </li>
                     ))}

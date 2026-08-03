@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import {
   getSurvey,
   getSurveyDownloadUrl,
-  submitSurveyAnswer,
+  submitSurveyRatings,
 } from "../../api/client.js";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,101 @@ import InsightCard from "@/components/records/InsightCard";
 // entered for that row yet.
 function localize(en, zh, language) {
   return language === "zh" && zh ? zh : en;
+}
+
+// A day is submittable only once every one of its statements carries a
+// rating -- the server rejects a partial day, so the Submit button mirrors
+// that rule rather than letting the student discover it via an error.
+function isDayFullyRated(question, dayRatings) {
+  return question.answers.every((answer) => Boolean(dayRatings[answer.id]));
+}
+
+// One statement's 1..max rating scale, rendered as a row of numbered
+// buttons.
+//
+// These are real <input type="radio"> elements with the number drawn on the
+// <label>, not <button>s with role="radio": that hands the whole group's
+// keyboard behaviour (arrow-key roving focus, one tab stop, correct
+// screen-reader announcement of "3 of 10") to the browser instead of
+// reimplementing it. `name` scopes each group to its own statement so the
+// ten scales on a day don't collide.
+//
+// `max` comes from the statement's own points attribute, so a points="5"
+// statement renders 1-5. Above SCALE_BUTTON_LIMIT the row would wrap into
+// something unusable, so it degrades to a <select> -- the parser allows
+// points up to 1000, even though 10 is the norm in practice.
+const SCALE_BUTTON_LIMIT = 12;
+
+function RatingScale({ name, max, value, onChange, disabled, ariaLabel }) {
+  const scale = Array.from({ length: max }, (_, index) => index + 1);
+
+  if (max > SCALE_BUTTON_LIMIT) {
+    return (
+      <select
+        aria-label={ariaLabel}
+        className="h-9 rounded-md border border-border bg-background px-2 text-sm disabled:opacity-70"
+        value={value ?? ""}
+        disabled={disabled}
+        onChange={(event) => onChange(Number(event.target.value))}
+      >
+        <option value="" disabled>
+          Rate 1-{max}
+        </option>
+        {scale.map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className="flex flex-wrap items-center gap-1.5"
+    >
+      {scale.map((n) => {
+        const isSelected = value === n;
+        const inputId = `${name}-${n}`;
+        return (
+          <span key={n}>
+            <input
+              type="radio"
+              id={inputId}
+              name={name}
+              value={n}
+              checked={isSelected}
+              disabled={disabled}
+              onChange={() => onChange(n)}
+              className="peer sr-only"
+            />
+            <label
+              htmlFor={inputId}
+              className={cn(
+                "flex size-9 cursor-pointer select-none items-center justify-center rounded-full border text-sm tabular-nums transition-colors",
+                "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+                isSelected
+                  ? "border-transparent bg-lime font-bold text-on-lime"
+                  : "border-border text-muted-foreground hover:border-lime hover:text-foreground",
+                // Read-only (elle previewing a day, or reviewing a submitted
+                // one): drop the hover affordances entirely and mute the
+                // unpicked numbers, so the scale reads as "this is what the
+                // student is asked" rather than something clickable. A
+                // selected value keeps its lime pill at full strength -- it
+                // is the information being reported, so it must not fade.
+                disabled && "cursor-default hover:border-border hover:text-muted-foreground",
+                disabled && !isSelected && "opacity-50",
+              )}
+            >
+              {n}
+            </label>
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function SurveyDetailPage() {
@@ -46,7 +141,9 @@ export default function SurveyDetailPage() {
   const [downloading, setDownloading] = useState(false);
 
   const [activeDayId, setActiveDayId] = useState(null);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
+  // { [questionId]: { [answerId]: rating } } -- a day is rated statement by
+  // statement, and only submitted once every statement has a rating.
+  const [ratings, setRatings] = useState({});
   const [submittingId, setSubmittingId] = useState(null);
   const [submitErrors, setSubmitErrors] = useState({});
   const autoSelectedRef = useRef(false);
@@ -124,19 +221,27 @@ export default function SurveyDetailPage() {
     }
   }
 
-  async function handleSubmitAnswer(questionId) {
-    const answerId = selectedAnswers[questionId];
-    if (!answerId) return;
+  async function handleSubmitDay(question) {
+    const dayRatings = ratings[question.id] || {};
+    if (!isDayFullyRated(question, dayRatings)) return;
 
-    setSubmittingId(questionId);
-    setSubmitErrors((prev) => ({ ...prev, [questionId]: null }));
+    setSubmittingId(question.id);
+    setSubmitErrors((prev) => ({ ...prev, [question.id]: null }));
     try {
-      await submitSurveyAnswer(accessToken, id, questionId, answerId);
+      await submitSurveyRatings(
+        accessToken,
+        id,
+        question.id,
+        question.answers.map((answer) => ({
+          answer_id: answer.id,
+          rating: dayRatings[answer.id],
+        })),
+      );
       await reloadSurvey();
     } catch (err) {
       setSubmitErrors((prev) => ({
         ...prev,
-        [questionId]: (err.body && err.body.message) || err.message,
+        [question.id]: (err.body && err.body.message) || err.message,
       }));
     } finally {
       setSubmittingId(null);
@@ -278,31 +383,46 @@ export default function SurveyDetailPage() {
                         <div className="flex flex-col gap-3">
                           <ul className="flex flex-col">
                             {activeQuestion.answers.map((answer) => {
-                              const isSelected =
-                                answer.id ===
-                                activeQuestion.submission.answer_id;
+                              const given =
+                                activeQuestion.submission.ratings.find(
+                                  (entry) => entry.answer_id === answer.id,
+                                );
+                              const rating = given
+                                ? given.points_earned
+                                : null;
                               return (
                                 <li
                                   key={answer.id}
-                                  className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-b-0 last:pb-0"
+                                  className="flex flex-col gap-2 border-b border-border py-3 last:border-b-0 last:pb-0"
                                 >
-                                  <span className="flex min-w-0 items-center gap-2">
-                                    <input
-                                      type="radio"
-                                      checked={isSelected}
-                                      disabled
-                                      readOnly
-                                      className="accent-primary"
-                                    />
-                                    {localize(
+                                  <span className="flex items-baseline justify-between gap-3">
+                                    <span className="min-w-0">
+                                      {localize(
+                                        answer.answer_text,
+                                        answer.answer_text_zh,
+                                        language,
+                                      )}
+                                    </span>
+                                    <Badge variant="success">
+                                      {rating} / {answer.points}
+                                    </Badge>
+                                  </span>
+                                  <RatingScale
+                                    name={`submitted-${activeQuestion.id}-${answer.id}`}
+                                    max={answer.points}
+                                    value={rating}
+                                    onChange={() => {}}
+                                    disabled
+                                    ariaLabel={`${localize(
+                                      activeQuestion.question_text,
+                                      activeQuestion.question_text_zh,
+                                      language,
+                                    )} ${localize(
                                       answer.answer_text,
                                       answer.answer_text_zh,
                                       language,
-                                    )}
-                                  </span>
-                                  {isSelected && (
-                                    <Badge variant="success">✓ selected</Badge>
-                                  )}
+                                    )}`}
+                                  />
                                 </li>
                               );
                             })}
@@ -329,13 +449,31 @@ export default function SurveyDetailPage() {
                             {activeQuestion.answers.map((answer) => (
                               <li
                                 key={answer.id}
-                                className="border-b border-border py-3 last:border-b-0 last:pb-0"
+                                className="flex flex-col gap-2 border-b border-border py-3 last:border-b-0 last:pb-0"
                               >
-                                {localize(
-                                  answer.answer_text,
-                                  answer.answer_text_zh,
-                                  language,
-                                )}
+                                <span className="min-w-0">
+                                  {localize(
+                                    answer.answer_text,
+                                    answer.answer_text_zh,
+                                    language,
+                                  )}
+                                </span>
+                                <RatingScale
+                                  name={`preview-${activeQuestion.id}-${answer.id}`}
+                                  max={answer.points}
+                                  value={null}
+                                  onChange={() => {}}
+                                  disabled
+                                  ariaLabel={`${localize(
+                                    activeQuestion.question_text,
+                                    activeQuestion.question_text_zh,
+                                    language,
+                                  )} ${localize(
+                                    answer.answer_text,
+                                    answer.answer_text_zh,
+                                    language,
+                                  )}`}
+                                />
                               </li>
                             ))}
                           </ul>
@@ -348,38 +486,49 @@ export default function SurveyDetailPage() {
                             className="flex flex-col gap-3"
                             onSubmit={(event) => {
                               event.preventDefault();
-                              handleSubmitAnswer(activeQuestion.id);
+                              handleSubmitDay(activeQuestion);
                             }}
                           >
                             <ul className="flex flex-col">
                               {activeQuestion.answers.map((answer) => (
                                 <li
                                   key={answer.id}
-                                  className="border-b border-border py-3 last:border-b-0 last:pb-0"
+                                  className="flex flex-col gap-2 border-b border-border py-3 last:border-b-0 last:pb-0"
                                 >
-                                  <label className="flex min-w-0 items-center gap-2">
-                                    <input
-                                      type="radio"
-                                      name={`answer-${activeQuestion.id}`}
-                                      value={answer.id}
-                                      checked={
-                                        selectedAnswers[activeQuestion.id] ===
-                                        answer.id
-                                      }
-                                      onChange={() =>
-                                        setSelectedAnswers((prev) => ({
-                                          ...prev,
-                                          [activeQuestion.id]: answer.id,
-                                        }))
-                                      }
-                                      className="accent-primary"
-                                    />
+                                  <span className="min-w-0">
                                     {localize(
                                       answer.answer_text,
                                       answer.answer_text_zh,
                                       language,
                                     )}
-                                  </label>
+                                  </span>
+                                  <RatingScale
+                                    name={`rating-${activeQuestion.id}-${answer.id}`}
+                                    max={answer.points}
+                                    value={
+                                      (ratings[activeQuestion.id] || {})[
+                                        answer.id
+                                      ] ?? null
+                                    }
+                                    onChange={(value) =>
+                                      setRatings((prev) => ({
+                                        ...prev,
+                                        [activeQuestion.id]: {
+                                          ...(prev[activeQuestion.id] || {}),
+                                          [answer.id]: value,
+                                        },
+                                      }))
+                                    }
+                                    ariaLabel={`${localize(
+                                      activeQuestion.question_text,
+                                      activeQuestion.question_text_zh,
+                                      language,
+                                    )} ${localize(
+                                      answer.answer_text,
+                                      answer.answer_text_zh,
+                                      language,
+                                    )}`}
+                                  />
                                 </li>
                               ))}
                             </ul>
@@ -392,14 +541,24 @@ export default function SurveyDetailPage() {
                               <Button
                                 type="submit"
                                 disabled={
-                                  !selectedAnswers[activeQuestion.id] ||
-                                  submittingId === activeQuestion.id
+                                  !isDayFullyRated(
+                                    activeQuestion,
+                                    ratings[activeQuestion.id] || {},
+                                  ) || submittingId === activeQuestion.id
                                 }
                               >
                                 {submittingId === activeQuestion.id
                                   ? "Submitting..."
                                   : "Submit"}
                               </Button>
+                              {!isDayFullyRated(
+                                activeQuestion,
+                                ratings[activeQuestion.id] || {},
+                              ) && (
+                                <span className="text-xs text-muted-foreground">
+                                  Rate every statement to submit this day.
+                                </span>
+                              )}
                             </div>
                           </form>
                         )}

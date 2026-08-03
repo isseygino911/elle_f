@@ -86,10 +86,13 @@ export async function getSurveyDownloadUrl(accessToken, id) {
   return request(`/surveys/${encodeURIComponent(id)}/download-url`, { accessToken })
 }
 
-export async function submitSurveyAnswer(accessToken, surveyId, questionId, answerId) {
+// Submits one whole day at once. `ratings` is [{ answer_id, rating }] and
+// must cover every statement in the question -- each statement is rated
+// 1..N independently, so the server rejects a partial day.
+export async function submitSurveyRatings(accessToken, surveyId, questionId, ratings) {
   return request(`/surveys/${encodeURIComponent(surveyId)}/questions/${encodeURIComponent(questionId)}/submit`, {
     method: 'POST',
-    body: { answer_id: answerId },
+    body: { ratings },
     accessToken,
   })
 }
