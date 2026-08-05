@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Check, Lock } from "lucide-react";
+import { Check } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
@@ -162,15 +162,14 @@ export default function SurveyDetailPage() {
 
         if (!autoSelectedRef.current) {
           autoSelectedRef.current = true;
-          // Land on the current answerable day (the first unlocked,
-          // not-yet-submitted question) so the student picks up where they
-          // left off. If every day is already submitted, land on the last
-          // one instead -- there's always exactly one active tab, unlike
-          // the old accordion which could have nothing expanded.
+          // Land on the first not-yet-submitted day so the student picks up
+          // where they left off. If every day is already submitted, land on
+          // the last one instead -- there's always exactly one active tab,
+          // unlike the old accordion which could have nothing expanded.
           const answerable = nextSurvey.questions.filter(
             (q) => q.answers && q.answers.length > 0,
           );
-          const current = answerable.find((q) => !q.locked && !q.submission);
+          const current = answerable.find((q) => !q.submission);
           setActiveDayId(
             current
               ? current.id
@@ -197,8 +196,8 @@ export default function SurveyDetailPage() {
   }, [accessToken, id, viewingStudentId]);
 
   // Re-fetches the survey in place after a successful submission, so
-  // locked/submission state for every question comes straight from the
-  // server's ordering logic instead of being reimplemented client-side.
+  // submission state for every question comes straight from the server
+  // instead of being reimplemented client-side.
   // Deliberately does not touch activeDayId — the day the student just
   // submitted stays selected, now showing its submitted state.
   async function reloadSurvey() {
@@ -346,10 +345,7 @@ export default function SurveyDetailPage() {
                         )}
                       >
                         Day {index + 1}
-                        {question.locked && (
-                          <Lock className="size-3" aria-hidden="true" />
-                        )}
-                        {!question.locked && isSubmitted && (
+                        {isSubmitted && (
                           <Check className="size-3.5" aria-hidden="true" />
                         )}
                       </button>
@@ -373,13 +369,7 @@ export default function SurveyDetailPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 p-4">
-                      {activeQuestion.locked && (
-                        <p className="m-0 text-xs text-muted-foreground">
-                          Complete the previous day to unlock this one.
-                        </p>
-                      )}
-
-                      {!activeQuestion.locked && activeQuestion.submission && (
+                      {activeQuestion.submission && (
                         <div className="flex flex-col gap-3">
                           <ul className="flex flex-col">
                             {activeQuestion.answers.map((answer) => {
@@ -442,9 +432,7 @@ export default function SurveyDetailPage() {
                         </div>
                       )}
 
-                      {!activeQuestion.locked &&
-                        !activeQuestion.submission &&
-                        !isStudent && (
+                      {!activeQuestion.submission && !isStudent && (
                           <ul className="flex flex-col">
                             {activeQuestion.answers.map((answer) => (
                               <li
@@ -479,9 +467,7 @@ export default function SurveyDetailPage() {
                           </ul>
                         )}
 
-                      {!activeQuestion.locked &&
-                        !activeQuestion.submission &&
-                        isStudent && (
+                      {!activeQuestion.submission && isStudent && (
                           <form
                             className="flex flex-col gap-3"
                             onSubmit={(event) => {
