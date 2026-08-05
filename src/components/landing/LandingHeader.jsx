@@ -42,9 +42,28 @@ export default function LandingHeader() {
             Photos
           </a>
         </nav>
-        <Link to="/login" className={cn(buttonVariants({ size: 'sm' }), 'h-9 rounded-full px-5 font-bold')}>
-          Log in
-        </Link>
+        {/*
+          Two audiences reach this bar. The page itself is written for one
+          studio's students and parents, so "Log in" stays the filled primary
+          CTA. But /register-organization — the only way a new studio creates
+          an organization and its owner account — had no link anywhere in the
+          app: the route existed and could only be reached by typing the URL.
+          A quiet secondary link fixes that without competing with the CTA the
+          page was actually designed around. Hidden below `sm` where the two
+          would crowd each other; the login button is what a student needs on
+          a phone, and a studio owner signing up is on a desktop.
+        */}
+        <div className="flex items-center gap-3 sm:gap-5">
+          <Link
+            to="/register-organization"
+            className="hidden text-sm font-semibold text-muted-foreground transition-colors hover:text-primary sm:inline"
+          >
+            Create a studio
+          </Link>
+          <Link to="/login" className={cn(buttonVariants({ size: 'sm' }), 'h-9 rounded-full px-5 font-bold')}>
+            Log in
+          </Link>
+        </div>
       </div>
     </header>
   )

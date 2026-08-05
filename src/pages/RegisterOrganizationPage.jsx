@@ -70,10 +70,15 @@ export default function RegisterOrganizationPage() {
   }
 
   return (
-    <AuthCard
-      title="Create your organization"
-      description="Set up your studio and its owner account in one step."
-    >
+    // AuthCard renders only `children` — the `title`/`description` props this
+    // page used to pass were silently dropped, so the page had no heading at
+    // all. Rendered as markup here, matching RegisterPage, rather than
+    // widening the shared shell that every other auth page already uses.
+    <AuthCard>
+      <h1>Create your organization</h1>
+      <p className="text-sm text-muted-foreground">
+        Set up your studio and its owner account in one step.
+      </p>
       <form onSubmit={handleSubmit} noValidate>
         <FieldGroup>
           <Field>
@@ -135,8 +140,15 @@ export default function RegisterOrganizationPage() {
             {submitting ? 'Creating...' : 'Create organization'}
           </Button>
 
-          <p className="auth-alt-action">
-            Already have an account? <Link to="/login">Sign in</Link>
+          {/*
+            `auth-alt-action` was a class with no definition anywhere in the
+            codebase, so this line rendered as unstyled default-size text.
+            Matches RegisterPage's treatment of the same link instead.
+          */}
+          <p className="text-sm text-muted-foreground">
+            <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
+              Already have an account? Log in
+            </Link>
           </p>
         </FieldGroup>
       </form>

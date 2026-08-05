@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import { canManageStudents, isStudent, isManager } from '../lib/roles.js'
+import { canManageStudents, isStudent, isManager, isOwner } from '../lib/roles.js'
+import { useOrganization } from '@/lib/OrganizationContext'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutGrid,
@@ -16,6 +17,7 @@ import {
   Users,
   Languages,
   BookOpen,
+  Building2,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -54,6 +56,7 @@ const ICONS = {
   messages: MessageSquare,
   students: Users,
   library: BookOpen,
+  organization: Building2,
 }
 
 function initials(label) {
@@ -255,6 +258,11 @@ function SidebarNavList({ navItems, collapsed, userLabel, onLogout, onNavigate }
 
 export default function AppShell({ children }) {
   const { user, logout } = useAuth()
+  const { organization } = useOrganization()
+  // The tenant's own name, with the product name as the fallback while the
+  // fetch is in flight or if it failed. Every tenant used to see the literal
+  // string "Elle CRM" regardless of what they called their studio at signup.
+  const brandName = (organization && organization.name) || 'Elle CRM'
   const { t } = useLanguage()
   const isElle = canManageStudents(user)
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
@@ -291,6 +299,13 @@ export default function AppShell({ children }) {
         { to: '/library', label: t('nav.library'), icon: 'library', end: true },
         { to: '/bookings', label: t('nav.bookings'), icon: 'bookings' },
         isElle && { to: '/invitations', label: t('nav.invitations'), icon: 'invitations' },
+        // Owner only — renaming the studio is an organization-level act, not a
+        // teaching one, so this is narrower than the isElle items above.
+        isOwner(user) && {
+          to: '/organization',
+          label: t('nav.organization'),
+          icon: 'organization',
+        },
         user && {
           // Students go straight to their own thread; everyone else to the list.
           to: isStudent(user) ? `/messages/${encodeURIComponent(user.id)}` : '/messages',
@@ -308,7 +323,7 @@ export default function AppShell({ children }) {
           page content scrolls, same way the desktop sidebar stays put via
           its own `sticky`. */}
       <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border bg-dark px-4 shadow-md md:hidden">
-        <span className="font-heading text-lg font-extrabold text-lime">Elle CRM</span>
+        <span className="truncate font-heading text-lg font-extrabold text-lime">{brandName}</span>
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
             render={
@@ -328,7 +343,7 @@ export default function AppShell({ children }) {
             <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
 
             <div className="flex items-center justify-between gap-2 border-b border-dark-border px-1 pb-3">
-              <span className="font-heading text-lg font-extrabold text-lime">Elle CRM</span>
+              <span className="truncate font-heading text-lg font-extrabold text-lime">{brandName}</span>
               <SheetClose
                 render={
                   <Button
@@ -373,7 +388,7 @@ export default function AppShell({ children }) {
               collapsed && 'sr-only'
             )}
           >
-            {collapsed ? 'E' : 'Elle CRM'}
+            {collapsed ? brandName.charAt(0).toUpperCase() : brandName}
           </span>
           <Button
             type="button"

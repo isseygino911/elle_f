@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { Trash2, RotateCcw } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
-import { getVideo, getVideoPlaybackUrl, listComments, createComment, deleteVideo } from '../../api/client.js'
+import { canManageStudents } from '../../lib/roles.js'
+import {
+  getVideo,
+  getVideoPlaybackUrl,
+  listComments,
+  createComment,
+  deleteVideo,
+  reopenVideoReview,
+} from '../../api/client.js'
 import { formatDuration } from '../../utils/formatDuration.js'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,6 +28,9 @@ export default function VideoDetailPage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState(null)
+
+  const [reopening, setReopening] = useState(false)
+  const [reopenError, setReopenError] = useState(null)
 
   const [status, setStatus] = useState('loading') // loading | success | error
   const [video, setVideo] = useState(null)
@@ -137,7 +148,32 @@ export default function VideoDetailPage() {
     }
   }
 
+  // Send a reviewed video back to the queue.
+  //
+  // A video is marked 'reviewed' automatically the moment a teacher comments
+  // on it, which is convenient but one-way: without this, a video commented on
+  // by accident — or one the teacher wants to revisit after the student
+  // re-uploads — is gone from the pending queue for good. The server has
+  // always supported the revert (PATCH /videos/:id); nothing ever called it.
+  async function handleReopenReview() {
+    setReopening(true)
+    setReopenError(null)
+    try {
+      const { video: updatedVideo } = await reopenVideoReview(accessToken, id)
+      setVideo(updatedVideo)
+    } catch (err) {
+      setReopenError((err.body && err.body.message) || err.message)
+    } finally {
+      setReopening(false)
+    }
+  }
+
   const canDelete = Boolean(video && user && video.uploaded_by === user.id && commentsStatus === 'success' && comments.length === 0)
+
+  // Teachers and owners only — the server gates this endpoint on
+  // CAN_READ_STUDENT_DETAIL, so showing it to a student would render a control
+  // that can only 403. Only meaningful on an already-reviewed video.
+  const canReopen = Boolean(video && video.status === 'reviewed' && canManageStudents(user))
 
   return (
     <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-start">
@@ -245,6 +281,29 @@ export default function VideoDetailPage() {
             <p className="m-0 opacity-80">
               {commentsStatus === 'success' ? `${comments.length} comment${comments.length === 1 ? '' : 's'}` : 'Comments loading…'}
             </p>
+
+            {/*
+              Outline rather than a filled variant: this sits on the card's
+              solid violet ground, where a button carrying its own light
+              background reads as a foreign chip. Borrowing the card's own ink
+              (--color-on-violet, contrast-verified against violet in
+              tokens.css) keeps it part of the panel.
+            */}
+            {canReopen && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-1 self-start border-on-violet/30 bg-transparent text-on-violet hover:bg-on-violet/10 hover:text-on-violet"
+                onClick={handleReopenReview}
+                disabled={reopening}
+              >
+                <RotateCcw className="size-4" aria-hidden="true" />
+                {reopening ? 'Reopening…' : 'Reopen for review'}
+              </Button>
+            )}
+
+            {reopenError && <p className="m-0 text-sm font-medium">{reopenError}</p>}
           </InsightCard>
         </aside>
       )}

@@ -92,7 +92,20 @@ export default function LoginPage() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
+                {/*
+                  Reset sits beside the password label, where someone who has
+                  just failed to log in is already looking — not buried under
+                  the form with the secondary links.
+                */}
+                <div className="flex items-baseline justify-between gap-3">
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-medium text-muted-foreground hover:text-primary"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -111,6 +124,18 @@ export default function LoginPage() {
               </Button>
             </FieldGroup>
           </form>
+          {/*
+            The way into organization signup from the auth screens. Students
+            and teachers arrive here by invitation and never need it, so it
+            sits below the form as a quiet secondary action rather than
+            beside the primary button.
+          */}
+          <p className="text-sm text-muted-foreground">
+            Setting up a new studio?{' '}
+            <Link to="/register-organization" className="font-medium text-primary hover:underline">
+              Create an organization
+            </Link>
+          </p>
           <p className="text-sm text-muted-foreground">
             <Link to="/status" className="font-medium text-muted-foreground hover:text-primary">
               Server status

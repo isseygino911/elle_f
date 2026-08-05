@@ -74,12 +74,61 @@ export async function logout() {
   return request('/auth/logout', { method: 'POST', credentials: 'include' })
 }
 
-export async function createInvitation(accessToken, { studentNameHint } = {}) {
+// Request a reset link. Always resolves 200 with the same message whether or
+// not the address is registered — the server refuses to confirm account
+// existence, so the UI must not imply it did.
+export async function forgotPassword(email) {
+  return request('/auth/forgot-password', { method: 'POST', body: { email } })
+}
+
+// Check a reset link and find out whose it is.
+//
+// Returns { valid, name, role } — role comes from the token's user row, which
+// is how the reset page knows what kind of account it is restoring without
+// asking. No access token: the reset token IS the credential here.
+export async function checkResetToken(token) {
+  return request(`/auth/reset-password/${encodeURIComponent(token)}`)
+}
+
+// Complete the reset. Returns { role }. Issues no session — the user logs in
+// with the new password afterwards, same as after registration.
+export async function resetPassword({ token, password }) {
+  return request('/auth/reset-password', { method: 'POST', body: { token, password } })
+}
+
+// `role` is omitted rather than sent as 'student' when unset, so this keeps
+// matching the server's default and an admin's request stays byte-identical
+// to what it was before role selection existed. Who may invite which role is
+// enforced server-side (invitations.route.js INVITABLE_ROLES).
+export async function createInvitation(accessToken, { studentNameHint, role } = {}) {
   return request('/invitations', {
     method: 'POST',
-    body: { student_name_hint: studentNameHint || undefined },
+    body: {
+      student_name_hint: studentNameHint || undefined,
+      role: role && role !== 'student' ? role : undefined,
+    },
     accessToken,
   })
+}
+
+// The caller's own organization. Available to every role — it is the name on
+// the building, and the server derives which one from the token, so there is
+// no id to pass and no way to ask about another tenant.
+export async function getOrganization(accessToken) {
+  return request('/organization', { accessToken })
+}
+
+// Rename the organization. Owner-only; the server returns 403 for anyone else.
+export async function updateOrganization(accessToken, name) {
+  return request('/organization', { method: 'PATCH', body: { name }, accessToken })
+}
+
+// Outstanding and past invitations for the caller's organization. An owner
+// gets all of them; an admin gets only the ones they issued. Tokens are never
+// returned, so this can show that an invite is pending but not re-surface the
+// link — a lost one is reissued.
+export async function listInvitations(accessToken) {
+  return request('/invitations', { accessToken })
 }
 
 export async function listSurveys(accessToken) {
@@ -226,6 +275,22 @@ export async function listStudents(accessToken) {
   return request('/students', { accessToken })
 }
 
+// Owner-only: the organization's teachers, for the "assign to teacher" picker.
+export async function listAdmins(accessToken) {
+  return request('/students/admins', { accessToken })
+}
+
+// Owner-only: reassign a student to a teacher. `adminId` of null unassigns
+// them, which is a real state the schema allows (a student invited by an owner
+// starts unassigned, and deleting a teacher unassigns theirs).
+export async function reassignStudent(accessToken, studentId, adminId) {
+  return request(`/students/${encodeURIComponent(studentId)}/admin`, {
+    method: 'PATCH',
+    body: { admin_id: adminId === null || adminId === '' ? null : Number(adminId) },
+    accessToken,
+  })
+}
+
 export async function getStudentScores(accessToken, studentId) {
   return request(`/students/${encodeURIComponent(studentId)}/scores`, { accessToken })
 }
@@ -256,6 +321,20 @@ export async function deleteSurvey(accessToken, id) {
 
 export async function deleteVideo(accessToken, id) {
   return request(`/videos/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
+}
+
+// Send a reviewed video back to the review queue.
+//
+// One direction only. A video becomes 'reviewed' automatically when a teacher
+// comments on it (comments.route.js), and the server rejects an explicit
+// status:'reviewed' here with a 400 — so this is strictly the undo, never a
+// way to mark work reviewed without leaving feedback.
+export async function reopenVideoReview(accessToken, id) {
+  return request(`/videos/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: { status: 'pending_review' },
+    accessToken,
+  })
 }
 
 export async function listLibraryCategories(accessToken) {

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { LoadingText, ErrorAlert, EmptyState } from '@/components/Page'
 import InsightCard from '@/components/records/InsightCard'
+import AssignTeacherCard from '@/components/students/AssignTeacherCard'
 
 function percent(earned, total) {
   if (!total) return 0
@@ -107,18 +108,28 @@ export default function StudentDetailPage() {
         )}
       </div>
 
-      {status === 'success' && student && scores.length > 0 && (
-        <aside className="w-full shrink-0 lg:w-72">
-          <InsightCard tone="lime" title="Overall progress">
-            <p className="m-0">
-              <span className="font-semibold">
-                {completedQuestions} of {totalQuestions} days completed
-              </span>
-            </p>
-            <p className="m-0 opacity-80">
-              {earnedPoints} of {totalPoints} points ({percent(earnedPoints, totalPoints)}%)
-            </p>
-          </InsightCard>
+      {/*
+        The rail renders whenever a student has loaded, not only when they have
+        scores. A student with no surveys yet is precisely the one most likely
+        to need assigning to a teacher, so gating the whole rail on
+        scores.length would hide that control exactly when it is needed. The
+        progress card keeps its own scores.length check.
+      */}
+      {status === 'success' && student && (
+        <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72">
+          {scores.length > 0 && (
+            <InsightCard tone="lime" title="Overall progress">
+              <p className="m-0">
+                <span className="font-semibold">
+                  {completedQuestions} of {totalQuestions} days completed
+                </span>
+              </p>
+              <p className="m-0 opacity-80">
+                {earnedPoints} of {totalPoints} points ({percent(earnedPoints, totalPoints)}%)
+              </p>
+            </InsightCard>
+          )}
+          <AssignTeacherCard student={student} onAssigned={setStudent} />
         </aside>
       )}
     </div>

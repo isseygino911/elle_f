@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PageContainer, PageHeader, EmptyState, ErrorAlert } from '@/components/Page'
+import { PageContainer, PageHeader, EmptyState, ErrorAlert, LoadingText } from '@/components/Page'
 import StudentSelect from '@/components/StudentSelect'
 import BookingList, { JoinClassLink } from '@/components/BookingList'
 
@@ -174,7 +174,7 @@ export default function DashboardPage() {
           title={t('dashboard.title')}
           meta={`${t('dashboard.loggedInAs')} ${(user && (user.name || user.email)) || 'user'}`}
         />
-        {dashboardStatus === 'loading' && <p>Loading...</p>}
+        {dashboardStatus === 'loading' && <LoadingText>{t('dashboard.loading')}</LoadingText>}
         {dashboardStatus === 'error' && <ErrorAlert>{dashboardError}</ErrorAlert>}
         {dashboardStatus === 'success' && dashboard && <ManagerDashboard dashboard={dashboard} />}
       </PageContainer>

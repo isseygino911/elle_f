@@ -1,16 +1,20 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { canReadStudentDetail, canOpenStudentContent } from './lib/roles.js'
+import { canReadStudentDetail, canOpenStudentContent, isOwner } from './lib/roles.js'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
+import { OrganizationProvider } from './lib/OrganizationContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import RegisterOrganizationPage from './pages/RegisterOrganizationPage.jsx'
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import StatusPage from './pages/StatusPage.jsx'
 import InvitationsPage from './pages/InvitationsPage.jsx'
+import OrganizationSettingsPage from './pages/OrganizationSettingsPage.jsx'
 import SurveyUploadPage from './pages/surveys/SurveyUploadPage.jsx'
 import SurveysLayout from './components/surveys/SurveysLayout.jsx'
 import SurveyDetailPage from './pages/surveys/SurveyDetailPage.jsx'
@@ -52,12 +56,20 @@ export default function App() {
     <LanguageProvider>
     <TooltipProvider>
       <AuthProvider>
+        {/* Inside AuthProvider because it reads the access token; outside
+            BrowserRouter so the organization is fetched once for the session
+            rather than per navigation. */}
+        <OrganizationProvider>
         <BrowserRouter>
           <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/register-organization" element={<RegisterOrganizationPage />} />
+          {/* Public by necessity: someone who cannot log in has to reach
+              these without a session. */}
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route
             path="/dashboard"
@@ -72,6 +84,17 @@ export default function App() {
             element={
               <ProtectedRoute roles={canReadStudentDetail}>
                 <InvitationsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* isOwner, not canReadStudentDetail: renaming the studio is an
+              organization-level act, and admins are teachers. The server
+              enforces the same boundary (403 for anyone but the owner). */}
+          <Route
+            path="/organization"
+            element={
+              <ProtectedRoute roles={isOwner}>
+                <OrganizationSettingsPage />
               </ProtectedRoute>
             }
           />
@@ -211,6 +234,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </BrowserRouter>
+        </OrganizationProvider>
       </AuthProvider>
     </TooltipProvider>
     </LanguageProvider>
