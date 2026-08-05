@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { requestVideoUploadUrl, uploadFileToS3, confirmVideoUpload } from '../../api/client.js'
@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageContainer, PageHeader, BackLink, ErrorAlert } from '@/components/Page'
 import StudentSelect from '@/components/StudentSelect'
+import VideoRecorder from '@/components/videos/VideoRecorder'
+import { Separator } from '@/components/ui/separator'
 
 // Reads video duration client-side via an off-DOM <video> element. Resolves
 // null (not rejects) if the duration can't be determined, since duration_sec
@@ -49,9 +51,30 @@ export default function VideoUploadPage() {
   const [studentId, setStudentId] = useState('')
   const [title, setTitle] = useState('')
   const [file, setFile] = useState(null)
+  // Set only for a camera recording. A MediaRecorder WebM carries no duration
+  // in its header (readVideoDuration reports Infinity for it), so the recorder's
+  // own elapsed-time count is the only reliable source and is kept alongside the
+  // file rather than probed back out of it.
+  const [recordedDurationSec, setRecordedDurationSec] = useState(null)
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [uploaded, setUploaded] = useState(null)
+
+  // A finished recording becomes the file to upload, so it travels the exact
+  // same presigned-S3 path as a file picked from disk. Stable identity via
+  // useCallback: VideoRecorder publishes through an effect keyed on this.
+  const handleRecorded = useCallback((recordedFile, durationSec) => {
+    setFile(recordedFile)
+    setRecordedDurationSec(durationSec)
+    setError(null)
+  }, [])
+
+  // Picking a file supersedes any recording, so `file` and recordedDurationSec
+  // can never describe two different videos.
+  function handleFileChange(event) {
+    setFile(event.target.files[0] || null)
+    setRecordedDurationSec(null)
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -88,7 +111,9 @@ export default function VideoUploadPage() {
       // resolve the student's own id.
       const resolvedStudentId = studentId.trim() ? Number(studentId.trim()) : null
 
-      const durationSec = await readVideoDuration(file)
+      // Probe the file only when it came from disk; a recording already knows
+      // its duration and probing it would yield Infinity.
+      const durationSec = recordedDurationSec ?? (await readVideoDuration(file))
 
       const { upload } = await requestVideoUploadUrl(accessToken, {
         type,
@@ -112,6 +137,7 @@ export default function VideoUploadPage() {
       setTitle('')
       setStudentId('')
       setFile(null)
+      setRecordedDurationSec(null)
       form.reset()
     } catch (err) {
       setError((err.body && err.body.message) || err.message)
@@ -128,13 +154,26 @@ export default function VideoUploadPage() {
           <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="file">Video file (MP4, WebM, or QuickTime, max 2 GiB)</FieldLabel>
+                <FieldLabel>Record with your camera</FieldLabel>
+                <VideoRecorder onRecorded={handleRecorded} disabled={submitting} />
+                <FieldDescription>
+                  Your browser will ask for camera and microphone permission when you start.
+                </FieldDescription>
+              </Field>
+              <Separator />
+              <Field>
+                <FieldLabel htmlFor="file">Or choose a video file (MP4, WebM, or QuickTime, max 2 GiB)</FieldLabel>
                 <Input
                   id="file"
                   type="file"
                   accept="video/mp4,video/webm,video/quicktime"
-                  onChange={(event) => setFile(event.target.files[0] || null)}
+                  onChange={handleFileChange}
                 />
+                {recordedDurationSec !== null && file && (
+                  <FieldDescription>
+                    Using your recording ({file.name}). Choosing a file here replaces it.
+                  </FieldDescription>
+                )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="title">Title (required)</FieldLabel>
