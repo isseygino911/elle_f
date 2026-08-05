@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { canReadStudentDetail, canOpenStudentContent } from './lib/roles.js'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
@@ -6,6 +7,7 @@ import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import RegisterOrganizationPage from './pages/RegisterOrganizationPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import StatusPage from './pages/StatusPage.jsx'
 import InvitationsPage from './pages/InvitationsPage.jsx'
@@ -55,6 +57,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register-organization" element={<RegisterOrganizationPage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route
             path="/dashboard"
@@ -67,7 +70,7 @@ export default function App() {
           <Route
             path="/invitations"
             element={
-              <ProtectedRoute role="elle">
+              <ProtectedRoute roles={canReadStudentDetail}>
                 <InvitationsPage />
               </ProtectedRoute>
             }
@@ -79,14 +82,18 @@ export default function App() {
             branches. The `index` and `:id` children render into that
             layout's <Outlet/> — every existing URL below resolves exactly
             as it did before this pass; only the composition changed.
-            Role gating is unchanged: neither /surveys nor /surveys/:id (nor
-            /videos, /videos/:id) restricted a role before, so one
-            role-less ProtectedRoute wraps the whole branch, same as before.
+            These branches are gated with canOpenStudentContent -- everyone
+            except a manager. A student needs them (their own surveys and
+            videos), so canReadStudentDetail would be too narrow; a manager is
+            aggregates-only and the API returns 403/404 for every one of these
+            paths, so rendering them only produced a page of failed requests.
+            The nav already assumes this (a manager is shown one link); this
+            makes typing the URL agree with the nav.
           */}
           <Route
             path="/surveys"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <SurveysLayout />
               </ProtectedRoute>
             }
@@ -97,7 +104,7 @@ export default function App() {
           <Route
             path="/surveys/upload"
             element={
-              <ProtectedRoute role="elle">
+              <ProtectedRoute roles={canReadStudentDetail}>
                 <SurveyUploadPage />
               </ProtectedRoute>
             }
@@ -105,7 +112,7 @@ export default function App() {
           <Route
             path="/students"
             element={
-              <ProtectedRoute role="elle">
+              <ProtectedRoute roles={canReadStudentDetail}>
                 <StudentsLayout />
               </ProtectedRoute>
             }
@@ -116,7 +123,7 @@ export default function App() {
           <Route
             path="/videos"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <VideosLayout />
               </ProtectedRoute>
             }
@@ -127,7 +134,7 @@ export default function App() {
           <Route
             path="/videos/upload"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <VideoUploadPage />
               </ProtectedRoute>
             }
@@ -152,7 +159,7 @@ export default function App() {
           <Route
             path="/library/upload"
             element={
-              <ProtectedRoute role="elle">
+              <ProtectedRoute roles={canReadStudentDetail}>
                 <LibraryUploadPage />
               </ProtectedRoute>
             }
@@ -176,7 +183,7 @@ export default function App() {
           <Route
             path="/messages"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <MessagesLayout />
               </ProtectedRoute>
             }
@@ -187,7 +194,7 @@ export default function App() {
           <Route
             path="/bookings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <BookingCalendarPage />
               </ProtectedRoute>
             }
@@ -195,11 +202,13 @@ export default function App() {
           <Route
             path="/bookings/:id/call"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={canOpenStudentContent}>
                 <JitsiCallPage />
               </ProtectedRoute>
             }
           />
+          {/* Catch-all: an unknown path previously rendered a blank page. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </BrowserRouter>
       </AuthProvider>

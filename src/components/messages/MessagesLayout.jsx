@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { canManageStudents, isStudent } from '../../lib/roles.js'
 import { Navigate, Outlet, useParams } from 'react-router-dom'
 import { MessageSquare } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
@@ -21,7 +22,7 @@ import EmptyDetailState from '@/components/records/EmptyDetailState'
 export default function MessagesLayout() {
   const { user, accessToken } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
   const { studentId: activeId } = useParams()
   const { students, status } = useStudents(accessToken, { enabled: isElle })
 
@@ -49,6 +50,10 @@ export default function MessagesLayout() {
     }
   }, [accessToken, isElle])
 
+  // A student gets the bare thread with no student-list panel. Anyone else
+  // who cannot manage students (a manager) also has no list to show -- but
+  // must not be handed the student experience either, so they see the same
+  // bare outlet, and the thread route itself will refuse them.
   if (!isElle) {
     return <Outlet />
   }
@@ -87,9 +92,13 @@ export default function MessagesLayout() {
 export function MessagesIndex() {
   const { user } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
 
-  if (!isElle && user) {
+  // Only a STUDENT is redirected to their own thread. This deliberately does
+  // not use `!isElle`: a manager satisfies neither branch, and redirecting
+  // them to /messages/<their own id> would send them to a student thread that
+  // does not exist for them (and that they are forbidden from reading anyway).
+  if (isStudent(user) && user) {
     return <Navigate to={`/messages/${encodeURIComponent(user.id)}`} replace />
   }
 

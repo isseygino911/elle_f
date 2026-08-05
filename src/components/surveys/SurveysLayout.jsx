@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { canManageStudents } from '../../lib/roles.js'
 import { useParams } from 'react-router-dom'
 import { ClipboardList, FileText } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
@@ -35,7 +36,7 @@ export default function SurveysLayout() {
   const { accessToken, user } = useAuth()
   const { t, language } = useLanguage()
   const { id: activeId } = useParams()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
 
   const [status, setStatus] = useState('loading') // loading | success | error
   const [surveys, setSurveys] = useState([])

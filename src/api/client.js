@@ -51,6 +51,17 @@ export async function register({ token, name, email, password }) {
   return request('/auth/register', { method: 'POST', body: { token, name, email, password } })
 }
 
+// Organization signup: creates the organization and its owner account in one
+// request. The server does both in a single transaction, so an organization
+// can never exist without an owner. Returns { organization, user } but no
+// tokens — the client then logs in normally, matching how register() behaves.
+export async function registerOrganization({ organization_name, name, email, password }) {
+  return request('/auth/register-organization', {
+    method: 'POST',
+    body: { organization_name, name, email, password }
+  })
+}
+
 export async function login({ email, password }) {
   return request('/auth/login', { method: 'POST', body: { email, password }, credentials: 'include' })
 }

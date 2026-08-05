@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { canManageStudents } from '../../lib/roles.js'
 import { useParams } from 'react-router-dom'
 import { Video as VideoIcon, Clock3, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
@@ -36,7 +37,7 @@ export default function VideosLayout() {
   const { accessToken, user } = useAuth()
   const { t } = useLanguage()
   const { id: activeId } = useParams()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
 
   const [status, setStatus] = useState('loading') // loading | success | error
   const [videos, setVideos] = useState([])

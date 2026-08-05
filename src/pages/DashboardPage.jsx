@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { canManageStudents, isManager } from '../lib/roles.js'
+import ManagerDashboard from '../components/dashboard/ManagerDashboard.jsx'
 import { Link } from 'react-router-dom'
 import { Bell, Video, MessageSquare, CheckSquare, GraduationCap, CalendarDays } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -42,7 +44,7 @@ const POLL_INTERVAL_MS = 15000
 export default function DashboardPage() {
   const { user, accessToken } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
 
   const [dashboardStatus, setDashboardStatus] = useState('loading') // loading | success | error
@@ -161,6 +163,23 @@ export default function DashboardPage() {
   const upcomingBookings = dashboard?.upcoming_bookings?.bookings ?? []
   const nextBooking = upcomingBookings[0] ?? null
   const laterBookings = upcomingBookings.slice(1)
+
+  // A manager sees the aggregate view instead of the teaching dashboard. This
+  // is an explicit role check, not `!isElle`: a manager is neither a teacher
+  // nor a student, and the sections below all assume one or the other.
+  if (isManager(user)) {
+    return (
+      <PageContainer>
+        <PageHeader
+          title={t('dashboard.title')}
+          meta={`${t('dashboard.loggedInAs')} ${(user && (user.name || user.email)) || 'user'}`}
+        />
+        {dashboardStatus === 'loading' && <p>Loading...</p>}
+        {dashboardStatus === 'error' && <ErrorAlert>{dashboardError}</ErrorAlert>}
+        {dashboardStatus === 'success' && dashboard && <ManagerDashboard dashboard={dashboard} />}
+      </PageContainer>
+    )
+  }
 
   return (
     <PageContainer>

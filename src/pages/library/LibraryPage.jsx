@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { canManageStudents } from '../../lib/roles.js'
 import { Link } from 'react-router-dom'
 import {
   FolderOpen,
@@ -190,7 +191,7 @@ function FileRow({ file, isElle, categories, uncategorizedLabel, onPreview, onDo
 export default function LibraryPage() {
   const { accessToken, user } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
 
   const [categories, setCategories] = useState([])
   const [uncategorizedCount, setUncategorizedCount] = useState(0)

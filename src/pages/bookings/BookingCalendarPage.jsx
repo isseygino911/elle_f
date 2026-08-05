@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { canManageStudents } from '../../lib/roles.js'
 import { CalendarDays, Clock3, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -44,7 +45,7 @@ function shiftDate(dateStr, days) {
 export default function BookingCalendarPage() {
   const { accessToken, user } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
 
   const [selectedDate, setSelectedDate] = useState(todayEasternDate)

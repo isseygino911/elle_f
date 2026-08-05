@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { canManageStudents, isStudent, isManager } from '../lib/roles.js'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutGrid,
@@ -255,7 +256,7 @@ function SidebarNavList({ navItems, collapsed, userLabel, onLogout, onNavigate }
 export default function AppShell({ children }) {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
-  const isElle = Boolean(user && user.role === 'elle')
+  const isElle = canManageStudents(user)
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
@@ -269,22 +270,34 @@ export default function AppShell({ children }) {
 
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), [])
 
-  const navItems = [
-    { to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
-    isElle && { to: '/students', label: t('nav.students'), icon: 'students' },
-    { to: '/surveys', label: t('nav.surveys'), icon: 'surveys', end: true },
-    isElle && { to: '/surveys/upload', label: t('nav.uploadSurvey'), icon: 'upload' },
-    { to: '/videos', label: t('nav.videos'), icon: 'videos', end: true },
-    { to: '/videos/upload', label: t('nav.uploadVideo'), icon: 'upload' },
-    { to: '/library', label: t('nav.library'), icon: 'library', end: true },
-    { to: '/bookings', label: t('nav.bookings'), icon: 'bookings' },
-    isElle && { to: '/invitations', label: t('nav.invitations'), icon: 'invitations' },
-    user && {
-      to: isElle ? '/messages' : `/messages/${encodeURIComponent(user.id)}`,
-      label: t('nav.messages'),
-      icon: 'messages',
-    },
-  ].filter(Boolean)
+  // A manager's entire surface is the aggregate dashboard: every per-student
+  // route returns 403 or 404 for them, so linking to any of it would be an
+  // invitation to hit an error page. Built as its own list rather than by
+  // subtracting items from the teaching nav, so the two cannot drift.
+  //
+  // This is a menu, not a lock -- typing a URL bypasses it entirely. The
+  // matching route guards live in App.jsx (canOpenStudentContent), and the
+  // real boundary is the server, which fences every one of these endpoints by
+  // organization and capability.
+  const navItems = isManager(user)
+    ? [{ to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' }]
+    : [
+        { to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+        isElle && { to: '/students', label: t('nav.students'), icon: 'students' },
+        { to: '/surveys', label: t('nav.surveys'), icon: 'surveys', end: true },
+        isElle && { to: '/surveys/upload', label: t('nav.uploadSurvey'), icon: 'upload' },
+        { to: '/videos', label: t('nav.videos'), icon: 'videos', end: true },
+        { to: '/videos/upload', label: t('nav.uploadVideo'), icon: 'upload' },
+        { to: '/library', label: t('nav.library'), icon: 'library', end: true },
+        { to: '/bookings', label: t('nav.bookings'), icon: 'bookings' },
+        isElle && { to: '/invitations', label: t('nav.invitations'), icon: 'invitations' },
+        user && {
+          // Students go straight to their own thread; everyone else to the list.
+          to: isStudent(user) ? `/messages/${encodeURIComponent(user.id)}` : '/messages',
+          label: t('nav.messages'),
+          icon: 'messages',
+        },
+      ].filter(Boolean)
 
   const userLabel = (user && (user.name || user.email)) || 'Account'
 
