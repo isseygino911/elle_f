@@ -247,6 +247,74 @@ export async function deleteVideo(accessToken, id) {
   return request(`/videos/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
 }
 
+export async function listLibraryCategories(accessToken) {
+  return request('/library/categories', { accessToken })
+}
+
+export async function createLibraryCategory(accessToken, name) {
+  return request('/library/categories', { method: 'POST', body: { name }, accessToken })
+}
+
+export async function renameLibraryCategory(accessToken, id, name) {
+  return request(`/library/categories/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: { name },
+    accessToken,
+  })
+}
+
+export async function deleteLibraryCategory(accessToken, id) {
+  return request(`/library/categories/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
+}
+
+export async function requestLibraryUploadUrl(accessToken, meta) {
+  return request('/library/upload-url', { method: 'POST', body: meta, accessToken })
+}
+
+export async function confirmLibraryUpload(accessToken, data) {
+  return request('/library/files', { method: 'POST', body: data, accessToken })
+}
+
+// `categoryId` accepts a numeric id or the 'uncategorized' sentinel; passing
+// nothing lists every file regardless of category.
+export async function listLibraryFiles(accessToken, { categoryId, q } = {}) {
+  const params = new URLSearchParams()
+  if (categoryId) params.set('category_id', categoryId)
+  if (q) params.set('q', q)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/library/files${query}`, { accessToken })
+}
+
+export async function getLibraryFile(accessToken, id) {
+  return request(`/library/files/${encodeURIComponent(id)}`, { accessToken })
+}
+
+export async function getLibraryDownloadUrl(accessToken, id) {
+  return request(`/library/files/${encodeURIComponent(id)}/download-url`, { accessToken })
+}
+
+// Same object as the download URL but signed for inline display, so the
+// in-app viewer can render it in an <img>/<video>/<audio>/<iframe> instead
+// of triggering a save dialog.
+export async function getLibraryPreviewUrl(accessToken, id) {
+  return request(`/library/files/${encodeURIComponent(id)}/preview-url`, { accessToken })
+}
+
+// Serves both the move-between-categories action and title/description
+// edits. Pass `category_id: null` to move a file back to Uncategorized —
+// the server distinguishes an explicit null from an omitted key.
+export async function updateLibraryFile(accessToken, id, updates) {
+  return request(`/library/files/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: updates,
+    accessToken,
+  })
+}
+
+export async function deleteLibraryFile(accessToken, id) {
+  return request(`/library/files/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
+}
+
 // Direct-to-S3 upload using a presigned POST (fields + url from
 // requestVideoUploadUrl). This bypasses request()/Express entirely: it goes
 // to the S3 endpoint, not our API, so no Authorization header and no JSON

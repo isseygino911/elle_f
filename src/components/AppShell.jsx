@@ -14,6 +14,7 @@ import {
   X,
   Users,
   Languages,
+  BookOpen,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -51,6 +52,7 @@ const ICONS = {
   invitations: UserPlus,
   messages: MessageSquare,
   students: Users,
+  library: BookOpen,
 }
 
 function initials(label) {
@@ -274,6 +276,7 @@ export default function AppShell({ children }) {
     isElle && { to: '/surveys/upload', label: t('nav.uploadSurvey'), icon: 'upload' },
     { to: '/videos', label: t('nav.videos'), icon: 'videos', end: true },
     { to: '/videos/upload', label: t('nav.uploadVideo'), icon: 'upload' },
+    { to: '/library', label: t('nav.library'), icon: 'library', end: true },
     { to: '/bookings', label: t('nav.bookings'), icon: 'bookings' },
     isElle && { to: '/invitations', label: t('nav.invitations'), icon: 'invitations' },
     user && {

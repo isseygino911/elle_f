@@ -17,6 +17,9 @@ import StudentDetailPage from './pages/students/StudentDetailPage.jsx'
 import VideoUploadPage from './pages/videos/VideoUploadPage.jsx'
 import VideosLayout from './components/videos/VideosLayout.jsx'
 import VideoDetailPage from './pages/videos/VideoDetailPage.jsx'
+import LibraryPage from './pages/library/LibraryPage.jsx'
+import LibraryUploadPage from './pages/library/LibraryUploadPage.jsx'
+import LibraryFileDetailPage from './pages/library/LibraryFileDetailPage.jsx'
 import MessageThreadPage from './pages/messages/MessageThreadPage.jsx'
 import MessagesLayout, { MessagesIndex } from './components/messages/MessagesLayout.jsx'
 import BookingCalendarPage from './pages/bookings/BookingCalendarPage.jsx'
@@ -126,6 +129,39 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <VideoUploadPage />
+              </ProtectedRoute>
+            }
+          />
+          {/*
+            Library: browsing (list + file detail) is open to any signed-in
+            user, so those two routes carry a role-less ProtectedRoute. Only
+            uploading is Elle-only — category creation and moving files
+            between categories happen inline on /library and are gated in the
+            UI by role, with the server enforcing the same rule.
+            /library/upload is declared before /library/:id so the literal
+            path wins over the dynamic segment.
+          */}
+          <Route
+            path="/library"
+            element={
+              <ProtectedRoute>
+                <LibraryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/library/upload"
+            element={
+              <ProtectedRoute role="elle">
+                <LibraryUploadPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/library/:id"
+            element={
+              <ProtectedRoute>
+                <LibraryFileDetailPage />
               </ProtectedRoute>
             }
           />
