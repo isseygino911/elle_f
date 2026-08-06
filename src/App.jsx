@@ -13,7 +13,9 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import StatusPage from './pages/StatusPage.jsx'
-import InvitationsPage from './pages/InvitationsPage.jsx'
+import InvitationsLayout from './components/invitations/InvitationsLayout.jsx'
+import InvitationCreatePage from './pages/invitations/InvitationCreatePage.jsx'
+import InvitationDetailPage from './pages/invitations/InvitationDetailPage.jsx'
 import OrganizationSettingsPage from './pages/OrganizationSettingsPage.jsx'
 import SurveyUploadPage from './pages/surveys/SurveyUploadPage.jsx'
 import SurveysLayout from './components/surveys/SurveysLayout.jsx'
@@ -51,6 +53,11 @@ function VideosEmptyDetail() {
   return <EmptyDetailState>{t('videos.emptyDetail')}</EmptyDetailState>
 }
 
+function InvitationsEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('invitations.emptyDetail')}</EmptyDetailState>
+}
+
 export default function App() {
   return (
     <LanguageProvider>
@@ -79,14 +86,27 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          {/*
+            Same master-detail composition as /students, /surveys and /videos:
+            the dark list panel is the route element for the parent path and
+            the children render into its <Outlet/>. Replaces the single stacked
+            InvitationsPage — /invitations still resolves, now to the list with
+            an empty detail pane rather than a form above a list.
+            '/new' is declared before ':id' so the literal path wins over the
+            dynamic segment.
+          */}
           <Route
             path="/invitations"
             element={
               <ProtectedRoute roles={canReadStudentDetail}>
-                <InvitationsPage />
+                <InvitationsLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<InvitationsEmptyDetail />} />
+            <Route path="new" element={<InvitationCreatePage />} />
+            <Route path=":id" element={<InvitationDetailPage />} />
+          </Route>
           {/* isOwner, not canReadStudentDetail: renaming the studio is an
               organization-level act, and admins are teachers. The server
               enforces the same boundary (403 for anyone but the owner). */}

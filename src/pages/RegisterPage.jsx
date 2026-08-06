@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { checkInvitation, register } from '../api/client.js'
+import { useLanguage } from '@/lib/LanguageContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -23,6 +24,7 @@ export default function RegisterPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   const [invitationStatus, setInvitationStatus] = useState('loading') // loading | valid | invalid
   const [name, setName] = useState('')
@@ -78,7 +80,7 @@ export default function RegisterPage() {
     return (
       <AuthCard>
         <h1>Create your account</h1>
-        <p className="animate-pulse text-sm text-muted-foreground">Checking invitation...</p>
+        <p className="animate-pulse text-sm text-muted-foreground">{t('register.checkingInvitation')}</p>
       </AuthCard>
     )
   }
@@ -88,7 +90,7 @@ export default function RegisterPage() {
       <AuthCard>
         <h1>Create your account</h1>
         <Alert variant="destructive">
-          <AlertDescription>This invitation link is invalid or has expired.</AlertDescription>
+          <AlertDescription>{t('register.invitationInvalid')}</AlertDescription>
         </Alert>
         <p className="text-sm text-muted-foreground">
           <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
