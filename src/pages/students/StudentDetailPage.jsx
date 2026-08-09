@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Download } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
-import { getStudentScores } from '../../api/client.js'
+import { getStudentScores, downloadStudentSurvey } from '../../api/client.js'
+import { saveBlob } from '../../utils/saveBlob.js'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { LoadingText, ErrorAlert, EmptyState } from '@/components/Page'
 import InsightCard from '@/components/records/InsightCard'
@@ -23,6 +26,10 @@ export default function StudentDetailPage() {
   const [student, setStudent] = useState(null)
   const [scores, setScores] = useState([])
   const [error, setError] = useState(null)
+  // Which survey's download is in flight, so only that row's button shows a
+  // pending state rather than every row at once.
+  const [downloadingId, setDownloadingId] = useState(null)
+  const [downloadError, setDownloadError] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -46,6 +53,25 @@ export default function StudentDetailPage() {
     }
   }, [accessToken, id])
 
+  // Downloads this student's answers for one survey as a printable document.
+  // This whole route is already gated to owner/admin (App.jsx's
+  // canReadStudentDetail), so no further role check is needed here.
+  async function handleDownload(survey) {
+    setDownloadError(null)
+    setDownloadingId(survey.survey_id)
+    try {
+      const { blob, filename } = await downloadStudentSurvey(accessToken, survey.survey_id, {
+        studentId: id,
+        language,
+      })
+      saveBlob(blob, filename)
+    } catch (err) {
+      setDownloadError((err.body && err.body.message) || err.message)
+    } finally {
+      setDownloadingId(null)
+    }
+  }
+
   const totalQuestions = scores.reduce((sum, survey) => sum + survey.total_questions, 0)
   const completedQuestions = scores.reduce((sum, survey) => sum + survey.completed_questions, 0)
   const totalPoints = scores.reduce((sum, survey) => sum + survey.total_points, 0)
@@ -61,6 +87,8 @@ export default function StudentDetailPage() {
             <h2>{student.name}</h2>
             <p className="m-0 text-sm text-muted-foreground">{student.email}</p>
 
+            {downloadError && <ErrorAlert>{downloadError}</ErrorAlert>}
+
             {scores.length === 0 ? (
               <EmptyState>No surveys have been uploaded yet.</EmptyState>
             ) : (
@@ -71,6 +99,9 @@ export default function StudentDetailPage() {
                     <TableHead>Days completed</TableHead>
                     <TableHead>Score</TableHead>
                     <TableHead>Last submitted</TableHead>
+                    <TableHead className="w-px whitespace-nowrap">
+                      <span className="sr-only">Download</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -97,6 +128,23 @@ export default function StudentDetailPage() {
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {survey.last_submitted_at ? survey.last_submitted_at : '—'}
+                        </TableCell>
+                        <TableCell>
+                          {/* Offered even for a survey with no submissions yet:
+                              the document still prints every question with its
+                              scale blank, which is a useful record of what the
+                              student has not done. */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            aria-label={`Download ${survey.title} for ${student.name}`}
+                            disabled={downloadingId === survey.survey_id}
+                            onClick={() => handleDownload(survey)}
+                          >
+                            <Download className="size-4" aria-hidden="true" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     )
