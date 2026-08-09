@@ -1,5 +1,5 @@
-import { canManageStudents, isStudent, isManager, isOwner } from '../lib/roles.js'
 import { useCallback, useEffect, useState } from 'react'
+import { canManageStudents, canReadBroadcasts, isStudent, isManager, isOwner } from '../lib/roles.js'
 import { useOrganization } from '@/lib/OrganizationContext'
 import { NavLink } from 'react-router-dom'
 import {
@@ -18,6 +18,7 @@ import {
   Languages,
   BookOpen,
   Building2,
+  Megaphone,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -57,6 +58,7 @@ const ICONS = {
   students: Users,
   library: BookOpen,
   organization: Building2,
+  broadcasts: Megaphone,
 }
 
 function initials(label) {
@@ -350,7 +352,15 @@ export default function AppShell({ children }) {
   // real boundary is the server, which fences every one of these endpoints by
   // organization and capability.
   const navItems = isManager(user)
-    ? [{ to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' }]
+    ? [
+        { to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+        // The manager's second link, and the only one that is not the
+        // dashboard. It leads to the oversight feed -- sender, subject and
+        // recipient count -- which is aggregate data of exactly the kind this
+        // role already sees. It is not a compose form: the server refuses a
+        // manager's POST, and the page draws no form for them.
+        { to: '/broadcasts', label: t('nav.broadcasts'), icon: 'broadcasts' },
+      ]
     : [
         { to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
         isElle && { to: '/students', label: t('nav.students'), icon: 'students' },
@@ -361,6 +371,13 @@ export default function AppShell({ children }) {
         { to: '/library', label: t('nav.library'), icon: 'library', end: true },
         { to: '/bookings', label: t('nav.bookings'), icon: 'bookings' },
         isElle && { to: '/invitations', label: t('nav.invitations'), icon: 'invitations' },
+        // Owner and teacher only. canReadBroadcasts also admits managers, who
+        // are handled by the branch above and never reach this list.
+        canReadBroadcasts(user) && {
+          to: '/broadcasts',
+          label: t('nav.broadcasts'),
+          icon: 'broadcasts',
+        },
         // Owner only — renaming the studio is an organization-level act, not a
         // teaching one, so this is narrower than the isElle items above.
         isOwner(user) && {

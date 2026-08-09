@@ -317,6 +317,25 @@ export async function markNotificationRead(accessToken, notificationId) {
   return request(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH', accessToken })
 }
 
+export async function createBroadcast(accessToken, { audience, title, body } = {}) {
+  return request('/broadcasts', { method: 'POST', body: { audience, title, body }, accessToken })
+}
+
+// The SENDER's outbox, and the owner/manager oversight feed. A student's copy
+// of a broadcast arrives as a notification instead, so nothing calls this for
+// them -- the server answers 403.
+//
+// A manager's rows carry no `body` key at all (the server drops it, not the
+// UI), so anything rendering these must treat body as optional rather than
+// assuming a string.
+export async function listBroadcasts(accessToken, { limit, offset } = {}) {
+  const params = new URLSearchParams()
+  if (limit) params.set('limit', limit)
+  if (offset) params.set('offset', offset)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/broadcasts${query}`, { accessToken })
+}
+
 export async function createTask(accessToken, { title, assigned_to, due_date } = {}) {
   return request('/tasks', { method: 'POST', body: { title, assigned_to, due_date }, accessToken })
 }

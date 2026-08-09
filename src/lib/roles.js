@@ -62,6 +62,25 @@ export const canReadAggregates = (user) => isOwner(user) || isManager(user);
 // what the nav already assumes (AppShell shows a manager one link).
 export const canOpenStudentContent = (user) => Boolean(user) && !isManager(user);
 
+// May send an announcement. Mirrors CAN_BROADCAST_ORG plus
+// CAN_BROADCAST_ROSTER on the server -- an owner addresses the organization, a
+// teacher their own roster.
+//
+// Deliberately excludes manager, who outranks a teacher but may not send. This
+// is the same trap the server file warns about: any "senior enough" phrasing
+// here would draw a compose form that can only 403.
+export const canBroadcast = (user) => isOwner(user) || isAdmin(user);
+
+// May choose WHO an announcement goes to. Owner only -- a teacher's audience is
+// always their own students, so they are shown no selector. Mirrors
+// CAN_BROADCAST_ORG.
+export const canChooseBroadcastAudience = (user) => isOwner(user);
+
+// May open the broadcast list: senders see their own outbox, owner and manager
+// see the org's activity. Mirrors the server's GET /broadcasts gate, which is
+// the union of the two send capabilities and CAN_READ_BROADCAST_OVERSIGHT.
+export const canReadBroadcasts = (user) => canBroadcast(user) || isManager(user);
+
 // Runs the teaching-side UI (student pickers, review queues, upload controls).
 // This is the closest replacement for the old `isElle`, but note it is NOT
 // interchangeable: `!canManageStudents(user)` does NOT mean "is a student",

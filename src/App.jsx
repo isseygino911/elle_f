@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { canReadStudentDetail, canOpenStudentContent, isOwner } from './lib/roles.js'
+import { canReadStudentDetail, canOpenStudentContent, canReadBroadcasts, isOwner } from './lib/roles.js'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
@@ -17,6 +17,7 @@ import InvitationsLayout from './components/invitations/InvitationsLayout.jsx'
 import InvitationCreatePage from './pages/invitations/InvitationCreatePage.jsx'
 import InvitationDetailPage from './pages/invitations/InvitationDetailPage.jsx'
 import OrganizationSettingsPage from './pages/OrganizationSettingsPage.jsx'
+import BroadcastsPage from './pages/BroadcastsPage.jsx'
 import SurveyUploadPage from './pages/surveys/SurveyUploadPage.jsx'
 import SurveysLayout from './components/surveys/SurveysLayout.jsx'
 import SurveyDetailPage from './pages/surveys/SurveyDetailPage.jsx'
@@ -191,6 +192,20 @@ export default function App() {
             /library/upload is declared before /library/:id so the literal
             path wins over the dynamic segment.
           */}
+          {/*
+            Senders (owner, teacher) and the oversight roles (owner, manager)
+            share one page; a student never reaches it, since their copy of an
+            announcement arrives as a notification. canReadBroadcasts is the
+            union the server's GET /broadcasts gate applies.
+          */}
+          <Route
+            path="/broadcasts"
+            element={
+              <ProtectedRoute roles={canReadBroadcasts}>
+                <BroadcastsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/library"
             element={
