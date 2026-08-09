@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Download } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext.jsx";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   getSurvey,
   getSurveyDownloadUrl,
+  downloadStudentSurvey,
   submitSurveyRatings,
 } from "../../api/client.js";
+import { saveBlob } from "../../utils/saveBlob.js";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +141,7 @@ export default function SurveyDetailPage() {
   const [error, setError] = useState(null);
   const [downloadError, setDownloadError] = useState(null);
   const [downloading, setDownloading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [activeDayId, setActiveDayId] = useState(null);
   // { [questionId]: { [answerId]: rating } } -- a day is rated statement by
@@ -220,6 +223,26 @@ export default function SurveyDetailPage() {
     }
   }
 
+  // Downloads what this page is currently showing — the student's ratings
+  // drawn onto each statement's scale — as a printable document. Only
+  // reachable while drilled into a student (see the button's guard below);
+  // the survey's own blank XML is what handleDownload above fetches.
+  async function handleDownloadFilled() {
+    setDownloadError(null);
+    setExporting(true);
+    try {
+      const { blob, filename } = await downloadStudentSurvey(accessToken, id, {
+        studentId: viewingStudentId,
+        language,
+      });
+      saveBlob(blob, filename);
+    } catch (err) {
+      setDownloadError((err.body && err.body.message) || err.message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function handleSubmitDay(question) {
     const dayRatings = ratings[question.id] || {};
     if (!isDayFullyRated(question, dayRatings)) return;
@@ -284,7 +307,23 @@ export default function SurveyDetailPage() {
               </p>
             )}
             <div className="flex items-center gap-3 flex-wrap">
-              <Button onClick={handleDownload} disabled={downloading}>
+              {/* Only offered while drilled into a specific student —
+                  without one there are no answers to fill in, and the route
+                  requires student_id. viewingStudentId is already null for a
+                  student viewing their own survey. */}
+              {viewingStudentId && (
+                <Button onClick={handleDownloadFilled} disabled={exporting}>
+                  <Download className="size-4" aria-hidden="true" />
+                  {exporting
+                    ? "Preparing download..."
+                    : "Download filled survey"}
+                </Button>
+              )}
+              <Button
+                variant={viewingStudentId ? "outline" : "default"}
+                onClick={handleDownload}
+                disabled={downloading}
+              >
                 {downloading
                   ? "Preparing download..."
                   : "Download original file"}

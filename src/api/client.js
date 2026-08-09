@@ -146,6 +146,63 @@ export async function getSurveyDownloadUrl(accessToken, id) {
   return request(`/surveys/${encodeURIComponent(id)}/download-url`, { accessToken })
 }
 
+// Downloads one student's filled-in survey (their ratings drawn onto the
+// scales, as a printable HTML document) and hands back a blob URL the caller
+// navigates to or revokes.
+//
+// Raw fetch (not request()) because the response is a document, not JSON —
+// request() would hand it to JSON.parse and throw. It also can't follow the
+// presigned-S3 pattern the other downloads use (getLibraryDownloadUrl et al):
+// there is no S3 object to sign, the server renders the document per request
+// from the student's current responses. That means the bytes come back over
+// an authenticated request, so they must be buffered client-side rather than
+// reached by pointing the browser at a URL — window.location.href sends no
+// Authorization header.
+//
+// A non-2xx response is still JSON (the API's standard error shape), so the
+// error path mirrors parseJsonResponse and throws with the same .status/.body
+// every other caller in this file already handles.
+export async function downloadStudentSurvey(accessToken, surveyId, { studentId, language } = {}) {
+  const params = new URLSearchParams()
+  params.set('student_id', studentId)
+  if (language) params.set('language', language)
+
+  const response = await fetch(
+    `${API_BASE_URL}/surveys/${encodeURIComponent(surveyId)}/export?${params.toString()}`,
+    { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined },
+  )
+
+  if (!response.ok) {
+    const text = await response.text()
+    let data = null
+    if (text) {
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = null
+      }
+    }
+    const error = new Error((data && data.message) || `Request failed with status ${response.status}`)
+    error.status = response.status
+    error.body = data
+    throw error
+  }
+
+  // The server sets Content-Disposition with the survey title and student
+  // name, but a blob URL cannot carry it — the filename has to be reapplied
+  // via the <a download> attribute, so it is parsed back out here.
+  const disposition = response.headers.get('Content-Disposition') || ''
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+  const asciiMatch = disposition.match(/filename="([^"]+)"/i)
+  const filename = utf8Match
+    ? decodeURIComponent(utf8Match[1])
+    : asciiMatch
+      ? asciiMatch[1]
+      : 'survey.html'
+
+  return { blob: await response.blob(), filename }
+}
+
 // Submits one whole day at once. `ratings` is [{ answer_id, rating }] and
 // must cover every statement in the question -- each statement is rated
 // 1..N independently, so the server rejects a partial day.
