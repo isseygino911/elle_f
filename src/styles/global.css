@@ -205,6 +205,18 @@ textarea:focus-visible,
   animation: pulse 1.4s ease-in-out infinite;
 }
 
+/* The sidebar brand header's gradient wash, and the swatch previews in
+   Organization settings that show it. A one-line rule rather than a Tailwind
+   arbitrary value (`bg-[image:var(--color-brand-gradient)]`) because it is
+   used in four places and reads far better as an intent-named class.
+
+   The variable is repainted on <html> by applyThemeToDocument() whenever the
+   organization loads or the owner picks a new palette, so every element
+   carrying this class restyles at once with no re-render. */
+.brand-gradient {
+  background-image: var(--color-brand-gradient);
+}
+
 /* "Inverted tab" notch (SurveyDetailPage's day-tab bar) -- the active
    tab's bottom corners curve inward to meet the flat tab strip, like
    browser tabs / the reference screenshot's tab row, rather than a hard

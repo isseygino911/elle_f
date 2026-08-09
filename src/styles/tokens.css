@@ -48,6 +48,20 @@
   --color-lime-hover: #b4d62c; /* derived, darker lime for hover */
   --color-on-lime: #1a2100; /* derived, near-black — 11.89:1 on lime, verified */
 
+  /* ---- Brand gradient: the sidebar's brand header wash ----
+     Set here so the app has a working default before any organization loads
+     (and for the logged-out shell, which never fetches one). At runtime
+     applyThemeToDocument() in lib/orgThemes.js overwrites this on <html>
+     with the palette the owner picked in Organization settings.
+
+     A gradient rather than a flat fill only in this one spot: it is the
+     brand moment. It cannot be an @theme color token like --color-lime is,
+     because a `linear-gradient()` is an <image>, not a <color> — it is
+     invalid in background-color/border-color/color. Hence a plain variable
+     consumed by the .brand-gradient utility in global.css. The default
+     below is the 'lime' palette in lib/orgThemes.js; the two must match. */
+  --color-brand-gradient: linear-gradient(135deg, #1a2b0a 0%, #2f4a12 55%, #47701c 100%);
+
   /* ---- Color: Accent 2 — Violet (second card "type" / Mid priority) ---- */
   --color-violet: #8b7cf0;
   --color-violet-hover: #7a69ec; /* derived, darker violet for hover */

@@ -401,7 +401,7 @@ export default function AppShell({ children }) {
           the md breakpoint. Sticky so the menu button stays reachable while
           page content scrolls, same way the desktop sidebar stays put via
           its own `sticky`. */}
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border bg-dark px-4 shadow-md md:hidden">
+      <header className="brand-gradient sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border px-4 shadow-md md:hidden">
         <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
@@ -421,7 +421,7 @@ export default function AppShell({ children }) {
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
 
-            <div className="flex items-center justify-between gap-2 border-b border-dark-border px-1 pb-3">
+            <div className="brand-gradient -mx-1 -mt-1 flex items-center justify-between gap-2 rounded-md border-b border-dark-border px-2 py-2">
               <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
               <SheetClose
                 render={
@@ -460,7 +460,7 @@ export default function AppShell({ children }) {
           collapsed ? 'w-18' : 'w-60'
         )}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-dark-border px-1 pb-3">
+        <div className="brand-gradient flex items-center justify-between gap-2 rounded-md border-b border-dark-border px-2 py-2">
           <BrandMark
             brandName={brandName}
             logoUrl={logoUrl}
