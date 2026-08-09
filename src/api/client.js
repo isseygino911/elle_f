@@ -118,9 +118,34 @@ export async function getOrganization(accessToken) {
   return request('/organization', { accessToken })
 }
 
-// Rename the organization. Owner-only; the server returns 403 for anyone else.
-export async function updateOrganization(accessToken, name) {
-  return request('/organization', { method: 'PATCH', body: { name }, accessToken })
+// Update organization settings. Owner-only; the server returns 403 for anyone
+// else. Takes a partial object -- { name } to rename, { show_name_with_logo }
+// to change whether the name renders beside the brand logo, or both. The
+// server writes only the keys it receives, so saving one setting never
+// overwrites the other with a stale value.
+export async function updateOrganization(accessToken, fields) {
+  return request('/organization', { method: 'PATCH', body: fields, accessToken })
+}
+
+// Upload or replace the organization's brand logo. Bypasses request() for the
+// same reason uploadSurvey does: a multipart body must not carry a JSON
+// Content-Type, and the boundary has to be set by the browser.
+export async function uploadOrganizationLogo(accessToken, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_BASE_URL}/organization/logo`, {
+    method: 'POST',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    body: formData,
+  })
+
+  return parseJsonResponse(response)
+}
+
+// Remove the logo. The sidebar falls back to the text wordmark.
+export async function deleteOrganizationLogo(accessToken) {
+  return request('/organization/logo', { method: 'DELETE', accessToken })
 }
 
 // Outstanding and past invitations for the caller's organization. An owner

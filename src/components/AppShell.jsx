@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
 import { canManageStudents, isStudent, isManager, isOwner } from '../lib/roles.js'
+import { useCallback, useEffect, useState } from 'react'
 import { useOrganization } from '@/lib/OrganizationContext'
 import { NavLink } from 'react-router-dom'
 import {
@@ -67,6 +67,63 @@ function initials(label) {
     .map((part) => part[0])
     .join('')
     .toUpperCase()
+}
+
+// The organization's brand mark, shown in all three sidebar surfaces: the
+// mobile top bar, the mobile nav sheet, and the desktop rail (expanded and
+// collapsed). One component rather than three copies of the markup -- the
+// three used to be near-identical spans, and a logo plus a visibility toggle
+// would have meant maintaining the same decision in three places.
+//
+// Falls back to the text wordmark whenever there is no logo, which is exactly
+// how every organization looked before logos existed. The same fallback
+// catches a logo that fails to load (deleted object, bucket misconfigured, an
+// offline client): degrading to the studio's name reads as intentional, where
+// a broken-image glyph reads as a bug.
+function BrandMark({ brandName, logoUrl, showName, collapsed = false }) {
+  const [logoFailed, setLogoFailed] = useState(false)
+
+  // A replaced logo gets a new URL (the key carries a fresh UUID), so this
+  // resets the failure state rather than leaving the fallback stuck on for a
+  // perfectly good new image.
+  useEffect(() => {
+    setLogoFailed(false)
+  }, [logoUrl])
+
+  const hasLogo = Boolean(logoUrl) && !logoFailed
+  // The collapsed rail is 72px wide and already hides the nav labels; there is
+  // no room for a wordmark beside the logo, so the name is dropped there
+  // regardless of the toggle. Without a logo the name is the only mark there
+  // is, so it always renders -- the server refuses to hide it in that state.
+  const nameVisible = !hasLogo || (showName && !collapsed)
+
+  return (
+    <div className={cn('flex min-w-0 items-center gap-2', collapsed && 'justify-center')}>
+      {hasLogo && (
+        <img
+          src={logoUrl}
+          alt={brandName}
+          onError={() => setLogoFailed(true)}
+          className={cn(
+            'shrink-0 object-contain',
+            // Height-capped rather than width-capped: logos are wider than
+            // they are tall, and the mobile bar is a 56px row shared with a
+            // 44px menu button. Capping height keeps a wide logo from
+            // crowding that button off the edge.
+            collapsed ? 'size-8' : 'h-8 w-auto max-w-[10rem]'
+          )}
+        />
+      )}
+      <span
+        className={cn(
+          'truncate font-heading text-lg font-extrabold text-lime',
+          !nameVisible && 'sr-only'
+        )}
+      >
+        {!hasLogo && collapsed ? brandName.charAt(0).toUpperCase() : brandName}
+      </span>
+    </div>
+  )
 }
 
 // Wraps a sidebar nav link in a Tooltip when the sidebar is collapsed, since
@@ -263,6 +320,11 @@ export default function AppShell({ children }) {
   // fetch is in flight or if it failed. Every tenant used to see the literal
   // string "Elle CRM" regardless of what they called their studio at signup.
   const brandName = (organization && organization.name) || 'Elle CRM'
+  // Null until an owner uploads one; every surface falls back to the wordmark.
+  const logoUrl = (organization && organization.logo_url) || null
+  // Defaults to showing the name so an org mid-fetch (or one that predates
+  // logos entirely) never flashes a nameless header.
+  const showNameWithLogo = !organization || organization.show_name_with_logo !== false
   const { t } = useLanguage()
   const isElle = canManageStudents(user)
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
@@ -323,7 +385,7 @@ export default function AppShell({ children }) {
           page content scrolls, same way the desktop sidebar stays put via
           its own `sticky`. */}
       <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border bg-dark px-4 shadow-md md:hidden">
-        <span className="truncate font-heading text-lg font-extrabold text-lime">{brandName}</span>
+        <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
             render={
@@ -343,7 +405,7 @@ export default function AppShell({ children }) {
             <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
 
             <div className="flex items-center justify-between gap-2 border-b border-dark-border px-1 pb-3">
-              <span className="truncate font-heading text-lg font-extrabold text-lime">{brandName}</span>
+              <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
               <SheetClose
                 render={
                   <Button
@@ -382,14 +444,12 @@ export default function AppShell({ children }) {
         )}
       >
         <div className="flex items-center justify-between gap-2 border-b border-dark-border px-1 pb-3">
-          <span
-            className={cn(
-              'overflow-hidden font-heading text-lg font-extrabold whitespace-nowrap text-lime',
-              collapsed && 'sr-only'
-            )}
-          >
-            {collapsed ? brandName.charAt(0).toUpperCase() : brandName}
-          </span>
+          <BrandMark
+            brandName={brandName}
+            logoUrl={logoUrl}
+            showName={showNameWithLogo}
+            collapsed={collapsed}
+          />
           <Button
             type="button"
             variant="ghost"
