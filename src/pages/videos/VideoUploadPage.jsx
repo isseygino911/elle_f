@@ -3,6 +3,7 @@ import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { requestVideoUploadUrl, uploadFileToS3, confirmVideoUpload } from '../../api/client.js'
 import { MAX_FILE_SIZE_BYTES, ALLOWED_CONTENT_TYPES } from '../../constants/video.js'
+import { readVideoDuration } from '../../utils/readVideoDuration.js'
 import { useStudents } from '../../hooks/useStudents.js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,32 +15,6 @@ import { PageContainer, PageHeader, BackLink, ErrorAlert } from '@/components/Pa
 import StudentSelect from '@/components/StudentSelect'
 import VideoRecorder from '@/components/videos/VideoRecorder'
 import { Separator } from '@/components/ui/separator'
-
-// Reads video duration client-side via an off-DOM <video> element. Resolves
-// null (not rejects) if the duration can't be determined, since duration_sec
-// is optional on the confirm call.
-function readVideoDuration(file) {
-  return new Promise((resolve) => {
-    const video = document.createElement('video')
-    const objectUrl = URL.createObjectURL(file)
-
-    const cleanup = () => {
-      URL.revokeObjectURL(objectUrl)
-    }
-
-    video.onloadedmetadata = () => {
-      const duration = Number.isFinite(video.duration) ? Math.round(video.duration) : null
-      cleanup()
-      resolve(duration)
-    }
-    video.onerror = () => {
-      cleanup()
-      resolve(null)
-    }
-
-    video.src = objectUrl
-  })
-}
 
 export default function VideoUploadPage() {
   const { accessToken, user } = useAuth()

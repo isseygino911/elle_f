@@ -509,6 +509,169 @@ export async function deleteLibraryFile(accessToken, id) {
   return request(`/library/files/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
 }
 
+// --- Courses ---------------------------------------------------------------
+
+// Unfiltered lists active courses only; pass status: 'archived' to reach the
+// finished ones. Mirrors the server's default.
+export async function listCourses(accessToken, { status } = {}) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/courses${query}`, { accessToken })
+}
+
+// Returns { course, students }. `students` is empty for a student caller --
+// the server withholds the roster rather than the course.
+export async function getCourse(accessToken, id) {
+  return request(`/courses/${encodeURIComponent(id)}`, { accessToken })
+}
+
+export async function createCourse(accessToken, data) {
+  return request('/courses', { method: 'POST', body: data, accessToken })
+}
+
+export async function updateCourse(accessToken, id, updates) {
+  return request(`/courses/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: updates,
+    accessToken,
+  })
+}
+
+// Hard delete, and the server gates it: without confirm it answers 409 with
+// confirmation_required and the counts to put in the prompt. Call it once
+// without confirm, show the user what will be destroyed, then call again with
+// confirm: true. Only the teacher who created the course may do this.
+export async function deleteCourse(accessToken, id, { confirm = false } = {}) {
+  const query = confirm ? '?confirm=true' : ''
+  return request(`/courses/${encodeURIComponent(id)}${query}`, {
+    method: 'DELETE',
+    accessToken,
+  })
+}
+
+export async function enrollStudent(accessToken, courseId, studentId) {
+  return request(`/courses/${encodeURIComponent(courseId)}/enrollments`, {
+    method: 'POST',
+    body: { student_id: studentId },
+    accessToken,
+  })
+}
+
+export async function unenrollStudent(accessToken, courseId, studentId) {
+  return request(
+    `/courses/${encodeURIComponent(courseId)}/enrollments/${encodeURIComponent(studentId)}`,
+    { method: 'DELETE', accessToken },
+  )
+}
+
+// --- Assignments -----------------------------------------------------------
+
+// A student always gets published assignments only, whatever `status` says --
+// the server ignores the filter for them rather than erroring.
+export async function listAssignments(accessToken, courseId, { status } = {}) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/courses/${encodeURIComponent(courseId)}/assignments${query}`, { accessToken })
+}
+
+export async function getAssignment(accessToken, courseId, id) {
+  return request(
+    `/courses/${encodeURIComponent(courseId)}/assignments/${encodeURIComponent(id)}`,
+    { accessToken },
+  )
+}
+
+// Always creates a draft. There is no create-and-publish in one call:
+// publishing notifies every enrolled student, so it is its own deliberate act
+// via updateAssignment({ status: 'published' }).
+export async function createAssignment(accessToken, courseId, data) {
+  return request(`/courses/${encodeURIComponent(courseId)}/assignments`, {
+    method: 'POST',
+    body: data,
+    accessToken,
+  })
+}
+
+// Serves editing, publishing and retracting. status: 'published' fans out the
+// notifications; status: 'draft' retracts and deletes them, unless students
+// have already submitted (409).
+export async function updateAssignment(accessToken, courseId, id, updates) {
+  return request(
+    `/courses/${encodeURIComponent(courseId)}/assignments/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: updates, accessToken },
+  )
+}
+
+// --- Submissions -----------------------------------------------------------
+
+// A teacher sees every enrolled student's attempts; a student sees only their
+// own, regardless of the filters passed here.
+export async function listSubmissions(accessToken, assignmentId, { status, studentId } = {}) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  if (studentId) params.set('student_id', studentId)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/assignments/${encodeURIComponent(assignmentId)}/submissions${query}`, {
+    accessToken,
+  })
+}
+
+export async function getSubmission(accessToken, id) {
+  return request(`/submissions/${encodeURIComponent(id)}`, { accessToken })
+}
+
+export async function requestSubmissionUploadUrl(accessToken, assignmentId, meta) {
+  return request(`/assignments/${encodeURIComponent(assignmentId)}/submissions/upload-url`, {
+    method: 'POST',
+    body: meta,
+    accessToken,
+  })
+}
+
+// Creates one attempt carrying body AND files AND a recording together -- the
+// shape the whole feature exists for. `files` entries are
+// { kind, original_filename, s3_key, duration_sec }, each naming an object
+// already uploaded via requestSubmissionUploadUrl + uploadFileToS3.
+export async function createSubmission(accessToken, assignmentId, data) {
+  return request(`/assignments/${encodeURIComponent(assignmentId)}/submissions`, {
+    method: 'POST',
+    body: data,
+    accessToken,
+  })
+}
+
+// Edits the written answer only. Files are fixed once submitted -- a student
+// who wants different files submits another attempt. Answers 409 once the
+// teacher has reviewed it.
+export async function updateSubmission(accessToken, id, body) {
+  return request(`/submissions/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: { body },
+    accessToken,
+  })
+}
+
+export async function reviewSubmission(accessToken, id, feedback) {
+  return request(`/submissions/${encodeURIComponent(id)}/review`, {
+    method: 'PATCH',
+    body: { feedback },
+    accessToken,
+  })
+}
+
+// 'preview' signs for inline display so a recording plays in a <video>;
+// 'download' forces a save dialog for an attachment. The two need separate
+// URLs because Content-Disposition is baked into the signature.
+export async function getSubmissionFileUrl(accessToken, submissionId, fileId, mode = 'download') {
+  const path = mode === 'preview' ? 'preview-url' : 'download-url'
+  return request(
+    `/submissions/${encodeURIComponent(submissionId)}/files/${encodeURIComponent(fileId)}/${path}`,
+    { accessToken },
+  )
+}
+
 // Direct-to-S3 upload using a presigned POST (fields + url from
 // requestVideoUploadUrl). This bypasses request()/Express entirely: it goes
 // to the S3 endpoint, not our API, so no Authorization header and no JSON

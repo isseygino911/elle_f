@@ -19,6 +19,7 @@ import {
   BookOpen,
   Building2,
   Megaphone,
+  GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -59,6 +60,9 @@ const ICONS = {
   library: BookOpen,
   organization: Building2,
   broadcasts: Megaphone,
+  // BookOpen is already the library's. A course is the teaching relationship
+  // rather than the shelf of resources, so it gets its own mark.
+  courses: GraduationCap,
 }
 
 function initials(label) {
@@ -364,6 +368,12 @@ export default function AppShell({ children }) {
     : [
         { to: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
         isElle && { to: '/students', label: t('nav.students'), icon: 'students' },
+        // Everyone in this branch: a teacher sets homework, a student does it.
+        // (A manager never reaches this list at all -- they are handled by the
+        // branch above, which is their entire nav.)
+        // `end` so the link stops looking active once a course or an assignment
+        // is open, matching /surveys, /videos and /library.
+        { to: '/courses', label: t('nav.courses'), icon: 'courses', end: true },
         { to: '/surveys', label: t('nav.surveys'), icon: 'surveys', end: true },
         isElle && { to: '/surveys/upload', label: t('nav.uploadSurvey'), icon: 'upload' },
         { to: '/videos', label: t('nav.videos'), icon: 'videos', end: true },

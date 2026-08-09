@@ -1,5 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { canReadStudentDetail, canOpenStudentContent, canReadBroadcasts, isOwner } from './lib/roles.js'
+import {
+  canReadStudentDetail,
+  canOpenStudentContent,
+  canReadBroadcasts,
+  canManageCourses,
+  canOpenCourses,
+  isOwner,
+} from './lib/roles.js'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
@@ -29,6 +36,11 @@ import VideoDetailPage from './pages/videos/VideoDetailPage.jsx'
 import LibraryPage from './pages/library/LibraryPage.jsx'
 import LibraryUploadPage from './pages/library/LibraryUploadPage.jsx'
 import LibraryFileDetailPage from './pages/library/LibraryFileDetailPage.jsx'
+import CoursesLayout from './components/courses/CoursesLayout.jsx'
+import CourseFormPage from './pages/courses/CourseFormPage.jsx'
+import CourseDetailPage from './pages/courses/CourseDetailPage.jsx'
+import AssignmentFormPage from './pages/courses/AssignmentFormPage.jsx'
+import AssignmentDetailPage from './pages/courses/AssignmentDetailPage.jsx'
 import MessageThreadPage from './pages/messages/MessageThreadPage.jsx'
 import MessagesLayout, { MessagesIndex } from './components/messages/MessagesLayout.jsx'
 import BookingCalendarPage from './pages/bookings/BookingCalendarPage.jsx'
@@ -52,6 +64,11 @@ function StudentsEmptyDetail() {
 function VideosEmptyDetail() {
   const { t } = useLanguage()
   return <EmptyDetailState>{t('videos.emptyDetail')}</EmptyDetailState>
+}
+
+function CoursesEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('courses.emptyDetail')}</EmptyDetailState>
 }
 
 function InvitationsEmptyDetail() {
@@ -180,6 +197,59 @@ export default function App() {
             element={
               <ProtectedRoute roles={canOpenStudentContent}>
                 <VideoUploadPage />
+              </ProtectedRoute>
+            }
+          />
+          {/*
+            Courses: the same master-detail composition as /videos and
+            /surveys. Gated with canOpenCourses -- everyone except a manager. A
+            student needs this branch (their own courses and homework), so
+            canManageCourses would be too narrow; a manager is aggregates-only
+            and every one of these paths returns 403/404 for them, so rendering
+            it only produced a page of failed requests.
+
+            '/new' is declared before ':id' so the literal path wins over the
+            dynamic segment, matching the /invitations and /library precedent.
+
+            The assignment routes sit OUTSIDE the CoursesLayout branch rather
+            than nested under ':id'. An assignment detail page is a full-width
+            reading-and-answering surface -- the instruction on top, the
+            submission form inline below -- and squeezing it into the detail
+            pane beside the course list would leave the recorder and the file
+            picker fighting for a 22rem-narrower column.
+          */}
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute roles={canOpenCourses}>
+                <CoursesLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<CoursesEmptyDetail />} />
+            <Route path=":id" element={<CourseDetailPage />} />
+          </Route>
+          <Route
+            path="/courses/new"
+            element={
+              <ProtectedRoute roles={canManageCourses}>
+                <CourseFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:courseId/assignments/new"
+            element={
+              <ProtectedRoute roles={canManageCourses}>
+                <AssignmentFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:courseId/assignments/:id"
+            element={
+              <ProtectedRoute roles={canOpenCourses}>
+                <AssignmentDetailPage />
               </ProtectedRoute>
             }
           />

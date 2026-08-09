@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { canManageStudents, isManager } from '../lib/roles.js'
 import ManagerDashboard from '../components/dashboard/ManagerDashboard.jsx'
 import { Link } from 'react-router-dom'
-import { Bell, Video, MessageSquare, CheckSquare, GraduationCap, CalendarDays } from 'lucide-react'
+import { Bell, Video, MessageSquare, CheckSquare, GraduationCap, CalendarDays, CalendarClock } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import {
@@ -238,6 +238,23 @@ export default function DashboardPage() {
                   studentsError={studentsError}
                 />
               </SectionCard>
+
+              {/* LEFT column for a student: homework due is the clearest
+                  "something is expected of you" item they have. A teacher gets
+                  this same section in the right column instead -- for them it
+                  is a schedule of what their courses are expecting, not a list
+                  of their own obligations. The manager dashboard carries no
+                  such section at all, so this is guarded by the payload rather
+                  than by role. */}
+              {!isElle && dashboard.assignments_due && (
+                <SectionCard
+                  title={`Homework due (${dashboard.assignments_due.count})`}
+                  icon={GraduationCap}
+                  accent={getCategoricalAccent(2)}
+                >
+                  <AssignmentsDueContent assignments={dashboard.assignments_due} showCourse={false} />
+                </SectionCard>
+              )}
             </>
           )}
         </div>
@@ -259,6 +276,16 @@ export default function DashboardPage() {
               <SectionCard title={`Pending video reviews (${dashboard.pending_video_reviews.count})`} icon={Video} accent={getCategoricalAccent(0)}>
                 <PendingVideoReviewsContent reviews={dashboard.pending_video_reviews} showStudent={isElle} />
               </SectionCard>
+
+              {isElle && dashboard.assignments_due && (
+                <SectionCard
+                  title={`Homework due (${dashboard.assignments_due.count})`}
+                  icon={CalendarClock}
+                  accent={getCategoricalAccent(2)}
+                >
+                  <AssignmentsDueContent assignments={dashboard.assignments_due} showCourse />
+                </SectionCard>
+              )}
 
               {isElle && (
                 <SectionCard title="Student progress" icon={GraduationCap} accent={getCategoricalAccent(1)}>
@@ -418,6 +445,53 @@ function PendingVideoReviewsContent({ reviews, showStudent }) {
             </Link>
             <span className="text-sm text-muted-foreground">
               {showStudent ? `${video.student_name} · ${video.created_at}` : video.created_at}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// Homework falling due inside the dashboard's window.
+//
+// Deliberately NOT RowIcon, for the same reason UnreadDot is not: this card
+// sits in the left column beside Tasks, and both are lists of dated things
+// needing action. Tasks rows carry a circular muted icon; a due date is about
+// WHEN, so this leads with the date itself, set in tabular numerals so the
+// column of dates lines up and can be scanned rather than read.
+//
+// The server sends the same section to a student and to a teacher, but they
+// mean different things -- a student's own homework versus every assignment
+// across their courses -- so the course name is shown only to the teacher, for
+// whom "which course" is the disambiguating fact.
+function AssignmentsDueContent({ assignments, showCourse }) {
+  if (assignments.count === 0) return <EmptyState>No homework due soon.</EmptyState>
+
+  return (
+    <ul className="flex flex-col">
+      {assignments.assignments.map((assignment) => (
+        <li
+          key={assignment.id}
+          className="flex items-center gap-3 border-b border-border py-3 last:border-b-0 last:pb-0"
+        >
+          <span
+            className="flex size-8 shrink-0 flex-col items-center justify-center rounded-md bg-muted text-[0.65rem] font-semibold tabular-nums text-muted-foreground"
+            aria-hidden="true"
+          >
+            {assignment.due_date ? assignment.due_date.slice(5).replace('-', '/') : '—'}
+          </span>
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <Link
+              to={`/courses/${assignment.course_id}/assignments/${assignment.id}`}
+              className="font-medium text-primary hover:underline"
+            >
+              {assignment.title}
+            </Link>
+            <span className="text-sm text-muted-foreground">
+              {showCourse && assignment.course_title
+                ? `${assignment.course_title} · Due ${assignment.due_date}`
+                : `Due ${assignment.due_date}`}
             </span>
           </span>
         </li>

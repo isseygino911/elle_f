@@ -8,8 +8,27 @@ import { useMediaRecorder, isRecordingSupported } from '../../hooks/useMediaReco
 // Records straight from the camera and hands the finished take to the parent as
 // a File, so it can travel the same presigned-S3 upload path as a chosen file.
 // The parent owns the upload; this component owns the camera.
-export default function VideoRecorder({ onRecorded, disabled }) {
-  const { state, error, seconds, recording, stream, start, stop, cancel, reset } = useMediaRecorder()
+//
+// `maxSeconds` auto-stops the take at the cap and shows the elapsed time
+// against it. Omitting it keeps recording unbounded, which is what
+// VideoUploadPage has always done -- the cap arrived with homework, where an
+// assignment carries its own max_recording_sec.
+//
+// `doneCaption` replaces the line shown under a finished take. The default
+// assumes an upload control sits below the recorder, which is true on
+// VideoUploadPage and false on the submission form, where the take is one part
+// of a larger form submitted in one act.
+//
+// TWO OBLIGATIONS FOR ANY CONSUMER, both easy to get wrong:
+//   - wrap onRecorded in useCallback. It is an effect dependency below, so an
+//     unstable identity re-fires the callback on every parent render while a
+//     take is sitting in 'stopped'.
+//   - clear the recorded duration whenever a file is picked instead, so `file`
+//     and `durationSec` can never describe two different videos.
+export default function VideoRecorder({ onRecorded, disabled, maxSeconds = null, doneCaption }) {
+  const { state, error, seconds, recording, stream, start, stop, cancel, reset } = useMediaRecorder({
+    maxSeconds,
+  })
   const previewRef = useRef(null)
   const supported = isRecordingSupported()
 
@@ -60,7 +79,10 @@ export default function VideoRecorder({ onRecorded, disabled }) {
           {state === 'recording' && (
             <div className="absolute top-2 left-2 flex items-center gap-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white">
               <span className="size-2 animate-pulse rounded-full bg-red-500" aria-hidden="true" />
-              <span role="status">Recording {formatDuration(seconds)}</span>
+              <span role="status">
+                Recording {formatDuration(seconds)}
+                {maxSeconds ? ` / ${formatDuration(maxSeconds)}` : ''}
+              </span>
             </div>
           )}
         </div>
@@ -98,7 +120,8 @@ export default function VideoRecorder({ onRecorded, disabled }) {
 
       {state === 'stopped' && recording && (
         <p className="text-muted-foreground text-sm">
-          Recorded {formatDuration(recording.durationSec)} — review it above, then upload below.
+          Recorded {formatDuration(recording.durationSec)} —{' '}
+          {doneCaption ?? 'review it above, then upload below.'}
         </p>
       )}
     </div>

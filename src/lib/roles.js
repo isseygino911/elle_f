@@ -81,6 +81,28 @@ export const canChooseBroadcastAudience = (user) => isOwner(user);
 // the union of the two send capabilities and CAN_READ_BROADCAST_OVERSIGHT.
 export const canReadBroadcasts = (user) => canBroadcast(user) || isManager(user);
 
+// May author a course, publish assignments into it, enroll students, and read
+// submitted work. Mirrors CAN_MANAGE_COURSES on the server.
+//
+// Deliberately excludes manager, who outranks a teacher but must never reach a
+// course: its roster names students, an assignment is addressed to named
+// students, and a submission is a student's own work. Any "senior enough"
+// phrasing here would draw a whole section that can only 403.
+export const canManageCourses = (user) => isOwner(user) || isAdmin(user);
+
+// May hand in work. Student only -- mirrors CAN_SUBMIT_WORK.
+//
+// An owner or teacher is excluded even though they outrank a student: a
+// submission is attributed to its student_id and counts against that student's
+// attempt limit, so there is no coherent teacher submission to draw a form for.
+export const canSubmitWork = (user) => isStudent(user);
+
+// May open the courses section at all -- everyone except a manager. NOT the
+// same question as canManageCourses: a student belongs here (their own courses
+// and homework) but not there. Same distinction as canOpenStudentContent
+// against canReadStudentDetail, and used for the same purpose: route gating.
+export const canOpenCourses = (user) => Boolean(user) && !isManager(user);
+
 // Runs the teaching-side UI (student pickers, review queues, upload controls).
 // This is the closest replacement for the old `isElle`, but note it is NOT
 // interchangeable: `!canManageStudents(user)` does NOT mean "is a student",

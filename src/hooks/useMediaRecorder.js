@@ -61,7 +61,7 @@ function describeMediaError(err) {
  * Permission is requested by start() — i.e. only in response to a user gesture —
  * so the browser prompt appears when the user asks to record, not on page load.
  */
-export function useMediaRecorder() {
+export function useMediaRecorder({ maxSeconds = null } = {}) {
   const [state, setState] = useState('idle')
   const [error, setError] = useState(null)
   const [seconds, setSeconds] = useState(0)
@@ -89,17 +89,33 @@ export function useMediaRecorder() {
     }
   }, [])
 
-  // Ticks the elapsed-time counter only while actually recording.
+  // Ticks the elapsed-time counter only while actually recording, and enforces
+  // the cap.
+  //
+  // AUTO-STOP IS A UX AFFORDANCE, NOT A BOUNDARY. The server re-checks the
+  // duration against the assignment's max_recording_sec and rejects an
+  // over-length take with a 400 -- see submissions.route.js. What this does is
+  // stop a student discovering the limit AFTER they have performed, which was
+  // the whole reason the cap exists.
+  //
+  // The recorder is stopped through a ref rather than by naming stop() here:
+  // stop is defined below this effect, and depending on it would either hit the
+  // temporal dead zone or re-create the interval every time its identity
+  // changed -- which would drop ticks and make the count wrong.
   useEffect(() => {
     if (state !== 'recording') return undefined
 
     const interval = setInterval(() => {
       secondsRef.current += 1
       setSeconds(secondsRef.current)
+
+      if (maxSeconds && secondsRef.current >= maxSeconds) {
+        recorderRef.current?.stop()
+      }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [state])
+  }, [state, maxSeconds])
 
   // Safety net for unmount mid-recording (navigating away with the camera on):
   // without this the camera light would stay on until the tab closed.
