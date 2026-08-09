@@ -120,9 +120,12 @@ export async function getOrganization(accessToken) {
 
 // Update organization settings. Owner-only; the server returns 403 for anyone
 // else. Takes a partial object -- { name } to rename, { show_name_with_logo }
-// to change whether the name renders beside the brand logo, or both. The
-// server writes only the keys it receives, so saving one setting never
-// overwrites the other with a stale value.
+// to change whether the name renders beside the brand logo, { theme } to pick
+// the accent palette, or any combination. The server writes only the keys it
+// receives, so saving one setting never overwrites another with a stale value.
+//
+// `theme` must be one of the slugs in lib/orgThemes.js; the server validates
+// against its own copy of that list and 400s on anything else.
 export async function updateOrganization(accessToken, fields) {
   return request('/organization', { method: 'PATCH', body: fields, accessToken })
 }

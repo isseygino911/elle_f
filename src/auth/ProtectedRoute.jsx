@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
+import { useOrganization } from '../lib/OrganizationContext.jsx'
 import AppShell from '../components/AppShell.jsx'
 
 // Route guard.
@@ -16,7 +17,19 @@ import AppShell from '../components/AppShell.jsx'
 // request, so the worst case here is showing a page whose API calls then 403.
 export default function ProtectedRoute({ children, roles }) {
   const { accessToken, user, initializing } = useAuth()
+  const { themeReady } = useOrganization()
 
+  // Two waits, one screen. Auth bootstrap resolves the session; the
+  // organization fetch that follows resolves the accent palette. Rendering
+  // AppShell between them would paint the sidebar in the default color and
+  // then visibly correct it once the real theme arrived, so the same
+  // "Loading..." screen -- which carries no themed UI -- covers both.
+  //
+  // Redirect precedence matters: a signed-out visitor must go to /login
+  // without waiting on anything, so the token check runs against
+  // `initializing` alone and themeReady only ever delays an authenticated
+  // render. themeReady is already true when there is no token, but ordering
+  // the checks this way makes that independent of the flag's definition.
   if (initializing) {
     return (
       <div className="route-loading">
@@ -27,6 +40,14 @@ export default function ProtectedRoute({ children, roles }) {
 
   if (!accessToken) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!themeReady) {
+    return (
+      <div className="route-loading">
+        <p className="loading-text">Loading...</p>
+      </div>
+    )
   }
 
   const allowed =

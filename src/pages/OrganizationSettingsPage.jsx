@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useOrganization } from '@/lib/OrganizationContext'
 import { isOwner } from '../lib/roles.js'
+import { ORGANIZATION_THEMES, DEFAULT_ORGANIZATION_THEME } from '../lib/orgThemes.js'
 import {
   updateOrganization,
   uploadOrganizationLogo,
@@ -48,6 +51,16 @@ export default function OrganizationSettingsPage() {
   const [logoError, setLogoError] = useState(null)
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
+  // Theme state, kept separate from the two forms above for the same reason
+  // they are separate from each other: picking a color must not clear the
+  // rename form's "saved" message or borrow its error slot.
+  const [themeBusy, setThemeBusy] = useState(null) // the slug being saved
+  const [themeError, setThemeError] = useState(null)
+  const [themeSaved, setThemeSaved] = useState(false)
+  // Identifies the most recently issued theme save, so a slow earlier response
+  // cannot land on top of a newer choice.
+  const latestThemeRequest = useRef(null)
+
   // Seed the field once the organization arrives. Keyed on the name itself so
   // an external change (another tab renaming it) re-syncs, while typing here
   // is left alone — the effect only reruns when the server value changes.
@@ -80,6 +93,7 @@ export default function OrganizationSettingsPage() {
   const logoUrl = (organization && organization.logo_url) || null
   const hasLogo = Boolean(logoUrl)
   const showNameWithLogo = !organization || organization.show_name_with_logo !== false
+  const activeTheme = (organization && organization.theme) || DEFAULT_ORGANIZATION_THEME
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -163,6 +177,69 @@ export default function OrganizationSettingsPage() {
       setLogoError((err.body && err.body.message) || err.message)
     } finally {
       setLogoBusy(false)
+    }
+  }
+
+  // Arrow-key movement inside the palette radiogroup. The ARIA pattern
+  // requires it and the browser only supplies it for native radio inputs, so
+  // a role="radio" group has to implement it by hand: move focus to the
+  // neighbouring swatch and select it, wrapping at both ends.
+  function handleThemeKeyDown(event) {
+    const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp']
+    if (!keys.includes(event.key)) return
+
+    event.preventDefault()
+
+    const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1
+
+    // Stepped from the focused swatch rather than from activeTheme: the two
+    // agree at rest, but a second arrow press landing before the first save
+    // resolves would otherwise re-step from the same stale origin and appear
+    // to stick.
+    const focusedSlug = event.target.closest('[data-theme-slug]')?.dataset.themeSlug
+    const origin = ORGANIZATION_THEMES.findIndex(
+      (theme) => theme.slug === (focusedSlug || activeTheme)
+    )
+    const total = ORGANIZATION_THEMES.length
+    const next = ORGANIZATION_THEMES[(origin + step + total) % total]
+
+    // Focus follows selection, as the radiogroup pattern expects. The node is
+    // addressed by slug rather than held in a ref array: the grid is six
+    // static items, and a query here is simpler than six refs.
+    const node = event.currentTarget.querySelector(`[data-theme-slug="${next.slug}"]`)
+    if (node) node.focus()
+
+    handleThemeSelect(next.slug)
+  }
+
+  async function handleThemeSelect(slug) {
+    if (slug === activeTheme) return
+
+    setThemeBusy(slug)
+    setThemeError(null)
+    setThemeSaved(false)
+
+    // Holding an arrow key fires faster than the round trip, so saves can
+    // overlap. Rather than dropping the extra presses -- which would leave the
+    // group on a color the user arrowed away from -- each one is sent and the
+    // last to be *issued* wins. Without this, responses landing out of order
+    // would let an earlier choice overwrite a later one.
+    const request = Symbol(slug)
+    latestThemeRequest.current = request
+
+    try {
+      const body = await updateOrganization(accessToken, { theme: slug })
+      if (latestThemeRequest.current !== request) return
+
+      // The context's effect repaints the whole app off the new slug, so the
+      // sidebar gradient and every accented control change with this one call.
+      applyOrganization(body.organization)
+      setThemeSaved(true)
+    } catch (err) {
+      if (latestThemeRequest.current !== request) return
+      setThemeError((err.body && err.body.message) || err.message)
+    } finally {
+      if (latestThemeRequest.current === request) setThemeBusy(null)
     }
   }
 
@@ -338,6 +415,121 @@ export default function OrganizationSettingsPage() {
                   <Alert variant="destructive">
                     <AlertDescription>{logoError}</AlertDescription>
                   </Alert>
+                )}
+              </FieldGroup>
+            </CardContent>
+          </Card>
+
+          {/* Accent palette. Saves on click rather than behind a Save button:
+              the choice is a single value with an immediate, whole-app
+              preview -- the sidebar beside this card repaints as you pick --
+              so a second confirming step would only delay the feedback that
+              makes the decision for you. */}
+          <Card>
+            <CardContent>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="organization-theme">{t('organization.theme')}</FieldLabel>
+                  <FieldDescription>{t('organization.themeHint')}</FieldDescription>
+
+                  {/* A native radiogroup rather than buttons: this is a
+                      single-choice control, and the role gives arrow-key
+                      navigation and "3 of 6" announcements for free. The
+                      visible swatch is the label, so each option carries an
+                      aria-label with the palette's name. */}
+                  <div
+                    id="organization-theme"
+                    role="radiogroup"
+                    aria-label={t('organization.theme')}
+                    onKeyDown={handleThemeKeyDown}
+                    className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3"
+                  >
+                    {ORGANIZATION_THEMES.map((theme) => {
+                      const selected = theme.slug === activeTheme
+                      const name = t(`organization.themeNames.${theme.slug}`)
+
+                      return (
+                        <button
+                          key={theme.slug}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          aria-label={name}
+                          data-theme-slug={theme.slug}
+                          // aria-disabled rather than the `disabled`
+                          // attribute: a disabled element cannot hold focus,
+                          // so disabling the swatch the user just arrowed onto
+                          // drops focus to <body> the moment the save starts
+                          // and strands a keyboard user outside the group.
+                          // This keeps it focusable and lets handleThemeSelect
+                          // ignore the click instead.
+                          aria-disabled={Boolean(themeBusy)}
+                          // Only the selected swatch stays in the tab order,
+                          // so Tab moves past the group rather than through
+                          // six stops; arrow keys move within it.
+                          tabIndex={selected ? 0 : -1}
+                          onClick={() => handleThemeSelect(theme.slug)}
+                          className={cn(
+                            'group relative flex flex-col gap-2 rounded-lg border p-2 text-left transition-colors',
+                            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
+                            'aria-disabled:cursor-progress',
+                            selected
+                              ? 'border-primary ring-2 ring-primary/30'
+                              : 'border-border hover:border-primary/40'
+                          )}
+                        >
+                          {/* The gradient as it actually renders in the rail,
+                              with the accent dot and a wordmark stand-in --
+                              a flat color chip would not show what the
+                              sidebar is about to look like. Inline style
+                              rather than the .brand-gradient class: that one
+                              reads the live document variable, which is the
+                              *current* theme, not this option's. */}
+                          <span
+                            className="flex h-12 items-center gap-2 rounded-md px-2"
+                            style={{ backgroundImage: theme.gradient }}
+                          >
+                            <span
+                              className="size-4 shrink-0 rounded-full"
+                              style={{ backgroundColor: theme.accent.base }}
+                              aria-hidden="true"
+                            />
+                            <span
+                              className="truncate font-heading text-sm font-extrabold"
+                              style={{ color: theme.accent.base }}
+                              aria-hidden="true"
+                            >
+                              {organization.name}
+                            </span>
+                          </span>
+
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-medium">{name}</span>
+                            {selected && (
+                              <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                            )}
+                          </span>
+
+                          {/* Screen readers get the selected state from
+                              aria-checked; this is the sighted equivalent for
+                              anyone who can't distinguish the ring. */}
+                          {selected && <span className="sr-only">{t('organization.themeCurrent')}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </Field>
+
+                {themeError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{themeError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {themeSaved && !themeError && (
+                  <p className="m-0 text-sm font-medium text-success-text" role="status">
+                    {t('organization.themeSaved')}
+                  </p>
                 )}
               </FieldGroup>
             </CardContent>

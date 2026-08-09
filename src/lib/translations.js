@@ -204,6 +204,19 @@ export const translations = {
       showNameWithLogo: 'Show organization name next to the logo',
       showNameWithLogoHint: 'Turn this off if your logo already includes your name.',
       showNameNeedsLogo: 'Upload a logo first — without one, the name is your only brand mark.',
+      theme: 'Accent color',
+      themeHint:
+        'Sets the sidebar gradient and the highlight color everyone in your organization sees.',
+      themeSaved: 'Accent color updated.',
+      themeCurrent: 'Currently selected',
+      themeNames: {
+        lime: 'Lime',
+        violet: 'Violet',
+        ocean: 'Ocean',
+        coral: 'Coral',
+        amber: 'Amber',
+        forest: 'Forest',
+      },
     },
     messages: {
       title: 'Messages',
@@ -407,6 +420,18 @@ export const translations = {
       showNameWithLogo: '在标志旁显示机构名称',
       showNameWithLogoHint: '如果您的标志已包含机构名称，可以关闭此项。',
       showNameNeedsLogo: '请先上传标志 — 没有标志时，名称是唯一的品牌标识。',
+      theme: '主题色',
+      themeHint: '设置侧边栏渐变以及机构内所有成员看到的高亮颜色。',
+      themeSaved: '主题色已更新。',
+      themeCurrent: '当前选择',
+      themeNames: {
+        lime: '青柠绿',
+        violet: '紫罗兰',
+        ocean: '海洋蓝',
+        coral: '珊瑚红',
+        amber: '琥珀橙',
+        forest: '森林绿',
+      },
     },
     messages: {
       title: '消息',
