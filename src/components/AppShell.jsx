@@ -557,7 +557,7 @@ export default function AppShell({ children }) {
           the md breakpoint. Sticky so the menu button stays reachable while
           page content scrolls, same way the desktop sidebar stays put via
           its own `sticky`. */}
-      <header className="brand-gradient sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border px-4 shadow-md md:hidden">
+      <header className="sidebar-gradient sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border bg-dark px-4 shadow-md md:hidden">
         <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
@@ -573,12 +573,15 @@ export default function AppShell({ children }) {
               </Button>
             }
           />
-          <SheetContent side="left">
+          {/* The drawer is the mobile stand-in for the rail, so it wears the
+              same wash. Set here rather than in ui/sheet.jsx: SheetContent is
+              a generic primitive and the gradient is navigation styling. */}
+          <SheetContent side="left" className="sidebar-gradient">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
 
             {/* Same masthead treatment as the desktop rail: the mark on the
-                drawer's own surface, not in a gradient card. */}
+                drawer's own surface, not in a card of its own. */}
             <div className="flex items-center justify-between gap-2 px-1">
               <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
               <SheetClose
@@ -621,16 +624,16 @@ export default function AppShell({ children }) {
           so it has to carry more weight. */}
       <aside
         className={cn(
-          'sticky top-0 hidden h-screen flex-none flex-col gap-5 overflow-y-auto overflow-x-clip border-r border-dark-border bg-dark p-3 shadow-md transition-[width] duration-200 ease-out md:flex',
+          'sidebar-gradient sticky top-0 hidden h-screen flex-none flex-col gap-5 overflow-y-auto overflow-x-clip border-r border-dark-border bg-dark p-3 shadow-md transition-[width] duration-200 ease-out md:flex',
           collapsed ? 'w-18' : 'w-60'
         )}
       >
-        {/* The mark sits directly on the rail rather than inside a gradient
-            card: a bordered, rounded, separately-colored box at the top read
-            as a widget that had landed in the sidebar instead of as the
-            sidebar's own masthead. The gradient still identifies the tenant
-            on the mobile top bar, where it spans the full width and reads as
-            a header rather than a floating panel. */}
+        {/* The mark sits directly on the rail rather than inside a card of
+            its own: a bordered, rounded, separately-colored box at the top
+            read as a widget that had landed in the sidebar instead of as the
+            sidebar's own masthead. The tenant's color now arrives as the
+            rail's own background wash instead, so the mark does not need to
+            carry it. */}
         <div className={cn('flex items-center gap-2 px-1', collapsed ? 'justify-center' : 'justify-between')}>
           <BrandMark
             brandName={brandName}

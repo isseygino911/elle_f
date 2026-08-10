@@ -205,22 +205,49 @@ textarea:focus-visible,
   animation: pulse 1.4s ease-in-out infinite;
 }
 
-/* The mobile top bar's gradient wash, and the swatch previews in
-   Organization settings that show it. A one-line rule rather than a Tailwind
-   arbitrary value (`bg-[image:var(--color-brand-gradient)]`) because it
-   reads far better as an intent-named class.
+/* The navigation surfaces' gradient wash: the desktop rail, the mobile
+   drawer, and the mobile top bar, plus the swatch previews in Organization
+   settings that show it. A one-line rule rather than a Tailwind arbitrary
+   value (`bg-[image:var(--color-sidebar-gradient)]`) because it reads far
+   better as an intent-named class.
 
-   The desktop rail and the mobile drawer no longer use this: their brand
-   marks sit directly on the sidebar surface, since a bordered, rounded,
-   separately-colored box read as a widget dropped into the sidebar rather
-   than as the sidebar's own masthead. It stays on the mobile top bar, where
-   it spans the full width and reads as a header.
+   This used to paint only the brand mark's header card. Carrying the
+   organization's color across the entire rail instead makes the palette
+   visible on every screen rather than in one 56px box, and removes the
+   awkwardness of a separately-colored panel sitting inside a differently
+   colored sidebar. The gradients are tinted near-blacks rather than the
+   saturated washes that treatment used — see lib/orgThemes.js for why the
+   full-height surface has to stay close to the app canvas.
+
+   Paired with `bg-dark` on the same element, not replacing it: an element
+   whose background-image fails to paint (or a palette variable that is
+   somehow unset) then falls back to the rail's own opaque canvas rather than
+   to a transparent sidebar with page content showing through it.
 
    The variable is repainted on <html> by applyThemeToDocument() whenever the
    organization loads or the owner picks a new palette, so every element
    carrying this class restyles at once with no re-render. */
-.brand-gradient {
-  background-image: var(--color-brand-gradient);
+.sidebar-gradient {
+  background-image: var(--color-sidebar-gradient);
+
+  /* The rail is `overflow-y-auto` and full-height. Left at the default
+     `scroll`, the gradient is sized to the *scrollable* content, so on a
+     short viewport (or a role with many nav sections) the tinted top scrolls
+     up out of view and the rail turns flat mid-scroll. `local` is wrong for
+     the same reason. Pinning the origin to the border box and locking the
+     attachment keeps the wash fixed to the rail itself, so the top stop is
+     always at the top of the visible rail no matter how far the nav is
+     scrolled.
+
+     `scroll` (the default keyword) is what we want conceptually -- the image
+     is fixed to the element's own box, not to its scrolled contents -- and
+     the explicit `background-size: 100% 100%` against the padding box is
+     what actually holds it to the visible height. Stated outright rather
+     than relied on as a default, since this is load-bearing here. */
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 /* "Inverted tab" notch (SurveyDetailPage's day-tab bar) -- the active

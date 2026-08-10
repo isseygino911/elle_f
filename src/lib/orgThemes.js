@@ -34,13 +34,27 @@
 // ranges from 1.40:1 on lime to 3.37:1 on violet), which is why `on` is chosen
 // per palette rather than fixed app-wide.
 
-// The sidebar brand gradient. This is the one place a theme is a gradient
-// rather than a flat accent: it paints the rail's brand header behind the
-// logo and wordmark, where a soft two-stop wash reads as intentional
-// branding. Applying a gradient to the accent token itself is not possible --
-// `--color-lime` is consumed by `background-color`, `border-color` and
-// `color`, none of which accept a gradient - hence a separate variable that
-// only the brand header consumes.
+// The sidebar gradient. This is the one place a theme is a gradient rather
+// than a flat accent: it fills the whole navigation rail, so the palette is
+// visible on every screen rather than only behind the brand mark. Applying a
+// gradient to the accent token itself is not possible -- `--color-lime` is
+// consumed by `background-color`, `border-color` and `color`, none of which
+// accept a gradient - hence a separate variable that only the rail consumes.
+//
+// WHY THESE GRADIENTS ARE MUCH DARKER THAN A BRAND HEADER'S WOULD BE
+//
+// They previously painted a ~56px brand card, where a saturated mid-stop read
+// as a deliberate brand moment. Stretched over a full-height rail the same
+// colors compete with the nav rows sitting on them: the active pill is filled
+// with the accent, and hover is `--color-card-dark-hover`, both of which need
+// the surface beneath to stay near the app's own dark canvas to separate from
+// it. So each gradient below is a *tint*, not a fill -- it starts as a
+// hue-shifted near-black at the top and resolves to the rail's own
+// `--color-bg-dark` (#0b0f1a) by the bottom. Top stops sit around 8-13%
+// luminance, which keeps every one of them under 1.5:1 against #0b0f1a: the
+// tenant's color is legible as a wash without becoming a second surface the
+// nav has to fight. Vertical (180deg) rather than the old 135deg diagonal,
+// since on a tall narrow rail a diagonal band reads as a rendering artifact.
 export const ORGANIZATION_THEMES = [
   {
     slug: 'lime',
@@ -51,9 +65,8 @@ export const ORGANIZATION_THEMES = [
       hover: '#b4d62c',
       on: '#1a2100', // 11.89:1 on base -- verified in tokens.css
     },
-    // Lime into a deeper chartreuse: same family, so the wordmark's own lime
-    // still reads against it.
-    gradient: 'linear-gradient(135deg, #1a2b0a 0%, #2f4a12 55%, #47701c 100%)',
+    // Olive-tinted near-black settling into the rail's own canvas.
+    gradient: 'linear-gradient(180deg, #171e0b 0%, #11170d 45%, #0b0f1a 100%)',
   },
   {
     slug: 'violet',
@@ -63,7 +76,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#7a69ec',
       on: '#0f172a', // 5.30:1 on base -- verified in tokens.css
     },
-    gradient: 'linear-gradient(135deg, #1e1b4b 0%, #372f7a 55%, #5b4bc4 100%)',
+    gradient: 'linear-gradient(180deg, #171436 0%, #131228 45%, #0b0f1a 100%)',
   },
   {
     slug: 'ocean',
@@ -72,7 +85,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#0ea5e9',
       on: '#052430', // 7.53:1 on base
     },
-    gradient: 'linear-gradient(135deg, #082f49 0%, #0c4a6e 55%, #0e7490 100%)',
+    gradient: 'linear-gradient(180deg, #0a2634 0%, #0a1c28 45%, #0b0f1a 100%)',
   },
   {
     slug: 'coral',
@@ -83,7 +96,7 @@ export const ORGANIZATION_THEMES = [
       // which is exactly why `on` is per-palette rather than a single
       // app-wide choice.
     },
-    gradient: 'linear-gradient(135deg, #4c0519 0%, #831843 55%, #be3455 100%)',
+    gradient: 'linear-gradient(180deg, #300a17 0%, #200d19 45%, #0b0f1a 100%)',
   },
   {
     slug: 'amber',
@@ -92,7 +105,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#f59e0b',
       on: '#2a1a00', // 10.09:1 on base
     },
-    gradient: 'linear-gradient(135deg, #3b2506 0%, #7c4a0a 55%, #b45309 100%)',
+    gradient: 'linear-gradient(180deg, #2a1c06 0%, #1c1610 45%, #0b0f1a 100%)',
   },
   {
     slug: 'forest',
@@ -101,7 +114,81 @@ export const ORGANIZATION_THEMES = [
       hover: '#10b981',
       on: '#04231a', // 8.67:1 on base
     },
-    gradient: 'linear-gradient(135deg, #052e23 0%, #065f46 55%, #0f8a63 100%)',
+    gradient: 'linear-gradient(180deg, #082a20 0%, #091d1c 45%, #0b0f1a 100%)',
+  },
+  // ---- Added alongside the sidebar-wash change ----
+  //
+  // Chosen to widen the *hue* range rather than to lengthen the list: each
+  // one below is a hue the first six do not already cover. Gold, crimson and
+  // mint were considered and dropped as near-duplicates of amber, coral and
+  // forest -- two swatches an owner cannot tell apart is a worse picker than
+  // six they can.
+  {
+    slug: 'rose',
+    // Pink proper, not coral's red-orange -- the two read as different
+    // choices side by side in the picker.
+    accent: {
+      base: '#f472b6',
+      hover: '#ec4899',
+      on: '#2b0417', // 7.00:1 on base
+    },
+    gradient: 'linear-gradient(180deg, #2e0b20 0%, #1f0d1b 45%, #0b0f1a 100%)',
+  },
+  {
+    slug: 'cyan',
+    // Brighter and greener than ocean, which is a mid blue.
+    accent: {
+      base: '#22d3ee',
+      hover: '#06b6d4',
+      on: '#03242b', // 9.00:1 on base
+    },
+    gradient: 'linear-gradient(180deg, #06272e 0%, #081d26 45%, #0b0f1a 100%)',
+  },
+  {
+    slug: 'teal',
+    // Between cyan and forest: blue-green rather than either.
+    accent: {
+      base: '#2dd4bf',
+      hover: '#14b8a6',
+      on: '#032b26', // 8.19:1 on base
+    },
+    gradient: 'linear-gradient(180deg, #062b28 0%, #081e21 45%, #0b0f1a 100%)',
+  },
+  {
+    slug: 'indigo',
+    // Deep blue-violet -- violet's neighbour but markedly cooler, and the
+    // most conservative of the new set.
+    accent: {
+      base: '#818cf8',
+      hover: '#6366f1',
+      on: '#0b0f36', // 6.20:1 on base -- the tightest pairing here, still
+      // clear of the 4.5:1 floor.
+    },
+    gradient: 'linear-gradient(180deg, #12173a 0%, #101529 45%, #0b0f1a 100%)',
+  },
+  {
+    slug: 'plum',
+    // Warm purple, where violet and indigo are both cool.
+    accent: {
+      base: '#c084fc',
+      hover: '#a855f7',
+      on: '#230733', // 6.91:1 on base
+    },
+    gradient: 'linear-gradient(180deg, #241035 0%, #1a1029 45%, #0b0f1a 100%)',
+  },
+  {
+    slug: 'slate',
+    // The deliberate no-hue option: an organization that wants the app to
+    // stay neutral still has to pick *something*, and forcing them onto a
+    // colored accent to get a plain rail is the wrong default. The gradient
+    // is a pure lightness ramp, so this reads as "off" rather than as a
+    // thirteenth color.
+    accent: {
+      base: '#94a3b8',
+      hover: '#7c8ba1',
+      on: '#0b1220', // 7.30:1 on base
+    },
+    gradient: 'linear-gradient(180deg, #1a2030 0%, #131826 45%, #0b0f1a 100%)',
   },
 ]
 
@@ -131,7 +218,7 @@ export function applyThemeToDocument(slug) {
   root.style.setProperty('--color-lime', theme.accent.base)
   root.style.setProperty('--color-lime-hover', theme.accent.hover)
   root.style.setProperty('--color-on-lime', theme.accent.on)
-  root.style.setProperty('--color-brand-gradient', theme.gradient)
+  root.style.setProperty('--color-sidebar-gradient', theme.gradient)
 
   // Lets CSS and tests key off the active palette without re-reading the
   // individual variables.

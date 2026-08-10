@@ -482,24 +482,45 @@ export default function OrganizationSettingsPage() {
                               with the accent dot and a wordmark stand-in --
                               a flat color chip would not show what the
                               sidebar is about to look like. Inline style
-                              rather than the .brand-gradient class: that one
-                              reads the live document variable, which is the
-                              *current* theme, not this option's. */}
+                              rather than the .sidebar-gradient class: that
+                              one reads the live document variable, which is
+                              the *current* theme, not this option's.
+
+                              Taller and top-aligned now that the gradient
+                              fills the whole rail: the palettes differ most
+                              at their top stop and resolve to the same dark
+                              at the bottom, so a short chip centred on the
+                              midpoint would make several of them look
+                              identical. This shows the ramp instead. */}
                           <span
-                            className="flex h-12 items-center gap-2 rounded-md px-2"
+                            className="flex h-20 flex-col justify-start gap-1.5 rounded-md p-2"
                             style={{ backgroundImage: theme.gradient }}
                           >
+                            <span className="flex items-center gap-2">
+                              <span
+                                className="size-4 shrink-0 rounded-full"
+                                style={{ backgroundColor: theme.accent.base }}
+                                aria-hidden="true"
+                              />
+                              <span
+                                className="truncate font-heading text-sm font-extrabold"
+                                style={{ color: theme.accent.base }}
+                                aria-hidden="true"
+                              >
+                                {organization.name}
+                              </span>
+                            </span>
+
+                            {/* A stand-in for the active nav pill -- the one
+                                place the accent is used as a fill behind
+                                text, and the pairing the contrast floor in
+                                orgThemes.js exists to protect. */}
                             <span
-                              className="size-4 shrink-0 rounded-full"
-                              style={{ backgroundColor: theme.accent.base }}
-                              aria-hidden="true"
-                            />
-                            <span
-                              className="truncate font-heading text-sm font-extrabold"
-                              style={{ color: theme.accent.base }}
+                              className="mt-auto w-fit rounded px-1.5 py-0.5 text-[0.625rem] font-semibold"
+                              style={{ backgroundColor: theme.accent.base, color: theme.accent.on }}
                               aria-hidden="true"
                             >
-                              {organization.name}
+                              {t('nav.dashboard')}
                             </span>
                           </span>
 
