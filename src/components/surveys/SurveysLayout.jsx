@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { canManageStudents } from '../../lib/roles.js'
-import { useParams } from 'react-router-dom'
-import { ClipboardList, FileText } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { ClipboardList, FileText, Plus } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { listSurveys, deleteSurvey } from '../../api/client.js'
@@ -174,9 +174,26 @@ export default function SurveysLayout() {
         listEmpty={status === 'loading' ? t('surveys.loading') : status === 'error' ? error : t('surveys.empty')}
         actions={
           isElle ? (
-            <Button size="sm" variant={selectMode ? 'secondary' : 'outline'} onClick={toggleSelectMode}>
-              {selectMode ? t('surveys.cancel') : t('surveys.select')}
-            </Button>
+            // Uploading used to be a sidebar row, which put a verb among the
+            // nav's nouns and split it from the two upload actions that were
+            // already page buttons. It lives here now, next to the list it
+            // adds to, matching CoursesLayout and LibraryPage.
+            <div className="flex w-32 flex-col gap-1.5">
+              {/* Base UI's Button composes via `render`, not asChild — see the
+                  note in CoursesLayout. */}
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                render={
+                  <Link to="/surveys/upload">
+                    <Plus /> {t('surveys.upload')}
+                  </Link>
+                }
+              />
+              <Button size="sm" variant={selectMode ? 'secondary' : 'outline'} onClick={toggleSelectMode}>
+                {selectMode ? t('surveys.cancel') : t('surveys.select')}
+              </Button>
+            </div>
           ) : null
         }
       />

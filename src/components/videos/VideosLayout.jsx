@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { canManageStudents } from '../../lib/roles.js'
-import { useParams } from 'react-router-dom'
-import { Video as VideoIcon, Clock3, CheckCircle2 } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { Video as VideoIcon, Clock3, CheckCircle2, Plus } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { listVideos } from '../../api/client.js'
 import { formatDuration } from '../../utils/formatDuration.js'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
@@ -108,38 +110,62 @@ export default function VideosLayout() {
       list={list}
       listEmpty={status === 'loading' ? t('videos.loading') : status === 'error' ? error : t('videos.empty')}
       actions={
-        isElle ? (
-          <div className="flex w-32 flex-col gap-1.5">
-            <Select value={typeFilter || 'all'} onValueChange={(next) => setTypeFilter(next === 'all' ? '' : next)} items={TYPE_OPTIONS}>
-              <SelectTrigger className={DARK_TRIGGER_CLASS}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={statusFilter || 'all'}
-              onValueChange={(next) => setStatusFilter(next === 'all' ? '' : next)}
-              items={STATUS_OPTIONS}
-            >
-              <SelectTrigger className={DARK_TRIGGER_CLASS}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : null
+        // The upload route is canOpenStudentContent, so this button is for
+        // everyone -- it is the teacher filing a video for review and the
+        // student handing their own work in, one route, two verbs. It replaces
+        // the sidebar row a student used to submit through, and lands on top
+        // of the list of their past submissions, where they already are.
+        // The filters below stay teacher-only, so a student gets the button
+        // alone and no narrow column to strand it in.
+        <div className={cn('flex flex-col gap-1.5', isElle && 'w-32')}>
+          {/* Base UI's Button composes via `render`, not asChild — see the
+              note in CoursesLayout. */}
+          <Button
+            size="sm"
+            className="h-7 text-xs"
+            render={
+              <Link to="/videos/upload">
+                <Plus /> {t(isElle ? 'videos.upload' : 'videos.submit')}
+              </Link>
+            }
+          />
+          {isElle ? (
+            <>
+              <Select
+                value={typeFilter || 'all'}
+                onValueChange={(next) => setTypeFilter(next === 'all' ? '' : next)}
+                items={TYPE_OPTIONS}
+              >
+                <SelectTrigger className={DARK_TRIGGER_CLASS}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={statusFilter || 'all'}
+                onValueChange={(next) => setStatusFilter(next === 'all' ? '' : next)}
+                items={STATUS_OPTIONS}
+              >
+                <SelectTrigger className={DARK_TRIGGER_CLASS}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          ) : null}
+        </div>
       }
     />
   )

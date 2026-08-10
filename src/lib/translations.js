@@ -9,9 +9,7 @@ export const translations = {
       dashboard: 'Dashboard',
       students: 'Students',
       surveys: 'Surveys',
-      uploadSurvey: 'Upload Survey',
       videos: 'Videos',
-      uploadVideo: 'Upload Video',
       courses: 'Courses',
       library: 'Library',
       bookings: 'Bookings',
@@ -20,6 +18,26 @@ export const translations = {
       messages: 'Messages',
       broadcasts: 'Announcements',
       logout: 'Log out',
+      // Sidebar group headings. The teaching pair has a student-facing
+      // wording (myLearning/myWork) so a student is not asked to read
+      // "Student work" and translate it into "mine".
+      section: {
+        teaching: 'Teaching',
+        studentWork: 'Student work',
+        myLearning: 'My learning',
+        myWork: 'My work',
+        communication: 'Communication',
+        admin: 'Admin',
+      },
+    },
+    // Shown under the signed-in name in the sidebar's account block. Mirrors
+    // the four roles in lib/roles.js; 'admin' reads as "Teacher" because that
+    // is what the role is in this product (the value is a legacy name).
+    role: {
+      owner: 'Owner',
+      manager: 'Manager',
+      admin: 'Teacher',
+      student: 'Student',
     },
     language: {
       toggleLabel: 'Language',
@@ -64,6 +82,7 @@ export const translations = {
       select: 'Select',
       cancel: 'Cancel',
       emptyDetail: 'Select a survey from the list to see its details.',
+      upload: 'Upload survey',
     },
     uploadSurvey: {
       title: 'Upload Survey',
@@ -74,6 +93,10 @@ export const translations = {
       loading: 'Loading videos…',
       empty: 'No videos yet.',
       emptyDetail: 'Select a video from the list to see its details.',
+      // Same route for both roles; only the verb differs. A teacher files a
+      // video for review, a student hands their own work in.
+      upload: 'Upload video',
+      submit: 'Submit video',
     },
     uploadVideo: {
       title: 'Upload Video',
@@ -336,9 +359,7 @@ export const translations = {
       dashboard: '仪表盘',
       students: '学生',
       surveys: '问卷',
-      uploadSurvey: '上传问卷',
       videos: '视频',
-      uploadVideo: '上传视频',
       courses: '课程',
       library: '资料库',
       bookings: '预约',
@@ -347,6 +368,20 @@ export const translations = {
       messages: '消息',
       broadcasts: '公告',
       logout: '退出登录',
+      section: {
+        teaching: '教学',
+        studentWork: '学生作业',
+        myLearning: '我的课程',
+        myWork: '我的作业',
+        communication: '沟通',
+        admin: '管理',
+      },
+    },
+    role: {
+      owner: '所有者',
+      manager: '主管',
+      admin: '教师',
+      student: '学生',
     },
     language: {
       toggleLabel: '语言',
@@ -391,6 +426,7 @@ export const translations = {
       select: '选择',
       cancel: '取消',
       emptyDetail: '从左侧列表中选择一份问卷，查看详情。',
+      upload: '上传问卷',
     },
     uploadSurvey: {
       title: '上传问卷',
@@ -401,6 +437,8 @@ export const translations = {
       loading: '正在加载视频…',
       empty: '暂无视频。',
       emptyDetail: '从左侧列表中选择一个视频，查看详情。',
+      upload: '上传视频',
+      submit: '提交视频',
     },
     uploadVideo: {
       title: '上传视频',
