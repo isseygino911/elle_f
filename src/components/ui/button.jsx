@@ -1,3 +1,4 @@
+import { forwardRef } from "react"
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva } from "class-variance-authority";
 
@@ -40,18 +41,38 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
+// forwardRef, because this app runs React 18. Base UI's triggers compose via
+// `render={<Button/>}` and then attach a ref to the rendered element to anchor
+// the popup they position. Under React 19 a function component receives `ref`
+// as an ordinary prop, so a plain function would be fine; under 18 the ref is
+// dropped and React warns "Function components cannot be given refs". The
+// visible symptom was tooltips never appearing -- the positioner had no anchor
+// to measure against.
+const Button = forwardRef(function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
+  render,
   ...props
-}) {
+}, ref) {
+  // Base UI assumes `render` yields a native <button> and warns when it does
+  // not, because swapping in a non-button silently drops form and a11y
+  // semantics. Several call sites render a react-router <Link> to get a real
+  // <a> (right-click, cmd-click, middle-click all need an href). Derive the
+  // flag here rather than repeating `nativeButton={false}` at each of those
+  // sites; an explicit prop still wins if a caller knows better.
+  const isNativeButton = nativeButton ?? render === undefined;
+
   return (
     <ButtonPrimitive
+      ref={ref}
       data-slot="button"
+      nativeButton={isNativeButton}
+      render={render}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props} />
   );
-}
+});
 
 export { Button, buttonVariants }
