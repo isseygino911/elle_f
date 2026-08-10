@@ -351,6 +351,24 @@ export async function listOpenSlots(accessToken, date) {
   return request(`/bookings/open-slots?date=${encodeURIComponent(date)}`, { accessToken })
 }
 
+// Open slots for a whole date range in ONE request. The month view needs ~30
+// days; calling listOpenSlots per day would be ~30 round trips.
+//
+// Returns { from, to, slots_by_date } where slots_by_date has an entry for
+// EVERY date in the range, empty array included — so a grid never has to
+// distinguish "no availability" from "day missing from the response".
+//
+// The backend caps the span at 31 days and 400s past it. Note that the
+// single-day listOpenSlots above will NOT complain if you pass extra params:
+// zod strips unknown query keys, so `?date=…&to=…` returns 200 for one day
+// with `to` silently discarded. A wrong-endpoint mistake looks like it worked.
+export async function listOpenSlotsRange(accessToken, from, to) {
+  return request(
+    `/bookings/open-slots-range?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    { accessToken }
+  )
+}
+
 export async function listBookings(accessToken, { status, upcoming } = {}) {
   const params = new URLSearchParams()
   if (status) params.set('status', status)
@@ -415,6 +433,53 @@ export async function updateAvailability(accessToken, id, { day_of_week, start_t
   return request(`/availability/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: { day_of_week, start_time, end_time },
+    accessToken,
+  })
+}
+
+// --- dated exceptions to the recurring availability template ---------------
+// `availability` above is a weekly rule with no dates, repeating forever.
+// These amend it for ONE date: a 'block' removes offered time, an 'add' offers
+// time the weekly rule doesn't. Omitting both times on a 'block' means the
+// whole day (the holiday case); an 'add' must always name both.
+//
+// Blocking a date never cancels a booking already made on it — it only stops
+// new bookings being offered. Cancelling stays an explicit, separate action.
+
+export async function listAvailabilityExceptions(accessToken, { from, to } = {}) {
+  const params = new URLSearchParams()
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  return request(`/availability-exceptions${query}`, { accessToken })
+}
+
+export async function createAvailabilityException(
+  accessToken,
+  { date, type, start_time, end_time } = {}
+) {
+  return request('/availability-exceptions', {
+    method: 'POST',
+    body: { date, type, start_time, end_time },
+    accessToken,
+  })
+}
+
+export async function updateAvailabilityException(
+  accessToken,
+  id,
+  { date, type, start_time, end_time } = {}
+) {
+  return request(`/availability-exceptions/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: { date, type, start_time, end_time },
+    accessToken,
+  })
+}
+
+export async function deleteAvailabilityException(accessToken, id) {
+  return request(`/availability-exceptions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
     accessToken,
   })
 }
