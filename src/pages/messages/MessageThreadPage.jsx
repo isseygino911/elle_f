@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
+import { formatMessageTimestamp } from '@/utils/formatSlotTime'
 
 const POLL_INTERVAL_MS = 15000
 
@@ -144,8 +145,13 @@ export default function MessageThreadPage() {
                         {!isOwn && <p className="m-0 mb-0.5 text-xs font-semibold opacity-70">{message.sender_name}</p>}
                         <p className="m-0">{message.body}</p>
                       </div>
+                      {/* formatMessageTimestamp, not the raw column: created_at
+                          arrives as a full ISO instant, so interpolating it
+                          directly printed "2026-08-11T15:31:50.000Z" under
+                          every bubble. Same class of bug as the one fixed in
+                          PendingVideoReviewsList. */}
                       <span className="px-1 text-xs text-muted-foreground">
-                        {message.created_at}
+                        {formatMessageTimestamp(message.created_at)}
                         {isOwn && message.read_at && ' · Read'}
                       </span>
                     </div>

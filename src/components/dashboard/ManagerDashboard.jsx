@@ -1,8 +1,9 @@
-import { GraduationCap, Users, CalendarDays, Video, CheckSquare, CircleCheck } from 'lucide-react'
+import { GraduationCap, Users, CalendarDays, Video, CheckSquare } from 'lucide-react'
 import { useLanguage } from '@/lib/LanguageContext'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { EmptyState } from '@/components/Page'
+import KpiStrip from './KpiStrip.jsx'
 
 // The manager's entire view of the application: per-teacher aggregates.
 //
@@ -13,19 +14,55 @@ import { EmptyState } from '@/components/Page'
 //
 // If you extend this, do not add a link into a student's records. There isn't
 // one to follow: the API would refuse it.
+//
+// The privacy boundary is structural, not conditional: this component
+// receives only `admins` and `totals`, and imports none of the sections that
+// render a student's name. KpiStrip is presentational and takes the cells
+// built below, so nothing student-bearing can reach it through this path.
 
-// A single aggregate count. Mirrors the tile treatment used by StatTiles on
-// the list panels, but on the light page ground the dashboard uses rather than
-// the dark rail, so it sits correctly next to the teacher dashboard's cards.
-function StatTile({ icon: Icon, label, value }) {
+// A manager has no chart worth reserving space for.
+//
+// Three of the four planned charts (activity trend, roster progress, review
+// backlog age) are computed from per-student or per-video rows this role must
+// never receive. Only booking outcomes could ever be shown, so the second
+// slot holds something real and permanent instead of a "coming soon" frame
+// promising a chart the data model cannot deliver.
+function TaskSplit({ pending, done, labels }) {
+  const total = pending + done
+  const donePercent = total > 0 ? Math.round((done / total) * 100) : 0
+
   return (
-    <div className="flex flex-col gap-1 rounded-md border bg-card p-3 shadow-sm">
-      <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Icon className="size-3.5 shrink-0" aria-hidden="true" />
-        <span className="truncate">{label}</span>
-      </span>
-      <span className="font-heading text-xl font-extrabold">{value}</span>
-    </div>
+    <Card>
+      <CardHeader className="border-b border-border pb-3">
+        <h2 className="m-0 text-base leading-snug font-medium">{labels.taskProgress}</h2>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {total === 0 ? (
+          <EmptyState>{labels.noTasks}</EmptyState>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="font-heading text-2xl leading-tight font-extrabold tabular-nums">
+                {donePercent}%
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {done} / {total} {labels.completed.toLowerCase()}
+              </span>
+            </div>
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-muted"
+              role="img"
+              aria-label={`${done} of ${total} tasks complete`}
+            >
+              <div className="h-full rounded-full bg-chart-1" style={{ width: `${donePercent}%` }} />
+            </div>
+            <p className="m-0 text-xs text-muted-foreground">
+              {pending} {labels.openTasks.toLowerCase()}
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -36,29 +73,50 @@ export default function ManagerDashboard({ dashboard }) {
   const totals = dashboard.totals || {}
   const tasks = totals.tasks || {}
 
-  const tiles = [
-    { icon: GraduationCap, label: t('dashboard.teachers'), value: totals.admin_count ?? 0 },
-    { icon: Users, label: t('dashboard.students'), value: totals.student_count ?? 0 },
-    { icon: CalendarDays, label: t('dashboard.upcomingSessions'), value: totals.upcoming_bookings ?? 0 },
-    { icon: Video, label: t('dashboard.videosAwaitingReview'), value: totals.pending_video_reviews ?? 0 },
-    { icon: CheckSquare, label: t('dashboard.openTasks'), value: tasks.pending ?? 0 },
-    { icon: CircleCheck, label: t('dashboard.completedTasks'), value: tasks.done ?? 0 },
+  // Four cells, not the previous six. The two task counts moved into the
+  // ratio panel below, where "12 done" means something next to "3 open"
+  // rather than sitting as two unrelated figures in a row.
+  const cells = [
+    { key: 'teachers', icon: GraduationCap, label: t('dashboard.teachers'), value: totals.admin_count ?? 0 },
+    { key: 'students', icon: Users, label: t('dashboard.students'), value: totals.student_count ?? 0 },
+    {
+      key: 'sessions',
+      icon: CalendarDays,
+      label: t('dashboard.upcomingSessions'),
+      value: totals.upcoming_bookings ?? 0,
+    },
+    {
+      key: 'reviews',
+      icon: Video,
+      label: t('dashboard.videosAwaitingReview'),
+      value: totals.pending_video_reviews ?? 0,
+      attention: true,
+    },
   ]
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3">
-        <h2 className="m-0 text-base leading-snug font-medium">{t('dashboard.orgOverview')}</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {tiles.map((tile) => (
-            <StatTile key={tile.label} icon={tile.icon} label={tile.label} value={tile.value} />
-          ))}
-        </div>
-      </section>
+      <KpiStrip cells={cells} label={t('dashboard.orgOverview')} />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <TaskSplit
+          pending={tasks.pending ?? 0}
+          done={tasks.done ?? 0}
+          labels={{
+            taskProgress: t('dashboard.taskProgress'),
+            noTasks: t('dashboard.noTasks'),
+            completed: t('dashboard.completed'),
+            openTasks: t('dashboard.openTasks'),
+          }}
+        />
+      </div>
 
       <Card>
-        <CardHeader className="py-3">
-          <h2 className="m-0 text-base leading-snug font-medium">{t('dashboard.byTeacher')}</h2>
+        <CardHeader className="border-b border-border pb-3">
+          <div className="flex items-center gap-2.5">
+            <CheckSquare className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <h2 className="m-0 text-base leading-snug font-medium">{t('dashboard.byTeacher')}</h2>
+          </div>
         </CardHeader>
         <CardContent>
           {admins.length === 0 ? (

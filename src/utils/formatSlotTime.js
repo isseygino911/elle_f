@@ -104,6 +104,21 @@ export function formatSlotDate(isoUtcStringOrYyyyMmDd) {
   return easternCalendarDateFormatter.format(date)
 }
 
+// isoUtcString: a full UTC ISO instant. Renders the Eastern calendar date and
+// time together, e.g. "2026-08-11 5:43 PM".
+//
+// Single-timezone on purpose, unlike formatSlotTime: a booking is an
+// appointment two people in different countries have to agree on, so it earns
+// the dual ET/China rendering. A chat timestamp is a "when was this said"
+// marker repeated beside every bubble in the thread, and the dual form would
+// be longer than most of the messages it annotates.
+export function formatMessageTimestamp(isoUtcString) {
+  const date = new Date(isoUtcString)
+  if (Number.isNaN(date.getTime())) return isoUtcString
+
+  return `${easternCalendarDateFormatter.format(date)} ${getTimeFormatter(EASTERN_TIME_ZONE).format(date)}`
+}
+
 // hhmmss: a bare Eastern wall-clock time with no date/instant attached,
 // e.g. "17:43:00" (as stored in the availability table). Parsed directly
 // as hour/minute -- no Date object, no Intl timezone conversion -- and

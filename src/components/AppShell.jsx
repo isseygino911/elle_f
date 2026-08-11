@@ -38,6 +38,8 @@ import {
 } from '@/components/ui/menu'
 import { Sheet, SheetTrigger, SheetClose, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import LineNav from '@/components/nav/LineNav'
+import NotificationBell from '@/components/notifications/NotificationBell.jsx'
+import { useNotifications } from '@/lib/NotificationContext'
 
 const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed'
 
@@ -161,12 +163,18 @@ function BrandMark({ brandName, logoUrl, showName, collapsed = false }) {
 //
 // Every row carries a transparent border so selecting one does not add 2px to
 // its height and shift the rows below it.
-function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigate, ordinal }) {
+function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigate, ordinal, badge = 0, badgeLabel }) {
+  const hasBadge = badge > 0
+  // The count is drawn aria-hidden (as a pill when expanded, a dot when
+  // collapsed), so the accessible name is where it actually reaches a screen
+  // reader -- "Messages, 5 unread" rather than a silent decoration.
+  const accessibleLabel = hasBadge && badgeLabel ? `${label}, ${badgeLabel}` : label
   const link = (
     <NavLink
       to={to}
       end={end}
-      title={label}
+      title={accessibleLabel}
+      aria-label={hasBadge ? accessibleLabel : undefined}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
@@ -194,7 +202,23 @@ function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigat
       {/* text-current: the icon takes the row's own color in every state, so
           it brightens to white with the label on select and on hover rather
           than being lit separately. */}
-      <IconComponent className="size-4.5 shrink-0 text-current" aria-hidden="true" />
+      {/* The icon is wrapped only when a count needs anchoring to it, so an
+          unbadged row keeps exactly the markup it had. */}
+      {hasBadge && collapsed ? (
+        <span className="relative flex shrink-0">
+          <IconComponent className="size-4.5 shrink-0 text-current" aria-hidden="true" />
+          {/* Collapsed the rail is 72px of glyphs with every label sr-only, so
+              there is nowhere to put a number. A dot says "something here"
+              without competing with the icon for the same few pixels; the
+              count itself is still announced via the link's title/aria-label. */}
+          <span
+            className="absolute -top-1 -right-1 size-2 rounded-full bg-lime ring-2 ring-dark"
+            aria-hidden="true"
+          />
+        </span>
+      ) : (
+        <IconComponent className="size-4.5 shrink-0 text-current" aria-hidden="true" />
+      )}
       {/* truncate on the label rather than overflow-hidden on the row: the
           clip belongs to the text, not to the whole pill. min-w-0 lets the
           flex child shrink below its content width. */}
@@ -208,8 +232,23 @@ function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigat
           aria-hidden: it numbers rows on screen for orientation, but a screen
           reader already announces "3 of 5" from the list itself, so voicing it
           would double every item. */}
+      {/* The count, on the trailing edge before the ordinal. ml-auto moves to
+          whichever of the two comes first so the pair stays flush right
+          whether or not a row is badged.
+
+          Lime, matching every other unread count in the product (badge.jsx
+          documents accent/lime as exactly that meaning), so it follows the
+          tenant accent rather than hardcoding a hue. */}
+      {!collapsed && hasBadge && (
+        <span
+          className="ml-auto flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-lime px-1 font-heading text-[0.625rem] leading-none font-bold text-on-lime tabular-nums"
+          aria-hidden="true"
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
       {!collapsed && ordinal != null && (
-        <span className="line-nav__index ml-auto shrink-0" aria-hidden="true">
+        <span className={cn('line-nav__index shrink-0', !hasBadge && 'ml-auto')} aria-hidden="true">
           {String(ordinal).padStart(2, '0')}
         </span>
       )}
@@ -401,6 +440,8 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
                 collapsed={collapsed}
                 onNavigate={onNavigate}
                 ordinal={ordinals.get(item.to)}
+                badge={item.badge}
+                badgeLabel={item.badgeLabel}
               />
             </li>
           ))}
@@ -461,6 +502,10 @@ export default function AppShell({ children }) {
   const isElle = canManageStudents(user)
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  // Null when the shell renders outside the provider; the badge is simply
+  // absent then rather than the nav failing to build.
+  const notificationState = useNotifications()
+  const unreadMessageCount = notificationState ? notificationState.unreadMessageCount : 0
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
@@ -556,6 +601,12 @@ export default function AppShell({ children }) {
                 to: isStudent(user) ? `/messages/${encodeURIComponent(user.id)}` : '/messages',
                 label: t('nav.messages'),
                 icon: 'messages',
+                // Live, from the same 15s poll that feeds the bell. This is
+                // the count that used to require fetching the whole dashboard
+                // payload, and it now stays current on every page rather than
+                // only where a dashboard happened to be mounted.
+                badge: unreadMessageCount,
+                badgeLabel: `${unreadMessageCount} ${t('dashboard.notificationsUnread')}`,
               },
               // Owner and teacher only. canReadBroadcasts also admits
               // managers, who are handled by the branch above.
@@ -611,60 +662,67 @@ export default function AppShell({ children }) {
           its own `sticky`. */}
       <header className="sidebar-gradient sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-dark-border bg-dark px-4 shadow-md md:hidden">
         <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
-        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-          <SheetTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="size-5.5" aria-hidden="true" />
-              </Button>
-            }
-          />
-          {/* The drawer is the mobile stand-in for the rail, so it wears the
-              same wash. Set here rather than in ui/sheet.jsx: SheetContent is
-              a generic primitive and the gradient is navigation styling. */}
-          <SheetContent side="left" className="sidebar-gradient">
-            <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
-
-            {/* Same masthead treatment as the desktop rail: the mark on the
-                drawer's own surface, not in a card of its own. */}
-            <div className="flex items-center justify-between gap-2 px-1">
-              <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
-              <SheetClose
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
-                    aria-label="Close navigation menu"
-                  >
-                    <X className="size-5" aria-hidden="true" />
-                  </Button>
-                }
-              />
-            </div>
-
-            <SidebarNavList
-              navSections={navSections}
-              showHeaders={showNavHeaders}
-              collapsed={false}
-              userLabel={userLabel}
-              roleLabel={roleLabel}
-              onLogout={() => {
-                closeMobileNav()
-                logout()
-              }}
-              onNavigate={closeMobileNav}
+        {/* Wrapped rather than added as a third child: this header is
+            justify-between, so a bare third element would space the three
+            evenly across the bar and pull the brand mark off the left edge.
+            The pair travels together on the trailing edge instead. */}
+        <div className="flex items-center gap-1">
+          <NotificationBell className="size-11" />
+          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+            <SheetTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
+                  aria-label="Open navigation menu"
+                >
+                  <Menu className="size-5.5" aria-hidden="true" />
+                </Button>
+              }
             />
-          </SheetContent>
-        </Sheet>
+            {/* The drawer is the mobile stand-in for the rail, so it wears the
+                same wash. Set here rather than in ui/sheet.jsx: SheetContent is
+                a generic primitive and the gradient is navigation styling. */}
+            <SheetContent side="left" className="sidebar-gradient">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
+
+              {/* Same masthead treatment as the desktop rail: the mark on the
+                  drawer's own surface, not in a card of its own. */}
+              <div className="flex items-center justify-between gap-2 px-1">
+                <BrandMark brandName={brandName} logoUrl={logoUrl} showName={showNameWithLogo} />
+                <SheetClose
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
+                      aria-label="Close navigation menu"
+                    >
+                      <X className="size-5" aria-hidden="true" />
+                    </Button>
+                  }
+                />
+              </div>
+
+              <SidebarNavList
+                navSections={navSections}
+                showHeaders={showNavHeaders}
+                collapsed={false}
+                userLabel={userLabel}
+                roleLabel={roleLabel}
+                onLogout={() => {
+                  closeMobileNav()
+                  logout()
+                }}
+                onNavigate={closeMobileNav}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
       </header>
 
       {/* Desktop sidebar (md+): unchanged sticky icon-rail behavior, just
@@ -696,6 +754,30 @@ export default function AppShell({ children }) {
           {/* Hidden when collapsed so the mark can sit centred in the 72px
               rail on its own; the toggle moves below it there. */}
           {!collapsed && (
+            <div className="flex items-center gap-0.5">
+              <NotificationBell />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
+                onClick={toggleCollapsed}
+                aria-expanded={!collapsed}
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="size-4.5" aria-hidden="true" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Collapsed, the masthead has no room beside the mark, so the bell
+            joins the expand toggle in the stacked column below it -- and takes
+            a tooltip there for the same reason the nav rows do, since its
+            label is no longer readable. */}
+        {collapsed && (
+          <div className="flex flex-col items-center gap-1">
+            <NotificationBell collapsed />
             <Button
               type="button"
               variant="ghost"
@@ -703,25 +785,11 @@ export default function AppShell({ children }) {
               className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
               onClick={toggleCollapsed}
               aria-expanded={!collapsed}
-              aria-label="Collapse sidebar"
+              aria-label="Expand sidebar"
             >
-              <ChevronLeft className="size-4.5" aria-hidden="true" />
+              <ChevronLeft className="size-4.5 rotate-180" aria-hidden="true" />
             </Button>
-          )}
-        </div>
-
-        {collapsed && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="mx-auto size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
-            onClick={toggleCollapsed}
-            aria-expanded={!collapsed}
-            aria-label="Expand sidebar"
-          >
-            <ChevronLeft className="size-4.5 rotate-180" aria-hidden="true" />
-          </Button>
+          </div>
         )}
 
         <SidebarNavList

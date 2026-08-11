@@ -11,6 +11,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import { OrganizationProvider } from './lib/OrganizationContext.jsx'
+import { NotificationProvider } from './lib/NotificationContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
@@ -84,6 +85,13 @@ export default function App() {
             BrowserRouter so the organization is fetched once for the session
             rather than per navigation. */}
         <OrganizationProvider>
+        {/* Same placement, same reasoning: the notification/unread poll reads
+            the access token and must survive navigation. Mounted here rather
+            than inside AppShell so a single 15s interval serves the whole
+            session -- inside the router it would remount and restart its clock
+            on route changes. It no-ops without a token, so the public routes
+            below cost nothing. */}
+        <NotificationProvider>
         <BrowserRouter>
           <Routes>
           {/* Login is the entry page: the public landing site is gone, so an
@@ -342,6 +350,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </BrowserRouter>
+        </NotificationProvider>
         </OrganizationProvider>
       </AuthProvider>
     </TooltipProvider>

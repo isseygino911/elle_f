@@ -307,17 +307,40 @@ export async function markThreadRead(accessToken, studentId) {
   return request(`/messages/${encodeURIComponent(studentId)}/read`, { method: 'PATCH', accessToken })
 }
 
-export async function getDashboard(accessToken) {
-  return request('/dashboard', { accessToken })
+// `surveyId` selects which survey the roster's progress is measured against.
+// Omitted, the server falls back to the most recently uploaded one.
+export async function getDashboard(accessToken, { surveyId } = {}) {
+  const query = surveyId == null ? '' : `?survey_id=${encodeURIComponent(surveyId)}`
+  return request(`/dashboard${query}`, { accessToken })
 }
 
-export async function listNotifications(accessToken, { unreadOnly } = {}) {
-  const query = unreadOnly ? '?unread=true' : ''
-  return request(`/notifications${query}`, { accessToken })
+// `limit`/`offset` are the server's own paging params (limit is capped at 100
+// server-side). The drawer asks for a page; the badge only needs the
+// unread_count that every response carries regardless of these.
+export async function listNotifications(accessToken, { unreadOnly, limit, offset } = {}) {
+  const params = new URLSearchParams()
+  if (unreadOnly) params.set('unread', 'true')
+  if (limit != null) params.set('limit', String(limit))
+  if (offset != null) params.set('offset', String(offset))
+  const query = params.toString()
+  return request(`/notifications${query ? `?${query}` : ''}`, { accessToken })
 }
 
 export async function markNotificationRead(accessToken, notificationId) {
   return request(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH', accessToken })
+}
+
+// PATCH /notifications/read-all has existed server-side since the notification
+// work landed but had no caller until the drawer needed it.
+export async function markAllNotificationsRead(accessToken) {
+  return request('/notifications/read-all', { method: 'PATCH', accessToken })
+}
+
+// Unread mail totals without the thread bodies -- what the shell's nav badge
+// polls. Returns { total_count, by_student }; MessagesLayout uses the
+// breakdown, the badge uses the total.
+export async function getUnreadMessageCount(accessToken) {
+  return request('/messages/unread-count', { accessToken })
 }
 
 export async function createBroadcast(accessToken, { audience, title, body } = {}) {

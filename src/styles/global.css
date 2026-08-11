@@ -116,11 +116,15 @@
   --color-dark-border: var(--color-border-dark);
   --color-dark-muted: var(--color-muted-dark);
 
-  /* Dashboard widget palette (tokens.css) — bg-tag-lime-light,
-     bg-tag-violet-light, bg-tag-coral. */
-  --color-tag-lime-light: var(--color-tag-lime-light);
-  --color-tag-violet-light: var(--color-tag-violet-light);
-  --color-tag-coral: var(--color-tag-coral);
+  /* Chart series (tokens.css) — text-chart-1, stroke-chart-2, fill-chart-3.
+     1-3 follow the tenant hue, 4-5 are fixed. See the long note in
+     tokens.css for why these do not pin lightness the way the dark
+     scaffold does. */
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+  --color-chart-5: var(--color-chart-5);
 
   /* Restrained, single-layer shadows only — no glassmorphism. Ported from
      tokens.css exactly rather than Tailwind's stock multi-layer shadow

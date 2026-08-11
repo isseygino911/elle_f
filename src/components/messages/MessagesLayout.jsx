@@ -5,7 +5,7 @@ import { MessageSquare } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useStudents } from '../../hooks/useStudents.js'
-import { getDashboard } from '../../api/client.js'
+import { getUnreadMessageCount } from '../../api/client.js'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
 import EmptyDetailState from '@/components/records/EmptyDetailState'
@@ -13,9 +13,13 @@ import EmptyDetailState from '@/components/records/EmptyDetailState'
 // The persistent master list panel for `/messages` and `/messages/:studentId`
 // — an inbox, not a dropdown-and-navigate form. Elle sees every student on
 // the left (same RecordCard/MasterDetailLayout shape as Students/Videos/
-// Surveys) with the selected thread on the right, per-student unread counts
-// pulled from the same dashboard.unread_messages.by_student data the
-// Dashboard's own unread-messages widget already uses (no new query).
+// Surveys) with the selected thread on the right, with per-student unread
+// counts beside each name.
+//
+// Those counts come from GET /messages/unread-count, which returns the same
+// by_student breakdown the dashboard payload carries. This used to fetch the
+// ENTIRE dashboard -- every video, task, booking and progress row -- to read
+// one map out of it, which is a lot of query for a set of badges.
 //
 // A student only ever has one correspondent (Elle), so there's nothing to
 // list — the layout renders the thread directly, full-width.
@@ -32,11 +36,11 @@ export default function MessagesLayout() {
     if (!isElle) return undefined
     let cancelled = false
 
-    getDashboard(accessToken)
+    getUnreadMessageCount(accessToken)
       .then((body) => {
         if (cancelled) return
         const map = {}
-        for (const entry of body.unread_messages.by_student) {
+        for (const entry of body.by_student) {
           map[entry.student_id] = entry.unread_count
         }
         setUnreadByStudent(map)

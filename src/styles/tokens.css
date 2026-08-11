@@ -108,16 +108,35 @@
     9.20:1, all verified. White fails on High (3.15:1) — dark ink on every
     priority pill, not white, per MASTER.md. */
 
-  /* ---- Color: dashboard widget palette — per-widget differentiation,
-     matching the RonDesignLab reference screenshot exactly (lighter
-     lime/purple card fills + a coral pill/button) rather than an invented
-     hue set. -light variants are literally lighter tints of the app's own
-     lime/violet accents (not new brand colors); coral reuses
-     --color-priority-high directly (already an established token). Dark ink
-     text verified >=5.6:1 against all three. */
-  --color-tag-lime-light: #dcee7e;
-  --color-tag-violet-light: #c9c1f6;
-  --color-tag-coral: var(--color-priority-high);
+  /* ---- Color: chart series ----
+   *
+   * Categorical series colors for the dashboard's charts. Reserved now so
+   * the charts themselves inherit tenant theming for free when they land.
+   *
+   * WHY THESE DO NOT FOLLOW THE DARK-SCAFFOLD RULE
+   *
+   * The scaffold above pins lightness and chroma and takes only the accent's
+   * hue, precisely so a vivid tenant accent cannot brighten or wash a
+   * surface. Series colors need the opposite property: they must be mutually
+   * DISTINGUISHABLE, and a single hue at one lightness is not. So chart-1..3
+   * walk an L/C ladder along the tenant hue, and chart-4/5 bring in fixed
+   * non-accent hues. Series color is categorical -- it identifies a line, it
+   * is not brand expression.
+   *
+   * The literals here are the lime palette's values and stay as the fallback
+   * for engines without relative color syntax, matching the pattern the dark
+   * scaffold already uses.
+   *
+   * Two properties any change here must preserve: adjacent series stay
+   * distinguishable across all twelve palettes, and the set survives
+   * greyscale/color-blind viewing. Charts must therefore pair color with a
+   * second channel (dash pattern, direct labelling) rather than leaning on
+   * hue alone -- color is never the sole carrier, same rule as the badges. */
+  --color-chart-1: #a3c81f; /* tenant hue, mid  */
+  --color-chart-2: #6f8f14; /* tenant hue, dark */
+  --color-chart-3: #d4ea7a; /* tenant hue, light */
+  --color-chart-4: var(--color-violet); /* fixed, non-accent */
+  --color-chart-5: var(--color-priority-low); /* fixed, non-accent */
 
   /* ---- Color: semantic ---- */
   --color-destructive: #ef4444; /* MASTER "Destructive/error" */
@@ -230,6 +249,14 @@
     --color-card-dark: oklch(from var(--color-lime) 0.225 0.034 h);
     --color-card-dark-hover: oklch(from var(--color-lime) 0.26 0.041 h);
     --color-border-dark: oklch(from var(--color-lime) 0.316 0.037 h);
+
+    /* Chart series 1-3 walk a lightness ladder along the tenant hue so they
+     * stay distinguishable from each other; 4 and 5 are fixed hues and are
+     * deliberately absent here. Chroma is held near the accent's own so a
+     * muted tenant palette does not produce three near-identical greys. */
+    --color-chart-1: oklch(from var(--color-lime) 0.72 0.16 h);
+    --color-chart-2: oklch(from var(--color-lime) 0.55 0.13 h);
+    --color-chart-3: oklch(from var(--color-lime) 0.86 0.11 h);
   }
 }
 
