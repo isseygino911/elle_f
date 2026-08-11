@@ -12,7 +12,6 @@ import { LanguageProvider } from './lib/LanguageContext.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import { OrganizationProvider } from './lib/OrganizationContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
-import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import RegisterOrganizationPage from './pages/RegisterOrganizationPage.jsx'
@@ -87,7 +86,11 @@ export default function App() {
         <OrganizationProvider>
         <BrowserRouter>
           <Routes>
-          <Route path="/" element={<LandingPage />} />
+          {/* Login is the entry page: the public landing site is gone, so an
+              unauthenticated visitor at the root gets the form directly.
+              /login stays declared because ProtectedRoute redirects there and
+              existing links point at it. */}
+          <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/register-organization" element={<RegisterOrganizationPage />} />
