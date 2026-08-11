@@ -298,6 +298,142 @@ textarea:focus-visible,
   }
 }
 
+/* The login panel's drifting color fields (components/auth/AuroraPanel.jsx).
+
+   Sized in vw so the blobs stay larger than the panel at every width: a blob
+   smaller than its container reads as a visible circle, which is the failure
+   mode this effect has to avoid. Blurred past the point where the shape is
+   legible, what's left is a wash of the tenant's own accent.
+
+   Only `transform` is animated, never width/height/top/left, so the whole
+   effect stays on the compositor and the panel costs no layout or paint work
+   while it runs. The color itself is set inline from a palette variable by the
+   component — nothing here hardcodes a hue. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  /* Clamped rather than fixed: a constant 72px blur that softens a wide
+     desktop panel nicely turns a narrow one into flat fog, since the blur
+     radius stays put while the panel shrinks around it. */
+  filter: blur(clamp(40px, 7vw, 90px));
+  will-change: transform;
+}
+
+/* Prime durations: the composition only truly repeats at their common
+   multiple (13x17x11 = ~40min), so it never visibly resets on a short cycle
+   the way three round numbers would. Fast enough that the drift is legible
+   within a few seconds of landing on the page, slow enough not to pull
+   attention off the form. */
+/* Sized as a percentage of the panel, not in vw. vw measures the whole
+   viewport while the panel is only half of it, so vw-sized blobs shrink
+   relative to their container as the window narrows and leave the lower
+   panel bare. Percentages track the panel itself, keeping coverage the same
+   at every width.
+
+   Each blob is wider than the panel (110-135%) on purpose: combined with the
+   travel amplitudes below, that guarantees color still reaches the corners at
+   the far end of every drift instead of sliding off and leaving dead black. */
+.aurora-blob-1 {
+  width: 125%;
+  aspect-ratio: 1;
+  top: -25%;
+  left: -35%;
+  opacity: 0.24;
+  animation: aurora-drift-1 13s ease-in-out infinite;
+}
+
+.aurora-blob-2 {
+  width: 110%;
+  aspect-ratio: 1;
+  top: 18%;
+  right: -30%;
+  opacity: 0.22;
+  animation: aurora-drift-2 17s ease-in-out infinite;
+}
+
+.aurora-blob-3 {
+  width: 135%;
+  aspect-ratio: 1;
+  bottom: -40%;
+  left: -20%;
+  opacity: 0.2;
+  animation: aurora-drift-3 11s ease-in-out infinite;
+}
+
+/* Amplitudes are large on purpose. These blobs sit under a 72px blur, and blur
+   is what eats perceived motion: a soft edge moving a short distance reads as
+   perfectly still. An earlier pass used ~15% travel over 19-31s, which
+   measured at 2-3px/sec — technically animating, visually a static image.
+
+   Travel is a percentage of the blob's own size, so the distance scales with
+   the panel and the motion reads the same at every width.
+
+   Three keyframes rather than two: a 0/50/100 loop retraces its own path, and
+   the reversal is visible as a "bounce" at the midpoint. Routing through two
+   distinct positions makes each blob orbit instead, so the loop never appears
+   to change direction. */
+@keyframes aurora-drift-1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(38%, 26%, 0) scale(1.22);
+  }
+  66% {
+    transform: translate3d(16%, 52%, 0) scale(0.9);
+  }
+}
+
+@keyframes aurora-drift-2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  33% {
+    transform: translate3d(-44%, -22%, 0) scale(0.88);
+  }
+  66% {
+    transform: translate3d(-18%, -48%, 0) scale(1.18);
+  }
+}
+
+@keyframes aurora-drift-3 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(30%, -34%, 0) scale(1.16);
+  }
+  66% {
+    transform: translate3d(52%, -8%, 0) scale(0.94);
+  }
+}
+
+/* tokens.css already clamps every animation to 0.01ms under reduced motion,
+   which would freeze the blobs at whatever transform frame 0 happens to be.
+   That's the un-composed arrangement — all three bunched at their start
+   offsets. Stopping the animation outright and placing them by hand instead
+   gives the still panel a deliberate composition rather than a frozen one. */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob {
+    animation: none !important;
+  }
+
+  .aurora-blob-1 {
+    transform: translate3d(8%, 10%, 0) scale(1.08);
+  }
+
+  .aurora-blob-2 {
+    transform: translate3d(-10%, -6%, 0) scale(1);
+  }
+
+  .aurora-blob-3 {
+    transform: translate3d(6%, -8%, 0) scale(1.05);
+  }
+}
+
 .route-loading {
   min-height: 100vh;
   display: flex;
