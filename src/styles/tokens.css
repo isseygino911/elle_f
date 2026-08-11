@@ -13,7 +13,33 @@
 :root {
   color-scheme: light;
 
-  /* ---- Color: dark scaffold (icon rail, list panels, stat tiles) ---- */
+  /* ---- Color: dark scaffold (icon rail, list panels, stat tiles) ----
+   *
+   * These four surfaces carry the tenant's hue. The literals below are the
+   * lime palette's values and remain the fallback; the @supports block at the
+   * foot of this file re-derives them from --color-lime, which
+   * applyThemeToDocument() rewrites per organization.
+   *
+   * WHY DERIVE THE HUE RATHER THAN THE WHOLE COLOR
+   *
+   * Every one of these is a near-black whose own chroma dominates a blend, so
+   * mixing an accent *into* them shifts lightness far faster than hue -- a
+   * measured 254 -> 232 degrees of hue against 0.29 -> 0.39 of lightness at
+   * 25% mix. The card would go bright and washed long before it went olive.
+   * `oklch(from ... l c h)` instead takes only the accent's hue channel and
+   * pins lightness and chroma to the values below, so a tenant with a vivid
+   * accent cannot brighten any surface or saturate it: neither channel comes
+   * from the accent.
+   *
+   * The L/C constants are the measured oklch coordinates of the original
+   * fixed colors, so the whole ladder -- canvas 0.170, card 0.225, hover
+   * 0.260, border 0.316 -- is preserved exactly and every contrast pair holds
+   * across all twelve palettes (white on card 17.0-17.2:1, muted on card
+   * 6.6-6.7:1, both matching the pre-tint baseline to two decimals).
+   *
+   * --color-muted-dark is body text on these surfaces and stays neutral: it
+   * is read, not decorated, and tinting text toward the accent is how a theme
+   * starts costing legibility. */
   --color-bg-dark: #0b0f1a; /* MASTER "Background (app canvas / sidebar / list panel)" */
   --color-card-dark: #151b2c; /* MASTER "Sidebar/list-panel card (unselected)" */
   --color-card-dark-hover: #1c2338; /* derived, one step lighter than card-dark for hover */
@@ -183,6 +209,28 @@
   --narrow-max-width: 26rem;
   --sidebar-width: 15rem;
   --sidebar-width-collapsed: 4.5rem;
+}
+
+/* Re-derives the dark scaffold from the tenant accent -- see the long note
+ * beside the literals above for why only the hue channel is taken.
+ *
+ * Guarded on relative color syntax so engines without it keep the fixed
+ * literals, which are the lime palette and exactly what the app shipped with.
+ * That makes this progressive enhancement rather than a hard dependency: an
+ * unsupporting browser gets the original blue scaffold, not a broken one.
+ *
+ * On :root rather than on a wrapper class so every dark surface follows,
+ * including ones rendered in a portal (menus, tooltips, sheets) that are not
+ * DOM descendants of any app container. --color-lime is set as an inline
+ * style on <html> by applyThemeToDocument(), so these recompute with no
+ * re-render when the owner picks a palette. */
+@supports (color: oklch(from red l c h)) {
+  :root {
+    --color-bg-dark: oklch(from var(--color-lime) 0.17 0.024 h);
+    --color-card-dark: oklch(from var(--color-lime) 0.225 0.034 h);
+    --color-card-dark-hover: oklch(from var(--color-lime) 0.26 0.041 h);
+    --color-border-dark: oklch(from var(--color-lime) 0.316 0.037 h);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

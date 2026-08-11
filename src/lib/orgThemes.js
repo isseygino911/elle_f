@@ -50,8 +50,11 @@
 // the surface beneath to stay near the app's own dark canvas to separate from
 // it. So each gradient below is a *tint*, not a fill -- it starts as a
 // hue-shifted near-black at the top and resolves to the rail's own
-// `--color-bg-dark` (#0b0f1a) by the bottom. Top stops sit around 8-13%
-// luminance, which keeps every one of them under 1.5:1 against #0b0f1a: the
+// `--color-bg-dark` by the bottom -- written as the variable rather than a
+// literal, because tokens.css now derives that canvas from the accent too, so
+// a hardcoded end stop would leave the foot of the rail sitting 149 degrees of
+// hue away from the page it runs into. Top stops sit around 8-13%
+// luminance, which keeps every one of them under 1.5:1 against the canvas: the
 // tenant's color is legible as a wash without becoming a second surface the
 // nav has to fight. Vertical (180deg) rather than the old 135deg diagonal,
 // since on a tall narrow rail a diagonal band reads as a rendering artifact.
@@ -66,7 +69,7 @@ export const ORGANIZATION_THEMES = [
       on: '#1a2100', // 11.89:1 on base -- verified in tokens.css
     },
     // Olive-tinted near-black settling into the rail's own canvas.
-    gradient: 'linear-gradient(180deg, #171e0b 0%, #11170d 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #171e0b 0%, #11170d 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'violet',
@@ -76,7 +79,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#7a69ec',
       on: '#0f172a', // 5.30:1 on base -- verified in tokens.css
     },
-    gradient: 'linear-gradient(180deg, #171436 0%, #131228 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #171436 0%, #131228 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'ocean',
@@ -85,7 +88,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#0ea5e9',
       on: '#052430', // 7.53:1 on base
     },
-    gradient: 'linear-gradient(180deg, #0a2634 0%, #0a1c28 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #0a2634 0%, #0a1c28 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'coral',
@@ -96,7 +99,7 @@ export const ORGANIZATION_THEMES = [
       // which is exactly why `on` is per-palette rather than a single
       // app-wide choice.
     },
-    gradient: 'linear-gradient(180deg, #300a17 0%, #200d19 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #300a17 0%, #200d19 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'amber',
@@ -105,7 +108,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#f59e0b',
       on: '#2a1a00', // 10.09:1 on base
     },
-    gradient: 'linear-gradient(180deg, #2a1c06 0%, #1c1610 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #2a1c06 0%, #1c1610 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'forest',
@@ -114,7 +117,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#10b981',
       on: '#04231a', // 8.67:1 on base
     },
-    gradient: 'linear-gradient(180deg, #082a20 0%, #091d1c 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #082a20 0%, #091d1c 45%, var(--color-bg-dark) 100%)',
   },
   // ---- Added alongside the sidebar-wash change ----
   //
@@ -132,7 +135,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#ec4899',
       on: '#2b0417', // 7.00:1 on base
     },
-    gradient: 'linear-gradient(180deg, #2e0b20 0%, #1f0d1b 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #2e0b20 0%, #1f0d1b 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'cyan',
@@ -142,7 +145,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#06b6d4',
       on: '#03242b', // 9.00:1 on base
     },
-    gradient: 'linear-gradient(180deg, #06272e 0%, #081d26 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #06272e 0%, #081d26 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'teal',
@@ -152,7 +155,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#14b8a6',
       on: '#032b26', // 8.19:1 on base
     },
-    gradient: 'linear-gradient(180deg, #062b28 0%, #081e21 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #062b28 0%, #081e21 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'indigo',
@@ -164,7 +167,7 @@ export const ORGANIZATION_THEMES = [
       on: '#0b0f36', // 6.20:1 on base -- the tightest pairing here, still
       // clear of the 4.5:1 floor.
     },
-    gradient: 'linear-gradient(180deg, #12173a 0%, #101529 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #12173a 0%, #101529 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'plum',
@@ -174,7 +177,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#a855f7',
       on: '#230733', // 6.91:1 on base
     },
-    gradient: 'linear-gradient(180deg, #241035 0%, #1a1029 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #241035 0%, #1a1029 45%, var(--color-bg-dark) 100%)',
   },
   {
     slug: 'slate',
@@ -188,7 +191,7 @@ export const ORGANIZATION_THEMES = [
       hover: '#7c8ba1',
       on: '#0b1220', // 7.30:1 on base
     },
-    gradient: 'linear-gradient(180deg, #1a2030 0%, #131826 45%, #0b0f1a 100%)',
+    gradient: 'linear-gradient(180deg, #1a2030 0%, #131826 45%, var(--color-bg-dark) 100%)',
   },
 ]
 

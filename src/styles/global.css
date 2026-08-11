@@ -249,70 +249,13 @@ textarea:focus-visible,
   background-repeat: no-repeat;
   background-size: 100% 100%;
 
-  /* The selected and hovered nav row, tinted toward the tenant's accent.
-   *
-   * --color-card-dark is a fixed #151b2c, and applyThemeToDocument() does not
-   * rewrite it (it sets only the accent trio and the gradient). That is right
-   * for the content cards, which sit on the app's blue-grey canvas and match
-   * it at hue 224. It is wrong on the rail: the wash starts at the palette's
-   * hue -- 82 for lime -- so an untinted row landed 142 degrees away from the
-   * surface beneath it and read as a foreign slab dropped onto the sidebar.
-   *
-   * Scoped here rather than fixed on the token itself because the token has
-   * 25 uses across 11 files. Retinting it globally would drag the student
-   * cards, stat tiles, badges and menus along with it -- a far larger change
-   * than the rail, and wrong in every one of those places, since they sit on
-   * the blue-grey canvas the token was chosen to match.
-   *
-   * Derived with color-mix rather than added to each of the 12 theme objects:
-   * the mix follows --color-lime automatically, so a new palette needs no new
-   * row colors and there is no second set of values to keep in sync with the
-   * gradients.
-   *
-   * Kept at a low percentage deliberately. The comment in lib/orgThemes.js
-   * explains that the gradients are tints rather than fills so the nav rows
-   * stay separable from the surface under them; the same reasoning caps how
-   * far these can travel toward the accent. The row must stay a distinctly
-   * lighter object against the wash, not become a second wash of its own.
-   *
-   * Relative color syntax rather than color-mix, because the two do different
-   * things here and only one of them is right.
-   *
-   * Mixing the accent *into* the card fails: both the card and the rail canvas
-   * are saturated near-blacks whose own blue chroma dominates any blend, so at
-   * every useful strength the hue barely shifts (254 -> 232 degrees at 25%)
-   * while the lightness climbs fast (0.29 -> 0.39). The row would go bright
-   * and washed long before it went olive -- measured, not assumed.
-   *
-   * `oklch(from ...)` instead takes only the accent's hue channel and pins
-   * lightness and chroma to fixed values, so the row lands in the palette's
-   * hue at exactly the lightness the card already had. That is what makes it
-   * safe: a tenant with a vivid accent cannot brighten the row or saturate it,
-   * because neither channel comes from the accent.
-   *
-   * 0.29 / 0.32 are the measured oklch lightnesses of --color-card-dark and
-   * --color-card-dark-hover, so the selected/hover relationship the comment in
-   * AppShell.jsx describes -- hover lighter than selected, selection carried by
-   * the border -- is preserved exactly.
-   *
-   * Chroma 0.035 keeps this a tint. The rationale in lib/orgThemes.js applies
-   * unchanged: the rail's wash is deliberately a tint rather than a fill so the
-   * nav rows stay separable from it, and a strongly-chromatic row would undo
-   * that by becoming a second surface competing with the wash.
-   *
-   * The plain color-mix line below is the fallback for engines without
-   * relative color syntax; it keeps the row in the blue the app shipped with
-   * rather than dropping it to transparent. Both Lightning CSS's own
-   * @supports output and this pair degrade to something correct. */
-  --nav-row-selected: color-mix(in oklch, var(--color-lime) 8%, var(--color-card-dark));
-  --nav-row-hover: color-mix(in oklch, var(--color-lime) 8%, var(--color-card-dark-hover));
-}
-
-@supports (color: oklch(from red l c h)) {
-  .sidebar-gradient {
-    --nav-row-selected: oklch(from var(--color-lime) 0.29 0.035 h);
-    --nav-row-hover: oklch(from var(--color-lime) 0.32 0.038 h);
-  }
+  /* The nav row's selected and hover fills come straight from the shared
+     --color-dark-card / --color-dark-card-hover tokens, which tokens.css now
+     derives from the tenant accent for every dark surface in the app. This
+     rule previously carried a rail-only override, from when those tokens were
+     fixed blue and only the sidebar needed tinting; the tokens themselves
+     handle it now, so keeping a second mechanism here would just be two
+     definitions of one color waiting to disagree. */
 }
 
 /* "Inverted tab" notch (SurveyDetailPage's day-tab bar) -- the active
