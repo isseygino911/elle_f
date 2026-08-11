@@ -147,13 +147,17 @@ function BrandMark({ brandName, logoUrl, showName, collapsed = false }) {
 // Active state: a faint card fill lifted by a hairline border, with the label
 // and icon in white against the muted grey of the unselected rows.
 //
-// The border, not the fill, is what marks the selection. --color-card-dark
-// (#151b2c) is only a few steps off the rail's own #0b0f1a, so the fill alone
-// would barely register; the 1px --color-dark-border edge is what makes the
-// row read as a distinct object. That also settles what would otherwise be a
-// conflict with hover: --color-card-dark-hover (#1c2338) is *lighter* than the
-// selected fill, so on fill alone a hovered row would look more selected than
-// the selected one. Hover has no border, so the two never compete.
+// The border, not the fill, is what marks the selection. The row fill is only
+// a few steps off the rail's own canvas, so the fill alone would barely
+// register; the 1px --color-dark-border edge is what makes the row read as a
+// distinct object. That also settles what would otherwise be a conflict with
+// hover: the hover fill is *lighter* than the selected fill, so on fill alone
+// a hovered row would look more selected than the selected one. Hover has no
+// border, so the two never compete.
+//
+// Both fills now come from --nav-row-selected / --nav-row-hover rather than
+// the raw --color-card-dark pair: same colors, mixed toward the tenant accent
+// so they sit in the rail's own palette. See global.css.
 //
 // Every row carries a transparent border so selecting one does not add 2px to
 // its height and shift the rows below it.
@@ -178,9 +182,16 @@ function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigat
           // the #0b0f1a rail, effectively invisible.
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime',
           collapsed && 'justify-center px-0',
+          // --nav-row-selected / --nav-row-hover are defined on .sidebar-gradient
+          // (see global.css): the same fills as the content cards, mixed toward
+          // the tenant accent so the row belongs to the wash it sits on rather
+          // than reading as a blue-grey slab dropped onto an olive rail. The
+          // variables are only in scope inside the rail and the mobile drawer,
+          // so the fallbacks are what render if this markup is ever used
+          // outside one -- identical to the previous fixed colors.
           isActive
-            ? 'border-dark-border bg-dark-card text-white'
-            : 'border-transparent text-dark-muted hover:bg-dark-card-hover hover:text-white'
+            ? 'border-dark-border bg-(--nav-row-selected,var(--color-card-dark)) text-white'
+            : 'border-transparent text-dark-muted hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) hover:text-white'
         )
       }
     >
@@ -241,7 +252,7 @@ function AccountMenu({ collapsed, userLabel, roleLabel, onLogout }) {
       aria-label={userLabel}
       className={cn(
         'flex w-full items-center gap-2.5 rounded-sm p-1.5 text-left transition-colors duration-150',
-        'hover:bg-dark-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime',
+        'hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime',
         collapsed && 'justify-center p-0'
       )}
     >
@@ -614,7 +625,7 @@ export default function AppShell({ children }) {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
+                className="size-11 shrink-0 text-dark-muted hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
                 aria-label="Open navigation menu"
               >
                 <Menu className="size-5.5" aria-hidden="true" />
@@ -638,7 +649,7 @@ export default function AppShell({ children }) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
+                    className="size-11 shrink-0 text-dark-muted hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
                     aria-label="Close navigation menu"
                   >
                     <X className="size-5" aria-hidden="true" />
@@ -696,7 +707,7 @@ export default function AppShell({ children }) {
               type="button"
               variant="ghost"
               size="icon"
-              className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
+              className="size-8 shrink-0 text-dark-muted hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) hover:text-white"
               onClick={toggleCollapsed}
               aria-expanded={!collapsed}
               aria-label="Collapse sidebar"
@@ -711,7 +722,7 @@ export default function AppShell({ children }) {
             type="button"
             variant="ghost"
             size="icon"
-            className="mx-auto size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
+            className="mx-auto size-8 shrink-0 text-dark-muted hover:bg-(--nav-row-hover,var(--color-card-dark-hover)) hover:text-white"
             onClick={toggleCollapsed}
             aria-expanded={!collapsed}
             aria-label="Expand sidebar"
