@@ -37,6 +37,7 @@ import {
   MenuLabel,
 } from '@/components/ui/menu'
 import { Sheet, SheetTrigger, SheetClose, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import LineNav from '@/components/nav/LineNav'
 
 const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed'
 
@@ -156,7 +157,7 @@ function BrandMark({ brandName, logoUrl, showName, collapsed = false }) {
 //
 // Every row carries a transparent border so selecting one does not add 2px to
 // its height and shift the rows below it.
-function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigate }) {
+function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigate, ordinal }) {
   const link = (
     <NavLink
       to={to}
@@ -165,6 +166,10 @@ function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigat
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
+          // line-nav__link carries only the proximity transform. The layout,
+          // color and state classes below are untouched by it, so selection
+          // and focus still read exactly as they did.
+          'line-nav__link',
           'group flex w-full items-center gap-3 rounded-sm border px-2.5 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-150',
           // The old focus-visible:border-lime / ring-lime/50 pair drew
           // nothing here: NavLink renders a bare <a> with no border width
@@ -190,6 +195,20 @@ function NavLinkItem({ to, end, label, icon: IconComponent, collapsed, onNavigat
           clip belongs to the text, not to the whole pill. min-w-0 lets the
           flex child shrink below its content width. */}
       <span className={cn('min-w-0 truncate', collapsed && 'sr-only')}>{label}</span>
+      {/* The ordinal, pushed to the trailing edge. The reference puts it in
+          front of the label; here the icon already occupies that position and
+          is the stronger identifier, so leading with a number would push every
+          label to a third column and cost the truncation room. Trailing, it
+          reads as a quiet index rather than competing with the icon.
+
+          aria-hidden: it numbers rows on screen for orientation, but a screen
+          reader already announces "3 of 5" from the list itself, so voicing it
+          would double every item. */}
+      {!collapsed && ordinal != null && (
+        <span className="line-nav__index ml-auto shrink-0" aria-hidden="true">
+          {String(ordinal).padStart(2, '0')}
+        </span>
+      )}
     </NavLink>
   )
 
@@ -309,6 +328,16 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
   const scrollingSections = navSections.filter((section) => !section.pinned)
   const pinnedSections = navSections.filter((section) => section.pinned)
 
+  // The ordinal runs continuously across sections rather than restarting per
+  // group, so the numbers read as one scale down the rail — which is the whole
+  // point of the marker column. Resolved here, before render, because the
+  // pinned section is rendered in a separate pass below and would otherwise
+  // restart at 01 under the rows it follows.
+  const ordinals = new Map()
+  navSections.forEach((section) => {
+    section.items.forEach((item) => ordinals.set(item.to, ordinals.size + 1))
+  })
+
   const renderSection = (section, index) => {
     // Only titled sections get a heading, and only when this role has enough
     // of them to be worth distinguishing. Not drawn either way -- see the
@@ -346,9 +375,20 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
             {t(section.labelKey)}
           </h2>
         )}
-        <ul className="flex flex-col gap-1" aria-labelledby={withHeading ? headingId : undefined}>
+        <ul
+          className={cn('line-nav__list flex flex-col gap-1')}
+          aria-labelledby={withHeading ? headingId : undefined}
+        >
           {section.items.map((item) => (
-            <li key={item.to}>
+            // data-line-nav-row is what LineNav's rAF loop queries for. It
+            // lives on the <li> rather than the link so the measured centre is
+            // the row's, independent of the link's own proximity transform —
+            // measuring the moving element would feed its shift back into the
+            // distance calculation and let a row chase the cursor.
+            <li key={item.to} className="line-nav__row" data-line-nav-row>
+              {/* Decorative: the rule is a visual scale, and the row's name
+                  and state are already carried by the link. */}
+              {!collapsed && <span className="line-nav__marker" aria-hidden="true" />}
               <NavLinkItem
                 to={item.to}
                 end={item.end}
@@ -356,6 +396,7 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
                 icon={ICONS[item.icon]}
                 collapsed={collapsed}
                 onNavigate={onNavigate}
+                ordinal={ordinals.get(item.to)}
               />
             </li>
           ))}
@@ -366,15 +407,22 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
 
   return (
     <>
-      <nav className="flex min-h-0 flex-1 flex-col" aria-label="Primary">
-        {/* overflow-x-clip because overflow-y-auto computes overflow-x to
-            `auto`, which would make the flush-right nav pills scrollable
-            sideways. `clip` (unlike `hidden`) adds no scroll container. */}
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">{scrollingSections.map(renderSection)}</div>
-        {/* Index 1 rather than 0 so this block keeps the same top spacing (and
-            the collapsed rail's hairline) that it had as a trailing section. */}
-        {pinnedSections.map((section) => renderSection(section, 1))}
-      </nav>
+      {/* LineNav adds only pointer tracking — it renders no rows of its own, so
+          the routing, role gating and keyboard path below are untouched by it.
+          Wrapping both the scrolling groups and the pinned one means the
+          proximity scale runs the full height of the rail rather than stopping
+          at the fold. */}
+      <LineNav collapsed={collapsed} className="flex min-h-0 flex-1 flex-col">
+        <nav className="flex min-h-0 flex-1 flex-col" aria-label="Primary">
+          {/* overflow-x-clip because overflow-y-auto computes overflow-x to
+              `auto`, which would make the flush-right nav pills scrollable
+              sideways. `clip` (unlike `hidden`) adds no scroll container. */}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">{scrollingSections.map(renderSection)}</div>
+          {/* Index 1 rather than 0 so this block keeps the same top spacing (and
+              the collapsed rail's hairline) that it had as a trailing section. */}
+          {pinnedSections.map((section) => renderSection(section, 1))}
+        </nav>
+      </LineNav>
 
       {/* One identity block anchoring the foot of the rail, in place of the
           three stacked controls (language switch, avatar row, full-width

@@ -1,0 +1,168 @@
+/* Line-nav treatment for the sidebar, adapted from React Bits' LineSidebar
+   (reactbits.dev/components/line-sidebar).
+ *
+ * What is kept from the reference: the proximity model itself — a single
+ * `--effect` value per row, eased toward its target by one rAF loop, with
+ * every derived property (color, x-shift, marker scale) reading that same
+ * continuously-animating number so they cannot stagger against each other.
+ * The leading rule/tick marker column and the monospace index are kept too.
+ *
+ * What is deliberately changed, and why:
+ *
+ * 1. Colors are tokens, never literals. The reference hardcodes #A855F7 /
+ *    #c4c4c4 / #6c6c6c. applyThemeToDocument() in lib/orgThemes.js rewrites
+ *    --color-lime on <html> at runtime for twelve tenant palettes, so a
+ *    literal hex would paint every studio the same purple. Accent, idle text
+ *    and marker all resolve to the rail's existing tokens instead.
+ *
+ * 2. --max-shift is 10px, not the reference's 30px. That value is tuned for a
+ *    marketing page where the nav *is* the content. On an application rail
+ *    the row is a click target you return to dozens of times a day; a 30px
+ *    lurch under the cursor makes it a moving target and costs Fitts's-law
+ *    accuracy on the app's primary navigation. 10px reads as a lean, not a
+ *    jump.
+ *
+ * 3. The row is a NavLink, so the effect layers *under* the existing active
+ *    and focus treatments rather than replacing them. Selection is still the
+ *    bordered fill it always was — proximity is ambience, not state.
+ *
+ * 4. Reduced motion collapses the effect to zero rather than merely
+ *    shortening it. Note this file cannot do that job alone: the global
+ *    kill-switch in tokens.css clamps animation/transition durations, and
+ *    this effect is neither — it is a rAF loop writing a custom property.
+ *    The block at the foot of this file neutralises what has already been
+ *    written, and LineNav.jsx additionally never starts the loop. Both are
+ *    needed: CSS alone would leave the loop burning frames, JS alone would
+ *    leave a stale --effect painted on whichever row the cursor last passed.
+ */
+
+.line-nav {
+  /* Falls back to the raw token if a caller does not set the alias, so the
+     column is never left at 0 width with the markers stacked on the text. */
+  --line-nav-marker-length: 28px;
+  --line-nav-marker-gap: 10px;
+  --line-nav-max-shift: 10px;
+  --line-nav-tick-scale: 0.45;
+
+  position: relative;
+}
+
+/* The marker column is padding on the list, not a margin on each row, so the
+   rows keep their full width as hit targets. */
+/* Matches the gap-1 (0.25rem) the row list actually uses, so the in-between
+   tick lands on the true midpoint between two rows rather than a guessed one.
+   Declared here rather than read from the utility because CSS cannot query
+   another rule's computed gap. */
+.line-nav__list {
+  --line-nav-row-gap: 0.25rem;
+  padding-left: calc(var(--line-nav-marker-length) + var(--line-nav-marker-gap));
+}
+
+.line-nav__row {
+  position: relative;
+}
+
+/* Horizontal lean toward the cursor. Transform only — never margin or left —
+   so this stays on the compositor and cannot reflow the rail while the
+   pointer moves. */
+.line-nav__link {
+  transform: translateX(calc(var(--effect, 0) * var(--line-nav-max-shift)));
+}
+
+/* The leading rule. Brightens toward the accent and stretches as the cursor
+   nears, which is what makes the column read as a scale the cursor runs
+   along rather than a row of static dashes.
+
+   color-mix in srgb rather than oklch: the endpoints here are a near-black
+   token and a saturated accent, and oklch interpolation between them takes a
+   visibly chroma-heavy path through the middle. */
+.line-nav__marker {
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * (var(--line-nav-marker-length) + var(--line-nav-marker-gap)));
+  height: 1px;
+  width: var(--line-nav-marker-length);
+  background-color: color-mix(
+    in srgb,
+    var(--color-lime) calc(var(--effect, 0) * 100%),
+    var(--color-dark-border)
+  );
+  transform-origin: left center;
+  transform: translateY(-50%) scaleX(calc(0.6 + var(--effect, 0) * 0.4));
+  pointer-events: none;
+}
+
+/* The monospace ordinal. Dim at rest, full strength under the cursor — it is
+   an orientation aid, not a label, so it must never out-shout the nav text
+   it sits beside. */
+.line-nav__index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: color-mix(
+    in srgb,
+    var(--color-lime) calc(var(--effect, 0) * 100%),
+    var(--color-dark-muted)
+  );
+  opacity: calc(0.45 + var(--effect, 0) * 0.55);
+}
+
+/* The short tick centred in the gap between two rows, from the reference.
+   Static: it marks the interval between rows, so animating it would imply it
+   belongs to one of them.
+ *
+ * `:not(:last-child)` is scoped per <ul>, and this nav is several <ul>s (one
+ * per section) rather than the reference's single flat list. Without the
+ * last-row exclusion the tick after each section's final row would be drawn
+ * into the mt-6 gap that separates one group from the next — marking an
+ * interval between rows that are not adjacent, and blurring exactly the
+ * boundary that whitespace is there to state. */
+.line-nav__row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + var(--line-nav-row-gap, 4px) / 2);
+  left: calc(-1 * (var(--line-nav-marker-length) + var(--line-nav-marker-gap)));
+  height: 1px;
+  width: calc(var(--line-nav-marker-length) * var(--line-nav-tick-scale));
+  background-color: var(--color-dark-border);
+  opacity: 0.6;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Collapsed rail: 72px of centred glyphs with no labels. There is no room
+   for a marker column and nothing for a lean to point at, so the whole
+   treatment is withdrawn rather than squeezed. */
+.line-nav--collapsed .line-nav__list {
+  padding-left: 0;
+}
+
+.line-nav--collapsed .line-nav__marker,
+.line-nav--collapsed .line-nav__row::after,
+.line-nav--collapsed .line-nav__index {
+  display: none;
+}
+
+.line-nav--collapsed .line-nav__link {
+  transform: none;
+}
+
+/* See note 4 in the header comment. LineNav.jsx also declines to start the
+   rAF loop under this query; this block is what guarantees no stale --effect
+   survives a mid-session change of the setting. */
+@media (prefers-reduced-motion: reduce) {
+  .line-nav__link {
+    transform: none;
+  }
+
+  .line-nav__marker {
+    background-color: var(--color-dark-border);
+    transform: translateY(-50%);
+  }
+
+  .line-nav__index {
+    color: var(--color-dark-muted);
+    opacity: 0.7;
+  }
+}
