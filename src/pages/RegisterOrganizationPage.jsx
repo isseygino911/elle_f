@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import AuthCard from '@/components/AuthCard'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
+import AuthLayout from '@/components/auth/AuthLayout'
+import PasswordInput from '@/components/auth/PasswordInput'
+import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH } from '@/components/auth/validation'
 
 function validateFields({ organizationName, name, email, password }) {
   if (!organizationName.trim()) return 'Organization name is required.'
@@ -60,8 +59,10 @@ export default function RegisterOrganizationPage() {
         password
       })
       // Signup returns no tokens (same contract as invitation signup), so the
-      // owner logs in normally afterwards.
-      navigate('/login', { replace: true })
+      // owner logs in normally afterwards. `registered` is what makes the
+      // login page confirm the account was created — without it the owner
+      // lands on a bare login form with no sign anything happened.
+      navigate('/login', { replace: true, state: { registered: true } })
     } catch (err) {
       setSubmitError((err.body && err.body.message) || err.message)
     } finally {
@@ -70,15 +71,22 @@ export default function RegisterOrganizationPage() {
   }
 
   return (
-    // AuthCard renders only `children` — the `title`/`description` props this
-    // page used to pass were silently dropped, so the page had no heading at
-    // all. Rendered as markup here, matching RegisterPage, rather than
-    // widening the shared shell that every other auth page already uses.
-    <AuthCard>
-      <h1>Create your organization</h1>
-      <p className="text-sm text-muted-foreground">
-        Set up your studio and its owner account in one step.
-      </p>
+    <AuthLayout
+      title="Create your organization"
+      description="Set up your studio and its owner account in one step."
+      aside={{
+        headline: 'One studio.',
+        emphasis: 'Every lesson accounted for.',
+        sub: 'Add your teachers and students once the studio is set up.',
+      }}
+      footer={
+        <p className="text-sm text-muted-foreground">
+          <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
+            Already have an account? Log in
+          </Link>
+        </p>
+      }
+    >
       <form onSubmit={handleSubmit} noValidate>
         <FieldGroup>
           <Field>
@@ -115,9 +123,8 @@ export default function RegisterOrganizationPage() {
 
           <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -139,19 +146,8 @@ export default function RegisterOrganizationPage() {
           <Button type="submit" disabled={submitting}>
             {submitting ? 'Creating...' : 'Create organization'}
           </Button>
-
-          {/*
-            `auth-alt-action` was a class with no definition anywhere in the
-            codebase, so this line rendered as unstyled default-size text.
-            Matches RegisterPage's treatment of the same link instead.
-          */}
-          <p className="text-sm text-muted-foreground">
-            <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
-              Already have an account? Log in
-            </Link>
-          </p>
         </FieldGroup>
       </form>
-    </AuthCard>
+    </AuthLayout>
   )
 }

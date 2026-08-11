@@ -5,7 +5,7 @@ import { ROLES } from '../lib/roles.js'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { FieldGroup } from '@/components/ui/field'
-import AuthCard from '@/components/AuthCard'
+import AuthLayout from '@/components/auth/AuthLayout'
 import PasswordFields, { validateNewPassword } from '@/components/auth/PasswordFields'
 
 // How each role is described back to the person resetting. The reset itself is
@@ -17,6 +17,12 @@ const ROLE_DESCRIPTIONS = {
   [ROLES.MANAGER]: 'manager',
   [ROLES.ADMIN]: 'teacher',
   [ROLES.STUDENT]: 'student',
+}
+
+const RESET_ASIDE = {
+  headline: 'New password.',
+  emphasis: 'Same studio.',
+  sub: 'Choose something you have not used here before.',
 }
 
 // Step two of password reset: the link's destination.
@@ -95,55 +101,75 @@ export default function ResetPasswordPage() {
 
   if (status === 'checking') {
     return (
-      <AuthCard>
-        <h1>Reset your password</h1>
+      <AuthLayout title="Reset your password" aside={RESET_ASIDE}>
         <p className="animate-pulse text-sm text-muted-foreground">Checking your link...</p>
-      </AuthCard>
+      </AuthLayout>
     )
   }
 
   if (status === 'invalid') {
     return (
-      <AuthCard>
-        <h1>Reset your password</h1>
+      <AuthLayout
+        title="Reset your password"
+        aside={RESET_ASIDE}
+        footer={
+          // `text-primary` resolves to near-black on this light surface, which
+          // made the only way out of a dead link look like plain body text.
+          // Uses the same secondary-link treatment as the other auth pages.
+          <p className="text-sm text-muted-foreground">
+            <Link
+              to="/forgot-password"
+              className="font-medium text-muted-foreground hover:text-primary"
+            >
+              Request a new link
+            </Link>
+          </p>
+        }
+      >
         <Alert variant="destructive">
           <AlertDescription>
             This reset link is invalid or has expired. Reset links are valid for one hour and can
             only be used once.
           </AlertDescription>
         </Alert>
-        <p className="text-sm text-muted-foreground">
-          <Link to="/forgot-password" className="font-medium text-primary hover:underline">
-            Request a new link
-          </Link>
-        </p>
-      </AuthCard>
+      </AuthLayout>
     )
   }
 
+  // Terminal state: no form left to balance, so the panel is dropped and the
+  // confirmation gets the full width to itself.
   if (status === 'done') {
     return (
-      <AuthCard>
-        <h1>Password updated</h1>
-        <p className="text-sm text-muted-foreground">
-          You can now log in with your new password. Any other reset links for this account have
-          been cancelled.
-        </p>
+      <AuthLayout
+        title="Password updated"
+        description="You can now log in with your new password. Any other reset links for this account have been cancelled."
+      >
         {/*
           Reset does not sign anyone in — the server issues no tokens here, so
           a leaked link never becomes a live session on its own. The user logs
           in normally, exactly as after registration.
         */}
-        <Button onClick={() => navigate('/login', { replace: true })}>Go to log in</Button>
-      </AuthCard>
+        <div>
+          <Button onClick={() => navigate('/login', { replace: true })}>Go to log in</Button>
+        </div>
+      </AuthLayout>
     )
   }
 
   const roleDescription = account && ROLE_DESCRIPTIONS[account.role]
 
   return (
-    <AuthCard>
-      <h1>Choose a new password</h1>
+    <AuthLayout
+      title="Choose a new password"
+      aside={RESET_ASIDE}
+      footer={
+        <p className="text-sm text-muted-foreground">
+          <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
+            Back to log in
+          </Link>
+        </p>
+      }
+    >
       {account && (
         <p className="text-sm text-muted-foreground">
           Resetting the password for{' '}
@@ -177,14 +203,8 @@ export default function ResetPasswordPage() {
           <Button type="submit" disabled={submitting}>
             {submitting ? 'Updating...' : 'Update password'}
           </Button>
-
-          <p className="text-sm text-muted-foreground">
-            <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
-              Back to log in
-            </Link>
-          </p>
         </FieldGroup>
       </form>
-    </AuthCard>
+    </AuthLayout>
   )
 }

@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import AuthCard from '@/components/AuthCard'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import AuthLayout from '@/components/auth/AuthLayout'
+import { EMAIL_PATTERN } from '@/components/auth/validation'
 
 // Step one of password reset: ask for the link.
 //
@@ -47,42 +46,63 @@ export default function ForgotPasswordPage() {
   // statement of fact, because the server will not reveal whether the address
   // matched an account — it responds identically either way. Wording it
   // conditionally keeps the page honest and keeps the non-disclosure intact:
-  // a phrase like "check your inbox" would imply an account exists.
+  // a phrase like "check your inbox" would imply an account exists. The panel
+  // copy on this state is bound by the same rule, not just the body text.
   if (sent) {
     return (
-      <AuthCard>
-        <h1>Check your email</h1>
-        <p className="text-sm text-muted-foreground">
-          If <span className="font-medium text-foreground">{email.trim()}</span> is registered, a
-          password reset link is on its way. The link expires in one hour.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Didn’t get it? Check your spam folder, or{' '}
-          <button
-            type="button"
-            onClick={() => setSent(false)}
-            className="font-medium text-primary hover:underline"
-          >
-            try a different address
-          </button>
-          .
-        </p>
+      <AuthLayout
+        title="Check your email"
+        aside={{
+          headline: 'Sent, if we found it.',
+          emphasis: 'Links last one hour.',
+          sub: 'Nothing arrives if the address has no account.',
+        }}
+        footer={
+          <p className="text-sm text-muted-foreground">
+            <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
+              Back to log in
+            </Link>
+          </p>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            If <span className="font-medium text-foreground">{email.trim()}</span> is registered, a
+            password reset link is on its way. The link expires in one hour.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Didn’t get it? Check your spam folder, or{' '}
+            <button
+              type="button"
+              onClick={() => setSent(false)}
+              className="font-medium text-primary hover:underline"
+            >
+              try a different address
+            </button>
+            .
+          </p>
+        </div>
+      </AuthLayout>
+    )
+  }
+
+  return (
+    <AuthLayout
+      title="Reset your password"
+      description="Enter the email address you use to sign in and we’ll send you a link to choose a new password."
+      aside={{
+        headline: 'Locked out?',
+        emphasis: 'Back in a minute.',
+        sub: 'We’ll email you a link to choose a new password.',
+      }}
+      footer={
         <p className="text-sm text-muted-foreground">
           <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
             Back to log in
           </Link>
         </p>
-      </AuthCard>
-    )
-  }
-
-  return (
-    <AuthCard>
-      <h1>Reset your password</h1>
-      <p className="text-sm text-muted-foreground">
-        Enter the email address you use to sign in and we’ll send you a link to choose a new
-        password.
-      </p>
+      }
+    >
       <form onSubmit={handleSubmit} noValidate>
         <FieldGroup>
           <Field>
@@ -112,14 +132,8 @@ export default function ForgotPasswordPage() {
           <Button type="submit" disabled={submitting}>
             {submitting ? 'Sending...' : 'Send reset link'}
           </Button>
-
-          <p className="text-sm text-muted-foreground">
-            <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
-              Back to log in
-            </Link>
-          </p>
         </FieldGroup>
       </form>
-    </AuthCard>
+    </AuthLayout>
   )
 }

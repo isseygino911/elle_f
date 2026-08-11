@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import PasswordInput from './PasswordInput.jsx'
 
 // Reusable "choose a new password" pair: the password itself plus its
 // confirmation, with the matching/length rules that go with them.
@@ -47,9 +47,8 @@ export default function PasswordFields({
     <>
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-new`}>New password</FieldLabel>
-        <Input
+        <PasswordInput
           id={`${idPrefix}-new`}
-          type="password"
           value={password}
           onChange={(event) => onPasswordChange(event.target.value)}
           // Tells a password manager to offer a generated password and to
@@ -62,9 +61,8 @@ export default function PasswordFields({
 
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-confirm`}>Confirm new password</FieldLabel>
-        <Input
+        <PasswordInput
           id={`${idPrefix}-confirm`}
-          type="password"
           value={confirmation}
           onChange={(event) => onConfirmationChange(event.target.value)}
           autoComplete="new-password"

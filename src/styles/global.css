@@ -434,6 +434,105 @@ textarea:focus-visible,
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Auth surfaces
+
+   Scoped to `.auth-form`, which AuthLayout puts on its form column. Everything
+   below is a property of the auth SURFACE, not of the controls themselves —
+   which is why none of it lives in the Input/Button primitives. Those are
+   shared with the dashboard, where ~38 Input and ~86 Button call sites depend
+   on the denser h-8 default.
+   --------------------------------------------------------------------------- */
+
+/* Auth runs at a larger control density than the dashboard: these are the only
+   forms in the app a signed-out person ever sees, and they are not competing
+   with a table for vertical space. Keyed on the `data-slot` attributes the
+   primitives already emit, so this invents no new contract. */
+.auth-form [data-slot='input'] {
+  height: 2.5rem;
+  padding-inline: 0.75rem;
+}
+
+/* Full width is scoped to buttons inside a <form> so it applies to submit
+   buttons only. Standalone CTAs on terminal screens — "Go to log in" on the
+   reset-complete page — keep their intrinsic width. */
+.auth-form form [data-slot='button'] {
+  height: 2.5rem;
+  width: 100%;
+}
+
+/* Ties the focused field to the tenant's accent. Until now --color-lime
+   reached the auth screens only through the aurora blobs; this carries it into
+   the form itself, so a themed org is themed everywhere on the page.
+
+   `!important` on the border is load-bearing, not laziness: the Input
+   primitive carries Tailwind's `focus-visible:border-ring`, which sits in the
+   utilities layer and therefore wins over a plain rule here regardless of
+   selector specificity. Without it the ring retints per tenant but the border
+   stays the default slate, which reads as a mismatch rather than a theme. */
+.auth-form [data-slot='input']:focus-visible {
+  border-color: var(--color-lime) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-lime) 25%, transparent);
+  /* The app-wide `input:focus-visible` fallback above draws a 2px ink outline
+     at a 2px offset. That rule exists for native elements with no focus style
+     of their own; here it lands outside this ring and reads as a doubled
+     border in two different colours. Suppressed for these inputs only — focus
+     stays just as visible, in one colour instead of two. Every other element
+     on the page, including the reveal toggle and the submit button, keeps the
+     fallback. */
+  outline: none;
+}
+
+/* Field entrance.
+
+   The stagger is deliberately faster than the usual decorative cadence
+   (~40ms steps, not ~80ms) and travels ~8px, not ~20px. These are utility
+   forms: the motion has to be finished before the user's hand reaches the
+   keyboard, and at 20px the labels visibly slide past their own inputs. The
+   whole form settles in under ~250ms even at five fields.
+
+   opacity:0 exists ONLY inside the keyframes, never as the element's resting
+   state. If the animation never attaches — unsupported, stripped, whatever —
+   the failure mode is "no animation", not "an invisible login form".
+
+   tokens.css clamps animation-duration to 0.01ms under prefers-reduced-motion,
+   which lands every field in its final position immediately. That is the
+   correct fallback here, so this needs no separate reduced-motion block. */
+@keyframes auth-field-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+.auth-form [data-slot='field'],
+.auth-form form > [data-slot='field-group'] > [data-slot='button'] {
+  animation: auth-field-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* The delay ladder stops at five: past that the wait before the last field
+   appears is longer than the animation itself, which reads as lag rather than
+   sequence. Anything beyond the fifth child shares the fifth step. */
+.auth-form [data-slot='field']:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.auth-form [data-slot='field']:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+.auth-form [data-slot='field']:nth-child(4) {
+  animation-delay: 0.12s;
+}
+
+.auth-form [data-slot='field']:nth-child(n + 5) {
+  animation-delay: 0.16s;
+}
+
+.auth-form form > [data-slot='field-group'] > [data-slot='button'] {
+  animation-delay: 0.2s;
+}
+
 .route-loading {
   min-height: 100vh;
   display: flex;

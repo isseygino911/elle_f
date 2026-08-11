@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import AuthCard from '@/components/AuthCard'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
+import AuthLayout from '@/components/auth/AuthLayout'
+import PasswordInput from '@/components/auth/PasswordInput'
+import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH } from '@/components/auth/validation'
 
 function validateFields({ name, email, password }) {
   if (!name.trim()) return 'Name is required.'
@@ -76,35 +75,25 @@ export default function RegisterPage() {
     }
   }
 
+  // One AuthLayout for all three states, with only the body swapping. Returning
+  // a separate layout per branch would remount it when the invitation check
+  // resolves, restarting the aurora and re-firing the field entrance.
+  let body
   if (invitationStatus === 'loading') {
-    return (
-      <AuthCard>
-        <h1>Create your account</h1>
-        <p className="animate-pulse text-sm text-muted-foreground">{t('register.checkingInvitation')}</p>
-      </AuthCard>
+    body = (
+      <p className="animate-pulse text-sm text-muted-foreground">
+        {t('register.checkingInvitation')}
+      </p>
     )
-  }
-
-  if (invitationStatus === 'invalid') {
-    return (
-      <AuthCard>
-        <h1>Create your account</h1>
-        <Alert variant="destructive">
-          <AlertDescription>{t('register.invitationInvalid')}</AlertDescription>
-        </Alert>
-        <p className="text-sm text-muted-foreground">
-          <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
-            Back to login
-          </Link>
-        </p>
-      </AuthCard>
+  } else if (invitationStatus === 'invalid') {
+    body = (
+      <Alert variant="destructive">
+        <AlertDescription>{t('register.invitationInvalid')}</AlertDescription>
+      </Alert>
     )
-  }
-
-  return (
-    <AuthCard>
-      <h1>Create your account</h1>
-      <form onSubmit={handleSubmit}>
+  } else {
+    body = (
+      <form onSubmit={handleSubmit} noValidate>
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="name">Name</FieldLabel>
@@ -128,9 +117,8 @@ export default function RegisterPage() {
           </Field>
           <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               autoComplete="new-password"
               onChange={(event) => setPassword(event.target.value)}
@@ -151,11 +139,26 @@ export default function RegisterPage() {
           </Button>
         </FieldGroup>
       </form>
-      <p className="text-sm text-muted-foreground">
-        <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
-          Already have an account? Log in
-        </Link>
-      </p>
-    </AuthCard>
+    )
+  }
+
+  return (
+    <AuthLayout
+      title="Create your account"
+      aside={{
+        headline: 'You have been invited.',
+        emphasis: 'Set up your account.',
+        sub: 'Your lessons and schedule will be waiting once you are in.',
+      }}
+      footer={
+        <p className="text-sm text-muted-foreground">
+          <Link to="/login" className="font-medium text-muted-foreground hover:text-primary">
+            Already have an account? Log in
+          </Link>
+        </p>
+      }
+    >
+      {body}
+    </AuthLayout>
   )
 }
