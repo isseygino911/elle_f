@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { canManageStudents, isStudent } from '../../lib/roles.js'
 import { Navigate, Outlet, useParams } from 'react-router-dom'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, Users } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useStudents } from '../../hooks/useStudents.js'
 import { getUnreadMessageCount } from '../../api/client.js'
+import { withCount } from '@/utils/withCount'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
+import StatTiles from '@/components/records/StatTiles'
 import EmptyDetailState from '@/components/records/EmptyDetailState'
 
 // The persistent master list panel for `/messages` and `/messages/:studentId`
@@ -71,7 +73,13 @@ export default function MessagesLayout() {
               icon={MessageSquare}
               title={student.name}
               meta={student.email}
-              pillLabel={unreadByStudent[student.id] ? `${unreadByStudent[student.id]} unread` : undefined}
+              pillLabel={
+                unreadByStudent[student.id]
+                  ? unreadByStudent[student.id] === 1
+                    ? t('messages.unreadPillOne')
+                    : withCount(t('messages.unreadPill'), unreadByStudent[student.id])
+                  : undefined
+              }
               pillVariant="accent"
               selected={String(activeId) === String(student.id)}
             />
@@ -79,13 +87,32 @@ export default function MessagesLayout() {
         ))
       : []
 
+  // How many correspondents are actually waiting on a reply -- the number this
+  // screen exists to drive down. Counted from the unread map already fetched
+  // for the pills, so the tiles cost no extra request.
+  const withUnreadCount = students.filter((student) => unreadByStudent[student.id] > 0).length
+
+  const statTiles =
+    status === 'success' && students.length > 0 ? (
+      <StatTiles
+        tiles={[
+          { label: t('messages.statStudents'), value: students.length, icon: Users },
+          { label: t('messages.statUnread'), value: withUnreadCount, icon: MessageSquare },
+        ]}
+      />
+    ) : null
+
   return (
     <MasterDetailLayout
       basePath="/messages"
       title={t('messages.title')}
+      statTiles={statTiles}
       list={list}
       listEmpty={status === 'loading' ? t('messages.loading') : status === 'error' ? t('messages.loadError') : t('messages.empty')}
-      outletContext={{ students }}
+      // status travels with the students so the thread pane can tell "still
+      // loading" apart from "no such student", and unreadByStudent so the
+      // insight rail can report the same count the pill shows.
+      outletContext={{ students, status, unreadByStudent }}
     />
   )
 }
@@ -96,10 +123,9 @@ export default function MessagesLayout() {
 export function MessagesIndex() {
   const { user } = useAuth()
   const { t } = useLanguage()
-  const isElle = canManageStudents(user)
 
   // Only a STUDENT is redirected to their own thread. This deliberately does
-  // not use `!isElle`: a manager satisfies neither branch, and redirecting
+  // not test "can manage students": a manager satisfies neither branch, and redirecting
   // them to /messages/<their own id> would send them to a student thread that
   // does not exist for them (and that they are forbidden from reading anyway).
   if (isStudent(user) && user) {

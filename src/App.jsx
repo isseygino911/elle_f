@@ -24,7 +24,9 @@ import InvitationsLayout from './components/invitations/InvitationsLayout.jsx'
 import InvitationCreatePage from './pages/invitations/InvitationCreatePage.jsx'
 import InvitationDetailPage from './pages/invitations/InvitationDetailPage.jsx'
 import OrganizationSettingsPage from './pages/OrganizationSettingsPage.jsx'
-import BroadcastsPage from './pages/BroadcastsPage.jsx'
+import BroadcastsLayout from './components/broadcasts/BroadcastsLayout.jsx'
+import BroadcastDetailPage from './pages/broadcasts/BroadcastDetailPage.jsx'
+import BroadcastComposePage from './pages/broadcasts/BroadcastComposePage.jsx'
 import SurveyUploadPage from './pages/surveys/SurveyUploadPage.jsx'
 import SurveysLayout from './components/surveys/SurveysLayout.jsx'
 import SurveyDetailPage from './pages/surveys/SurveyDetailPage.jsx'
@@ -74,6 +76,11 @@ function CoursesEmptyDetail() {
 function InvitationsEmptyDetail() {
   const { t } = useLanguage()
   return <EmptyDetailState>{t('invitations.emptyDetail')}</EmptyDetailState>
+}
+
+function BroadcastsEmptyDetail() {
+  const { t } = useLanguage()
+  return <EmptyDetailState>{t('broadcasts.emptyDetail')}</EmptyDetailState>
 }
 
 export default function App() {
@@ -278,15 +285,30 @@ export default function App() {
             share one page; a student never reaches it, since their copy of an
             announcement arrives as a notification. canReadBroadcasts is the
             union the server's GET /broadcasts gate applies.
+
+            Same master-detail composition as /invitations, which had the
+            identical problem: the compose form sat permanently above the list,
+            pushing the sent history — the thing you come back for — below a
+            form you use once. '/new' is declared before ':id' so the literal
+            path wins over the dynamic segment.
+
+            The compose route carries no ProtectedRoute of its own. It cannot:
+            ProtectedRoute renders <AppShell>, so nesting one inside a layout
+            route that is already protected would draw the shell twice. A
+            manager reaching /broadcasts/new is redirected by the page itself.
           */}
           <Route
             path="/broadcasts"
             element={
               <ProtectedRoute roles={canReadBroadcasts}>
-                <BroadcastsPage />
+                <BroadcastsLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<BroadcastsEmptyDetail />} />
+            <Route path="new" element={<BroadcastComposePage />} />
+            <Route path=":id" element={<BroadcastDetailPage />} />
+          </Route>
           <Route
             path="/library"
             element={

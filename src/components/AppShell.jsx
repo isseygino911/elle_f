@@ -550,7 +550,9 @@ export default function AppShell({ children }) {
               // recipient count -- which is aggregate data of exactly the kind
               // this role already sees. It is not a compose form: the server
               // refuses a manager's POST, and the page draws no form for them.
-              { to: '/broadcasts', label: t('nav.broadcasts'), icon: 'broadcasts' },
+              // `end` so the link stops looking active once an announcement is
+              // open, matching /courses, /surveys, /videos and /library.
+              { to: '/broadcasts', label: t('nav.broadcasts'), icon: 'broadcasts', end: true },
             ],
           },
         ]
@@ -614,6 +616,9 @@ export default function AppShell({ children }) {
                 to: '/broadcasts',
                 label: t('nav.broadcasts'),
                 icon: 'broadcasts',
+                // `end` so the link stops looking active once an announcement
+                // is open, matching /courses, /surveys, /videos and /library.
+                end: true,
               },
             ].filter(Boolean),
           },

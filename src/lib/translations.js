@@ -111,12 +111,10 @@ export const translations = {
       noPendingTasks: 'No pending tasks.',
       noUnreadMessages: 'No unread messages.',
       noStudents: 'No students yet.',
-      noSubmissionsToGrade: 'No homework waiting to be graded.',
       // An org with no survey has no curriculum to measure against, so the
       // roster is not "0% complete" -- there is nothing to be complete of.
       noSurveysUploaded: 'No survey uploaded yet, so there is no progress to measure.',
-      // Homework review queue + the roster's survey selector.
-      submissionsToGrade: 'Submissions to grade',
+      // The roster's survey selector.
       surveyPickerLabel: 'Survey',
       // Insight panels.
       noProgressYet: 'No student progress to chart yet. This fills in once students start answering surveys.',
@@ -204,7 +202,6 @@ export const translations = {
     },
     broadcasts: {
       title: 'Announcements',
-      meta: 'Send one message to everyone at once.',
       composeTitle: 'New announcement',
       subject: 'Subject',
       subjectPlaceholder: 'Recital on Friday',
@@ -225,7 +222,6 @@ export const translations = {
       sent: 'Announcement sent',
       sentTo: 'Delivered to {count} people.',
       sentToOne: 'Delivered to 1 person.',
-      historyTitle: 'Sent',
       empty: 'No announcements yet.',
       // The manager's view. Says plainly why there is no message text, so an
       // empty space does not read as a loading failure.
@@ -233,6 +229,32 @@ export const translations = {
       recipientCount: '{count} recipients',
       recipientCountOne: '1 recipient',
       reachesNobody: 'This announcement would reach nobody.',
+      // ---- Master-detail keys ----
+      // The list panel serves as both an outbox (owner/teacher) and an
+      // oversight feed (manager), so the empty-detail copy names the action
+      // only the first two can take.
+      emptyDetail: 'Select an announcement to see its details, or write a new one.',
+      // Reachable beyond a mistyped URL: the list is capped at the server's
+      // default limit of 50, so a deep link to an older announcement lands
+      // here legitimately. Worded to cover both.
+      notFound: 'That announcement is no longer in this list.',
+      loading: 'Loading announcements…',
+      loadError: 'Announcements could not be loaded.',
+      // Short verb — this sits in the narrow action column of the dark list
+      // panel, same constraint as invitations.newAction.
+      newAction: 'Announce',
+      composeMeta: 'Send one message to everyone at once.',
+      // The same count means different things per role: the server returns a
+      // teacher only their own sends, and an owner or manager the whole org.
+      // Only the label branches.
+      statSent: 'Sent',
+      statAnnouncements: 'Announcements',
+      statReach: 'People reached',
+      insightTitle: 'Delivery',
+      insightReach: 'Reach',
+      insightAudience: 'Audience',
+      insightSender: 'Sent by',
+      insightSentAt: 'Sent',
     },
     invitations: {
       title: 'Invitations',
@@ -326,6 +348,32 @@ export const translations = {
       empty: 'No students yet.',
       loadError: 'Could not load students.',
       emptyDetail: 'Select a student from the list to see their conversation.',
+      // ---- Thread keys ----
+      loadingThread: 'Loading messages…',
+      threadNotFound: 'That conversation could not be found.',
+      noMessages: 'No messages yet. Send the first one below.',
+      // Stands in for the sender's own name on their own bubbles.
+      you: 'You',
+      // Appended to an own-message timestamp once the other party has read it.
+      read: 'Read',
+      messageLabel: 'Message',
+      messagePlaceholder: 'Write a message…',
+      send: 'Send',
+      sending: 'Sending…',
+      sendError: 'That message could not be sent.',
+      // List-panel pill and stat tiles.
+      unreadPill: '{count} unread',
+      unreadPillOne: '1 unread',
+      statStudents: 'Students',
+      statUnread: 'With unread',
+      // Insight rail. Describes the conversation, not the person — the
+      // student's own record lives on their detail page.
+      insightTitle: 'Conversation',
+      insightUnread: 'Unread',
+      insightUnreadNone: 'All caught up',
+      insightTotal: 'Messages',
+      insightLastActivity: 'Last message',
+      insightNoActivity: 'No messages yet',
     },
     courses: {
       title: 'Courses',
@@ -524,9 +572,7 @@ export const translations = {
       noPendingTasks: '没有待办任务。',
       noUnreadMessages: '没有未读消息。',
       noStudents: '暂无学生。',
-      noSubmissionsToGrade: '暂无待批改的作业。',
       noSurveysUploaded: '尚未上传问卷，因此暂无进度可统计。',
-      submissionsToGrade: '待批改作业',
       surveyPickerLabel: '问卷',
       noProgressYet: '暂无学生进度数据。学生开始填写问卷后，这里会显示分布。',
       noBacklog: '没有等待审阅的视频。学生上传练习视频后，这里会显示。',
@@ -609,7 +655,6 @@ export const translations = {
     },
     broadcasts: {
       title: '公告',
-      meta: '一次向所有人发送同一条消息。',
       composeTitle: '新建公告',
       subject: '标题',
       subjectPlaceholder: '周五汇报演出',
@@ -628,12 +673,25 @@ export const translations = {
       sent: '公告已发送',
       sentTo: '已送达 {count} 人。',
       sentToOne: '已送达 1 人。',
-      historyTitle: '已发送',
       empty: '暂无公告。',
       oversightNote: '你可以看到公告已发送及其覆盖人数。消息正文仅在发送者与其学生之间可见。',
       recipientCount: '{count} 位接收者',
       recipientCountOne: '1 位接收者',
       reachesNobody: '该公告没有任何接收者。',
+      emptyDetail: '从左侧选择一条公告查看详情，或撰写新公告。',
+      notFound: '该公告已不在列表中。',
+      loading: '正在加载公告…',
+      loadError: '无法加载公告。',
+      newAction: '发布',
+      composeMeta: '一次向所有人发送同一条消息。',
+      statSent: '已发送',
+      statAnnouncements: '公告',
+      statReach: '触达人数',
+      insightTitle: '送达情况',
+      insightReach: '覆盖人数',
+      insightAudience: '接收对象',
+      insightSender: '发送人',
+      insightSentAt: '发送时间',
     },
     invitations: {
       title: '邀请',
@@ -725,6 +783,26 @@ export const translations = {
       empty: '暂无学生。',
       loadError: '学生列表加载失败。',
       emptyDetail: '从左侧列表中选择一位学生，查看对话内容。',
+      loadingThread: '正在加载消息…',
+      threadNotFound: '未找到该对话。',
+      noMessages: '暂无消息。在下方发送第一条消息。',
+      you: '我',
+      read: '已读',
+      messageLabel: '消息',
+      messagePlaceholder: '输入消息…',
+      send: '发送',
+      sending: '发送中…',
+      sendError: '消息发送失败。',
+      unreadPill: '{count} 条未读',
+      unreadPillOne: '1 条未读',
+      statStudents: '学生',
+      statUnread: '有未读',
+      insightTitle: '对话',
+      insightUnread: '未读',
+      insightUnreadNone: '全部已读',
+      insightTotal: '消息数',
+      insightLastActivity: '最后消息',
+      insightNoActivity: '暂无消息',
     },
     courses: {
       title: '课程',
