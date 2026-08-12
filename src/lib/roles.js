@@ -11,7 +11,7 @@
 // THE HIERARCHY
 //   owner   -- one per organization. Sees everything in their org.
 //   manager -- AGGREGATES ONLY. Per-teacher rollups, never an individual
-//              student's surveys, videos or messages.
+//              student's videos or messages.
 //   admin   -- a teacher. Sees only their own students. (Formerly 'elle'.)
 //   student -- sees only themselves.
 //
@@ -43,7 +43,7 @@ export const isManager = (user) => roleOf(user) === ROLES.MANAGER;
 
 export const isStudent = (user) => roleOf(user) === ROLES.STUDENT;
 
-// May view an individual student's records -- rosters, surveys, videos,
+// May view an individual student's records -- rosters, videos,
 // message threads. Mirrors CAN_READ_STUDENT_DETAIL on the server.
 // Deliberately excludes manager.
 export const canReadStudentDetail = (user) => isOwner(user) || isAdmin(user);
@@ -52,7 +52,7 @@ export const canReadStudentDetail = (user) => isOwner(user) || isAdmin(user);
 export const canReadAggregates = (user) => isOwner(user) || isManager(user);
 
 // May reach a route that shows an individual student's content -- videos,
-// survey detail, message threads. This is "everyone except manager", which is
+// video detail, message threads. This is "everyone except manager", which is
 // NOT the same question as canReadStudentDetail: a student belongs here
 // (they see their own records) but not there (they can't see others').
 //

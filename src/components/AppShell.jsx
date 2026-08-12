@@ -4,7 +4,6 @@ import { useOrganization } from '@/lib/OrganizationContext'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutGrid,
-  ClipboardList,
   Video,
   CalendarDays,
   UserPlus,
@@ -62,7 +61,6 @@ function persistCollapsed(collapsed) {
 
 const ICONS = {
   dashboard: LayoutGrid,
-  surveys: ClipboardList,
   videos: Video,
   bookings: CalendarDays,
   invitations: UserPlus,
@@ -519,7 +517,7 @@ export default function AppShell({ children }) {
 
   // Grouped by the teaching loop -- you set work, they do work, you review
   // what came back, you talk about it -- which is also the order a coach's
-  // attention moves through a working day. That is why Surveys and Videos sit
+  // attention moves through a working day. That is why Videos sits
   // apart from Courses: opening /videos is review, not authoring.
   //
   // Nothing collapses. Every row here is daily-use for somebody, and hiding
@@ -551,7 +549,7 @@ export default function AppShell({ children }) {
               // this role already sees. It is not a compose form: the server
               // refuses a manager's POST, and the page draws no form for them.
               // `end` so the link stops looking active once an announcement is
-              // open, matching /courses, /surveys, /videos and /library.
+              // open, matching /courses, /videos and /library.
               { to: '/broadcasts', label: t('nav.broadcasts'), icon: 'broadcasts', end: true },
             ],
           },
@@ -576,7 +574,7 @@ export default function AppShell({ children }) {
               // Everyone in this branch: a teacher sets homework, a student
               // does it. (A manager never reaches this list at all.)
               // `end` so the link stops looking active once a course or an
-              // assignment is open, matching /surveys, /videos and /library.
+              // assignment is open, matching /videos and /library.
               { to: '/courses', label: t('nav.courses'), icon: 'courses', end: true },
               { to: '/library', label: t('nav.library'), icon: 'library', end: true },
             ].filter(Boolean),
@@ -584,10 +582,8 @@ export default function AppShell({ children }) {
           {
             id: 'studentWork',
             labelKey: isStudent(user) ? 'nav.section.myWork' : 'nav.section.studentWork',
-            // What came back and is waiting on a review. Surveys first: a
-            // survey is a scan, a video is a sit-down.
+            // What came back and is waiting on a review.
             items: [
-              { to: '/surveys', label: t('nav.surveys'), icon: 'surveys', end: true },
               { to: '/videos', label: t('nav.videos'), icon: 'videos', end: true },
             ],
           },
@@ -617,7 +613,7 @@ export default function AppShell({ children }) {
                 label: t('nav.broadcasts'),
                 icon: 'broadcasts',
                 // `end` so the link stops looking active once an announcement
-                // is open, matching /courses, /surveys, /videos and /library.
+                // is open, matching /courses, /videos and /library.
                 end: true,
               },
             ].filter(Boolean),

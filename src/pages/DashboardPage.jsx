@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { canManageStudents, isManager } from '../lib/roles.js'
 import ManagerDashboard from '../components/dashboard/ManagerDashboard.jsx'
 import TeacherDashboard from '../components/dashboard/TeacherDashboard.jsx'
@@ -34,57 +34,28 @@ export default function DashboardPage() {
   const [dashboard, setDashboard] = useState(null)
   const [dashboardError, setDashboardError] = useState(null)
 
-  // Which survey the roster's progress is measured against. Null means "let
-  // the server pick", which it answers with the most recent upload; once the
-  // teacher chooses, this drives the refetch.
-  const [surveyId, setSurveyId] = useState(null)
-  // Distinguishes a survey switch from the initial load: the first shows the
-  // skeleton, this one dims the picker and leaves the existing numbers in
-  // place, because replacing a populated card with a skeleton on every change
-  // makes the control feel like it reloaded the page.
-  const [surveyPending, setSurveyPending] = useState(false)
-  // Whether a payload has ever landed. See its use below for why this is a ref
-  // rather than a read of `dashboard`.
-  const hasLoadedRef = useRef(false)
-
   useEffect(() => {
     let cancelled = false
-    // Only the very first fetch shows the loading state. A survey change
-    // refetches the same payload, and dropping to the skeleton there would
-    // throw away a rendered dashboard to redraw an identical one.
-    //
-    // Keyed on "have we rendered a dashboard yet", not on whether a survey id
-    // is set: every refetch that replaces visible numbers dims the picker,
-    // including the one that returns to the server-chosen default. Gating on
-    // `surveyId != null` left that single transition silently un-dimmed.
-    //
-    // Read through a ref, not the state value: this effect must re-run on a
-    // survey change, never on the payload it sets itself, and depending on
-    // `dashboard` directly would refetch on every response forever.
-    setDashboardStatus((prev) => (prev === 'success' ? prev : 'loading'))
-    setSurveyPending(hasLoadedRef.current)
+    setDashboardStatus('loading')
 
-    getDashboard(accessToken, { surveyId })
+    getDashboard(accessToken)
       .then((body) => {
         if (!cancelled) {
           setDashboard(body)
-          hasLoadedRef.current = true
           setDashboardStatus('success')
-          setSurveyPending(false)
         }
       })
       .catch((err) => {
         if (!cancelled) {
           setDashboardError((err.body && err.body.message) || err.message)
           setDashboardStatus('error')
-          setSurveyPending(false)
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [accessToken, surveyId])
+  }, [accessToken])
 
   async function handleMarkTaskDone(taskId) {
     try {
@@ -162,8 +133,6 @@ export default function DashboardPage() {
         onMarkTaskDone={handleMarkTaskDone}
         onCreateTask={isElle ? handleCreateTask : undefined}
         onCancelBooking={handleCancelBooking}
-        onSelectSurvey={setSurveyId}
-        surveyPending={surveyPending}
         students={students}
         studentsStatus={studentsStatus}
         studentsError={studentsError}

@@ -82,7 +82,7 @@ export default function BroadcastsLayout() {
   // the other is a feed.
   const totalReach = broadcasts.reduce((sum, broadcast) => sum + broadcast.recipient_count, 0)
 
-  // Gated on a non-empty list, matching Videos/Surveys: a brand-new
+  // Gated on a non-empty list, matching Videos: a brand-new
   // organization should get no tile row at all rather than two zeroes.
   const statTiles =
     status === 'success' && broadcasts.length > 0 ? (

@@ -1,8 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-// Shared by request() and uploadSurvey() (which must bypass request() to send
-// multipart/form-data without a JSON Content-Type) so the non-2xx-throw
-// behavior isn't duplicated.
+// Shared by request() and the multipart uploaders (which must bypass request()
+// to send multipart/form-data without a JSON Content-Type) so the
+// non-2xx-throw behavior isn't duplicated.
 async function parseJsonResponse(response) {
   const text = await response.text()
   let data = null
@@ -130,9 +130,9 @@ export async function updateOrganization(accessToken, fields) {
   return request('/organization', { method: 'PATCH', body: fields, accessToken })
 }
 
-// Upload or replace the organization's brand logo. Bypasses request() for the
-// same reason uploadSurvey does: a multipart body must not carry a JSON
-// Content-Type, and the boundary has to be set by the browser.
+// Upload or replace the organization's brand logo. Bypasses request() because
+// a multipart body must not carry a JSON Content-Type, and the boundary has to
+// be set by the browser.
 export async function uploadOrganizationLogo(accessToken, file) {
   const formData = new FormData()
   formData.append('file', file)
@@ -157,101 +157,6 @@ export async function deleteOrganizationLogo(accessToken) {
 // link — a lost one is reissued.
 export async function listInvitations(accessToken) {
   return request('/invitations', { accessToken })
-}
-
-export async function listSurveys(accessToken) {
-  return request('/surveys', { accessToken })
-}
-
-export async function getSurvey(accessToken, id, { studentId } = {}) {
-  const params = new URLSearchParams()
-  if (studentId) params.set('student_id', studentId)
-  const query = params.toString() ? `?${params.toString()}` : ''
-  return request(`/surveys/${encodeURIComponent(id)}${query}`, { accessToken })
-}
-
-export async function getSurveyDownloadUrl(accessToken, id) {
-  return request(`/surveys/${encodeURIComponent(id)}/download-url`, { accessToken })
-}
-
-// Downloads one student's filled-in survey (their ratings drawn onto the
-// scales, as a printable HTML document) and hands back a blob URL the caller
-// navigates to or revokes.
-//
-// Raw fetch (not request()) because the response is a document, not JSON —
-// request() would hand it to JSON.parse and throw. It also can't follow the
-// presigned-S3 pattern the other downloads use (getLibraryDownloadUrl et al):
-// there is no S3 object to sign, the server renders the document per request
-// from the student's current responses. That means the bytes come back over
-// an authenticated request, so they must be buffered client-side rather than
-// reached by pointing the browser at a URL — window.location.href sends no
-// Authorization header.
-//
-// A non-2xx response is still JSON (the API's standard error shape), so the
-// error path mirrors parseJsonResponse and throws with the same .status/.body
-// every other caller in this file already handles.
-export async function downloadStudentSurvey(accessToken, surveyId, { studentId, language } = {}) {
-  const params = new URLSearchParams()
-  params.set('student_id', studentId)
-  if (language) params.set('language', language)
-
-  const response = await fetch(
-    `${API_BASE_URL}/surveys/${encodeURIComponent(surveyId)}/export?${params.toString()}`,
-    { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined },
-  )
-
-  if (!response.ok) {
-    const text = await response.text()
-    let data = null
-    if (text) {
-      try {
-        data = JSON.parse(text)
-      } catch {
-        data = null
-      }
-    }
-    const error = new Error((data && data.message) || `Request failed with status ${response.status}`)
-    error.status = response.status
-    error.body = data
-    throw error
-  }
-
-  // The server sets Content-Disposition with the survey title and student
-  // name, but a blob URL cannot carry it — the filename has to be reapplied
-  // via the <a download> attribute, so it is parsed back out here.
-  const disposition = response.headers.get('Content-Disposition') || ''
-  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
-  const asciiMatch = disposition.match(/filename="([^"]+)"/i)
-  const filename = utf8Match
-    ? decodeURIComponent(utf8Match[1])
-    : asciiMatch
-      ? asciiMatch[1]
-      : 'survey.html'
-
-  return { blob: await response.blob(), filename }
-}
-
-// Submits one whole day at once. `ratings` is [{ answer_id, rating }] and
-// must cover every statement in the question -- each statement is rated
-// 1..N independently, so the server rejects a partial day.
-export async function submitSurveyRatings(accessToken, surveyId, questionId, ratings) {
-  return request(`/surveys/${encodeURIComponent(surveyId)}/questions/${encodeURIComponent(questionId)}/submit`, {
-    method: 'POST',
-    body: { ratings },
-    accessToken,
-  })
-}
-
-// Raw fetch (not request()) because the browser must set the multipart
-// boundary itself — setting Content-Type manually would break it.
-export async function uploadSurvey(accessToken, formData) {
-  const response = await fetch(`${API_BASE_URL}/surveys`, {
-    method: 'POST',
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-    body: formData,
-  })
-
-  return parseJsonResponse(response)
 }
 
 export async function requestVideoUploadUrl(accessToken, meta) {
@@ -307,11 +212,8 @@ export async function markThreadRead(accessToken, studentId) {
   return request(`/messages/${encodeURIComponent(studentId)}/read`, { method: 'PATCH', accessToken })
 }
 
-// `surveyId` selects which survey the roster's progress is measured against.
-// Omitted, the server falls back to the most recently uploaded one.
-export async function getDashboard(accessToken, { surveyId } = {}) {
-  const query = surveyId == null ? '' : `?survey_id=${encodeURIComponent(surveyId)}`
-  return request(`/dashboard${query}`, { accessToken })
+export async function getDashboard(accessToken) {
+  return request('/dashboard', { accessToken })
 }
 
 // `limit`/`offset` are the server's own paging params (limit is capped at 100
@@ -436,14 +338,6 @@ export async function reassignStudent(accessToken, studentId, adminId) {
   })
 }
 
-export async function getStudentScores(accessToken, studentId) {
-  return request(`/students/${encodeURIComponent(studentId)}/scores`, { accessToken })
-}
-
-export async function listStudentsProgress(accessToken) {
-  return request('/students/progress', { accessToken })
-}
-
 export async function createAvailability(accessToken, { day_of_week, start_time, end_time } = {}) {
   return request('/availability', { method: 'POST', body: { day_of_week, start_time, end_time }, accessToken })
 }
@@ -505,10 +399,6 @@ export async function deleteAvailabilityException(accessToken, id) {
     method: 'DELETE',
     accessToken,
   })
-}
-
-export async function deleteSurvey(accessToken, id) {
-  return request(`/surveys/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
 }
 
 export async function deleteVideo(accessToken, id) {

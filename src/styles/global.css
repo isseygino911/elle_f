@@ -262,43 +262,6 @@ textarea:focus-visible,
      definitions of one color waiting to disagree. */
 }
 
-/* "Inverted tab" notch (SurveyDetailPage's day-tab bar) -- the active
-   tab's bottom corners curve inward to meet the flat tab strip, like
-   browser tabs / the reference screenshot's tab row, rather than a hard
-   90deg corner. Not expressible as Tailwind utilities (needs paired
-   ::before/::after radial-gradient corners), so it lives here as the one
-   bespoke rule for this effect. The radial-gradient is transparent near
-   the box's outer corner (revealing the page behind) and solid lime
-   beyond that radius (continuing the tab's own fill) -- verified in an
-   isolated prototype to render as a smooth quarter-circle fillet, not a
-   visible seam, at 16px radius. */
-.day-tab-active {
-  position: relative;
-  z-index: 10;
-}
-.day-tab-active::before,
-.day-tab-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  width: 16px;
-  height: 16px;
-}
-.day-tab-active::before {
-  left: -16px;
-  background: radial-gradient(circle at top left, transparent 16px, var(--color-lime) 17px);
-}
-.day-tab-active::after {
-  right: -16px;
-  background: radial-gradient(circle at top right, transparent 16px, var(--color-lime) 17px);
-}
-/* When the active tab is the first one in the row, there's no sibling tab
-   to its left for the curve to hand off to -- the left notch would just
-   read as a stray curl detached from the panel's flush-left edge, so it's
-   suppressed and that corner stays a plain 90deg join instead. */
-.day-tab-active-first::before {
-  content: none;
-}
 
 @keyframes pulse {
   0%,

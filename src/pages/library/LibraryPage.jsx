@@ -434,7 +434,7 @@ export default function LibraryPage() {
   return (
     <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
       {/* Category panel — the dark chrome surface, matching the list panel
-          in MasterDetailLayout used by /videos and /surveys. */}
+          in MasterDetailLayout used by /videos. */}
       <div className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-b border-dark-border bg-dark p-5 lg:h-full lg:w-[20rem] lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between gap-2">
           <h1 className="m-0 font-heading text-xl font-extrabold text-white">{t('library.title')}</h1>

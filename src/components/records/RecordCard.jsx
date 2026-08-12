@@ -7,15 +7,8 @@ import { Badge } from '@/components/ui/badge'
 // list panel. Selected item gets the lime fill; its pill shifts to a
 // harmonious lime-family tone (bg-on-lime/text-lime) per MASTER.md.
 //
-// Reused by Videos/Surveys (dark list panel, navigable via `to`) and by
+// Reused by Videos (dark list panel, navigable via `to`) and by
 // Invitations (light card-list, no navigation target) via `variant`.
-//
-// `checkbox` (Feature 1: survey multi-delete select mode) is an optional
-// `{ checked, onChange }` pair — when present, the card renders a leading
-// checkbox, stops navigating via `to` (selecting shouldn't leave the list),
-// and uses `checkbox.checked` in place of `selected` for the lime-fill
-// treatment, since "checked for a bulk action" is the same "lime = selection"
-// meaning MASTER.md already assigns everywhere else.
 export default function RecordCard({
   to,
   icon: Icon,
@@ -26,17 +19,15 @@ export default function RecordCard({
   selected = false,
   variant = 'dark',
   actions,
-  checkbox,
 }) {
   const isDark = variant === 'dark'
-  const isSelectable = Boolean(checkbox)
-  const isChecked = isSelectable ? checkbox.checked : selected
-  const Component = isSelectable ? 'div' : to ? Link : 'div'
+  const isChecked = selected
+  const Component = to ? Link : 'div'
   const effectivePillVariant = isChecked ? (isDark ? 'onLime' : 'lime') : pillVariant || (isDark ? 'outlineDark' : 'outline')
 
   return (
     <Component
-      {...(!isSelectable && to ? { to } : {})}
+      {...(to ? { to } : {})}
       className={cn(
         'flex w-full flex-col gap-2 rounded-md border p-3 text-left transition-colors duration-150',
         isDark
@@ -53,18 +44,6 @@ export default function RecordCard({
       )}
     >
       <span className="flex items-center gap-3">
-        {isSelectable && (
-          <input
-            type="checkbox"
-            checked={checkbox.checked}
-            onChange={(event) => checkbox.onChange(event.target.checked)}
-            aria-label={`Select ${title}`}
-            className={cn(
-              'size-4 shrink-0 rounded-sm border accent-lime',
-              isDark ? 'border-dark-border bg-transparent' : 'border-border bg-transparent'
-            )}
-          />
-        )}
         <span
           className={cn(
             'flex size-9 shrink-0 items-center justify-center rounded-full',

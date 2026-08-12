@@ -3,20 +3,13 @@ import { useParams } from 'react-router-dom'
 import { GraduationCap, Users } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
-import { listStudentsProgress } from '../../api/client.js'
+import { listStudents } from '../../api/client.js'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
 import StatTiles from '@/components/records/StatTiles'
 
-function completionPercent(student) {
-  if (!student.total_questions) return 0
-  return Math.round((student.completed_questions / student.total_questions) * 100)
-}
-
 // The persistent master list panel for `/students` and `/students/:id` —
-// same structural pattern as SurveysLayout/VideosLayout. Each row's meta
-// line shows overall completion so elle can scan for who's behind without
-// opening every student individually.
+// same structural pattern as VideosLayout.
 export default function StudentsLayout() {
   const { accessToken } = useAuth()
   const { t } = useLanguage()
@@ -30,7 +23,7 @@ export default function StudentsLayout() {
     let cancelled = false
     setStatus('loading')
 
-    listStudentsProgress(accessToken)
+    listStudents(accessToken)
       .then((body) => {
         if (cancelled) return
         setStudents(body.students)
@@ -47,33 +40,21 @@ export default function StudentsLayout() {
     }
   }, [accessToken])
 
-  const averageCompletion =
-    students.length > 0
-      ? Math.round(students.reduce((sum, student) => sum + completionPercent(student), 0) / students.length)
-      : 0
-
   const statTiles =
     status === 'success' && students.length > 0 ? (
-      <StatTiles
-        tiles={[
-          { label: 'Total students', value: students.length, icon: Users },
-          { label: 'Avg. completion', value: `${averageCompletion}%`, icon: GraduationCap },
-        ]}
-      />
+      <StatTiles tiles={[{ label: 'Total students', value: students.length, icon: Users }]} />
     ) : null
 
   const list =
     status === 'success'
       ? students.map((student) => (
-          <li key={student.student_id}>
+          <li key={student.id}>
             <RecordCard
-              to={`/students/${student.student_id}`}
+              to={`/students/${student.id}`}
               icon={GraduationCap}
-              title={student.student_name}
-              meta={`${student.completed_questions}/${student.total_questions} days · ${completionPercent(student)}% complete`}
-              pillLabel={`${completionPercent(student)}%`}
-              pillVariant={completionPercent(student) >= 50 ? 'lime' : 'outlineDark'}
-              selected={String(activeId) === String(student.student_id)}
+              title={student.name}
+              meta={student.email}
+              selected={String(activeId) === String(student.id)}
             />
           </li>
         ))

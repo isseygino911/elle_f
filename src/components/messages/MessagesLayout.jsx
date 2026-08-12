@@ -15,7 +15,7 @@ import EmptyDetailState from '@/components/records/EmptyDetailState'
 // The persistent master list panel for `/messages` and `/messages/:studentId`
 // — an inbox, not a dropdown-and-navigate form. Elle sees every student on
 // the left (same RecordCard/MasterDetailLayout shape as Students/Videos/
-// Surveys) with the selected thread on the right, with per-student unread
+// Videos) with the selected thread on the right, with per-student unread
 // counts beside each name.
 //
 // Those counts come from GET /messages/unread-count, which returns the same

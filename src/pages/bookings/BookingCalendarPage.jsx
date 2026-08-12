@@ -129,7 +129,7 @@ export default function BookingCalendarPage() {
   }
 
   const canBook = !isElle || studentIdInput.trim().length > 0
-  // Bookings has no per-item detail route (unlike Videos/Surveys) — a
+  // Bookings has no per-item detail route (unlike Videos) — a
   // booking's only "detail" action is joining/cancelling it, both already
   // inline on its list row — so this page adapts MASTER.md's master-detail-
   // insight composition without nested routing: a persistent dark list

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/alert-dialog'
 
 // Shared confirmation dialog for every destructive action in this app
-// (survey delete, video delete, availability-window delete) — the product
+// (video delete, availability-window delete) — the product
 // register requires confirming destructive actions, so this is the single
 // place that requirement is implemented rather than three near-duplicate
 // dialogs. Renders as a light surface (the shadcn alert-dialog's default

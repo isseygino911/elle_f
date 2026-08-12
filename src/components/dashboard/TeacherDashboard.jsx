@@ -1,14 +1,11 @@
-import { Video, MessageSquare, CalendarDays, GraduationCap, CheckSquare, CalendarClock } from 'lucide-react'
+import { Video, MessageSquare, CalendarDays, CheckSquare, CalendarClock } from 'lucide-react'
 import KpiStrip from './KpiStrip.jsx'
 import SectionCard, { SectionCardSkeleton } from './SectionCard.jsx'
 import NextSessionSpotlight from './sections/NextSessionSpotlight.jsx'
 import PendingVideoReviewsList from './sections/PendingVideoReviewsList.jsx'
 import AssignmentsDueList from './sections/AssignmentsDueList.jsx'
-import StudentProgressList from './sections/StudentProgressList.jsx'
-import SurveyPicker from './sections/SurveyPicker.jsx'
 import TasksList from './sections/TasksList.jsx'
 import CreateTaskDialog from './sections/CreateTaskDialog.jsx'
-import ProgressDistribution from './insights/ProgressDistribution.jsx'
 import ReviewBacklogAge from './insights/ReviewBacklogAge.jsx'
 import BookingList from '@/components/BookingList'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -40,8 +37,6 @@ export default function TeacherDashboard({
   onMarkTaskDone,
   onCreateTask,
   onCancelBooking,
-  onSelectSurvey,
-  surveyPending,
   students,
   studentsStatus,
   studentsError,
@@ -84,16 +79,6 @@ export default function TeacherDashboard({
           value: dashboard.upcoming_bookings.count,
           to: '/bookings',
         },
-        {
-          key: 'students',
-          icon: GraduationCap,
-          label: t('dashboard.studentsCount'),
-          // Already shipped by the API and previously thrown away -- the old
-          // page rendered only the six least-progressed students and never
-          // showed the roster size it was given.
-          value: dashboard.student_progress?.total_count ?? 0,
-          to: '/students',
-        },
       ]
     : []
 
@@ -101,14 +86,14 @@ export default function TeacherDashboard({
     return (
       <div className="flex flex-col gap-6">
         <div className="h-[6.5rem] animate-pulse rounded-md border border-border bg-card" />
-        {/* Mirrors the loaded layout: a 2x2 of queues, then the roster. */}
+        {/* Mirrors the loaded layout: the insight panel, then a 2x2 of queues. */}
+        <SectionCardSkeleton />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <SectionCardSkeleton />
           <SectionCardSkeleton />
           <SectionCardSkeleton />
           <SectionCardSkeleton />
         </div>
-        <SectionCardSkeleton />
       </div>
     )
   }
@@ -123,19 +108,18 @@ export default function TeacherDashboard({
         <NextSessionSpotlight booking={nextBooking} showStudent onCancelBooking={onCancelBooking} />
       )}
 
-      {/* The two insight panels. These are built entirely from data the API
-          already returns -- no trend query needed -- and they stay meaningful
-          for a studio with three students, which a weekly trend line would
-          not. Phase 2's charts join this row rather than replacing it. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ReviewBacklogAge reviews={dashboard.pending_video_reviews} />
-        <ProgressDistribution progress={dashboard.student_progress} />
-      </div>
+      {/* The insight panel. Built entirely from data the API already returns
+          -- no trend query needed -- and it stays meaningful for a studio with
+          three students, which a weekly trend line would not. It sits full
+          width: it used to share a two-column row with a roster-progress
+          chart, and leaving the grid in place would strand it in a half-width
+          cell with dead space beside it. */}
+      <ReviewBacklogAge reviews={dashboard.pending_video_reviews} />
 
       {/* Four peer sections in a 2x2. None of them outranks the others enough
           to earn a wider column, and at equal width each row keeps its own
           card's rhythm instead of one column running twice as long as the
-          other. Student progress is the exception and sits below. */}
+          other. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
           title={`${t('dashboard.tasks')} (${dashboard.tasks.count})`}
@@ -183,26 +167,6 @@ export default function TeacherDashboard({
           />
         </SectionCard>
       </div>
-
-      {/* Full width, and last: it is the only section here whose rows are one
-          per student, so it grows with the roster rather than with a queue.
-          At full width the name and its completion pill sit at opposite ends
-          of a long row, which reads as a table -- the shape it wanted all
-          along and could not have in a rail. */}
-      <SectionCard
-        title={t('dashboard.studentProgress')}
-        icon={GraduationCap}
-        actions={
-          <SurveyPicker
-            surveys={dashboard.student_progress?.surveys}
-            surveyId={dashboard.student_progress?.survey_id}
-            onChange={onSelectSurvey}
-            disabled={surveyPending}
-          />
-        }
-      >
-        <StudentProgressList progress={dashboard.student_progress} />
-      </SectionCard>
     </div>
   )
 }

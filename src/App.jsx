@@ -27,9 +27,6 @@ import OrganizationSettingsPage from './pages/OrganizationSettingsPage.jsx'
 import BroadcastsLayout from './components/broadcasts/BroadcastsLayout.jsx'
 import BroadcastDetailPage from './pages/broadcasts/BroadcastDetailPage.jsx'
 import BroadcastComposePage from './pages/broadcasts/BroadcastComposePage.jsx'
-import SurveyUploadPage from './pages/surveys/SurveyUploadPage.jsx'
-import SurveysLayout from './components/surveys/SurveysLayout.jsx'
-import SurveyDetailPage from './pages/surveys/SurveyDetailPage.jsx'
 import StudentsLayout from './components/students/StudentsLayout.jsx'
 import StudentDetailPage from './pages/students/StudentDetailPage.jsx'
 import VideoUploadPage from './pages/videos/VideoUploadPage.jsx'
@@ -53,11 +50,6 @@ import { useLanguage } from './lib/LanguageContext.jsx'
 // Thin wrappers so the index-route empty states can call useLanguage() —
 // these render as descendants of <LanguageProvider> below, unlike App's own
 // render body which constructs that provider and can't consume its context.
-function SurveysEmptyDetail() {
-  const { t } = useLanguage()
-  return <EmptyDetailState>{t('surveys.emptyDetail')}</EmptyDetailState>
-}
-
 function StudentsEmptyDetail() {
   const { t } = useLanguage()
   return <EmptyDetailState>{t('students.emptyDetail')}</EmptyDetailState>
@@ -123,7 +115,7 @@ export default function App() {
             }
           />
           {/*
-            Same master-detail composition as /students, /surveys and /videos:
+            Same master-detail composition as /students and /videos:
             the dark list panel is the route element for the parent path and
             the children render into its <Outlet/>. Replaces the single stacked
             InvitationsPage — /invitations still resolves, now to the list with
@@ -156,38 +148,17 @@ export default function App() {
           />
           {/*
             Master-detail-insight composition (MASTER.md Layout Pattern):
-            SurveysLayout/VideosLayout are the persistent dark list panel +
-            stat tiles, rendered once for the whole /surveys and /videos
-            branches. The `index` and `:id` children render into that
-            layout's <Outlet/> — every existing URL below resolves exactly
-            as it did before this pass; only the composition changed.
-            These branches are gated with canOpenStudentContent -- everyone
-            except a manager. A student needs them (their own surveys and
-            videos), so canReadStudentDetail would be too narrow; a manager is
+            VideosLayout is the persistent dark list panel + stat tiles,
+            rendered once for the whole /videos branch. The `index` and `:id`
+            children render into that layout's <Outlet/>.
+            This branch is gated with canOpenStudentContent -- everyone
+            except a manager. A student needs it (their own videos), so
+            canReadStudentDetail would be too narrow; a manager is
             aggregates-only and the API returns 403/404 for every one of these
             paths, so rendering them only produced a page of failed requests.
             The nav already assumes this (a manager is shown one link); this
             makes typing the URL agree with the nav.
           */}
-          <Route
-            path="/surveys"
-            element={
-              <ProtectedRoute roles={canOpenStudentContent}>
-                <SurveysLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<SurveysEmptyDetail />} />
-            <Route path=":id" element={<SurveyDetailPage />} />
-          </Route>
-          <Route
-            path="/surveys/upload"
-            element={
-              <ProtectedRoute roles={canReadStudentDetail}>
-                <SurveyUploadPage />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/students"
             element={
@@ -219,8 +190,8 @@ export default function App() {
             }
           />
           {/*
-            Courses: the same master-detail composition as /videos and
-            /surveys. Gated with canOpenCourses -- everyone except a manager. A
+            Courses: the same master-detail composition as /videos.
+            Gated with canOpenCourses -- everyone except a manager. A
             student needs this branch (their own courses and homework), so
             canManageCourses would be too narrow; a manager is aggregates-only
             and every one of these paths returns 403/404 for them, so rendering
@@ -338,7 +309,7 @@ export default function App() {
             — a student has just one correspondent, so MessagesLayout skips
             the list panel and renders the thread directly for them), the
             selected thread on the right. Same nested-routing composition as
-            /students, /videos, /surveys — /messages/:studentId keeps
+            /students, /videos — /messages/:studentId keeps
             working exactly as it did as a standalone route.
           */}
           <Route
