@@ -129,6 +129,40 @@ export const translations = {
       assigned: 'Assignment saved.',
       unassigned: '— No teacher —',
       unassignedHint: 'This student is on no teacher’s roster and is not visible to any teacher.',
+      notFound: 'Student not found.',
+      bookings: 'Bookings',
+      bookingsEmpty: 'No bookings yet.',
+      courses: 'Courses',
+      coursesEmpty: 'Not enrolled in any course yet.',
+      homework: 'Homework',
+      homeworkEmpty: 'No homework assigned yet.',
+      videos: 'Videos',
+      videosEmpty: 'No videos yet.',
+      minutes: 'min',
+      due: 'Due',
+      noDueDate: 'No due date',
+      // Submission state labels live under `submissions.*` and are reused here
+      // rather than duplicated -- only "not started" is new, because a
+      // submission that does not exist has no status of its own.
+      notSubmitted: 'Not started',
+      // Video review state and the archived-course marker are hardcoded
+      // English at their other call sites (VideosLayout, CourseDetailPage).
+      // Translated here rather than copying that, since every string this page
+      // renders goes through t().
+      videoReviewed: 'Reviewed',
+      videoPending: 'Pending review',
+      archived: 'Archived',
+      // Names the tab strip for screen readers, which otherwise announce a
+      // bare list of buttons with no indication of what they switch between.
+      sections: 'Student records',
+      booked: 'Booked',
+      cancelled: 'Cancelled',
+      completed: 'Completed',
+      // Meta on each month header in the bookings timeline, rendered after the
+      // count ("3 booked"). Lowercase because it never starts a sentence.
+      bookedCount: 'booked',
+      // Band header on the courses tab, paired with the existing `archived`.
+      activeCourses: 'Active',
     },
     videos: {
       title: 'Videos',
@@ -560,6 +594,30 @@ export const translations = {
       assigned: '指派已保存。',
       unassigned: '— 未指派教师 —',
       unassignedHint: '该学生尚未分配给任何教师，教师无法看到该学生。',
+      notFound: '未找到该学生。',
+      bookings: '预约课程',
+      bookingsEmpty: '暂无预约。',
+      courses: '课程',
+      coursesEmpty: '尚未加入任何课程。',
+      homework: '作业',
+      homeworkEmpty: '暂无布置的作业。',
+      videos: '视频',
+      videosEmpty: '暂无视频。',
+      minutes: '分钟',
+      due: '截止',
+      noDueDate: '无截止日期',
+      notSubmitted: '未开始',
+      videoReviewed: '已批阅',
+      videoPending: '待批阅',
+      archived: '已归档',
+      sections: '学生档案',
+      booked: '已预约',
+      cancelled: '已取消',
+      completed: '已完成',
+      // 预约时间线中每个月份标题右侧的计数说明（"3 已预约"）。
+      bookedCount: '已预约',
+      // 课程标签页的分组标题，与已有的 archived 配对。
+      activeCourses: '进行中',
     },
     videos: {
       title: '视频',

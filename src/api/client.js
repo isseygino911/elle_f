@@ -322,6 +322,18 @@ export async function listStudents(accessToken) {
   return request('/students', { accessToken })
 }
 
+// Everything the student detail page shows, in one request:
+// { student, bookings: {count, bookings}, courses: {count, courses},
+//   homework: {count, assignments}, videos: {count, videos} }.
+//
+// Owner or teacher only, and a student outside the caller's scope is a 404 --
+// the same answer as one that does not exist, so ids cannot be probed.
+// Homework carries the student's latest attempt as `submission`, or null when
+// they have not handed anything in.
+export async function getStudentDetail(accessToken, id) {
+  return request(`/students/${encodeURIComponent(id)}/detail`, { accessToken })
+}
+
 // Owner-only: the organization's teachers, for the "assign to teacher" picker.
 export async function listAdmins(accessToken) {
   return request('/students/admins', { accessToken })
