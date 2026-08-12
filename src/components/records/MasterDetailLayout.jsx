@@ -34,7 +34,10 @@ export default function MasterDetailLayout({ basePath, title, actions, statTiles
         </ul>
       </div>
 
-      <div className={cn('min-w-0 flex-1 bg-background lg:h-full lg:overflow-y-auto', !isDetailRoute && 'hidden lg:block')}>
+      {/* No bg of its own: AppShell's content column carries .panel-gradient,
+          and painting bg-background here would cover it with the flat canvas
+          the gradient resolves to. */}
+      <div className={cn('min-w-0 flex-1 lg:h-full lg:overflow-y-auto', !isDetailRoute && 'hidden lg:block')}>
         {isDetailRoute && (
           <Link
             to={basePath}

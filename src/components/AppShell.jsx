@@ -803,7 +803,12 @@ export default function AppShell({ children }) {
         />
       </aside>
 
-      <div className="min-w-0 flex-1">{children}</div>
+      {/* The wash lives on the shell's content column so every page gets it,
+          including the plain (non-master-detail) ones. MasterDetailLayout does
+          NOT add its own: it renders inside here, and a second .panel-gradient
+          would restart the ramp inside the first, so the detail pane stays
+          transparent and inherits this one. */}
+      <div className="panel-gradient min-w-0 flex-1 bg-background">{children}</div>
     </div>
   )
 }

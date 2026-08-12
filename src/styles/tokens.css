@@ -54,7 +54,14 @@
   --color-border-light: #e2e8f0; /* MASTER "Light-surface border" */
   --color-border-light-strong: #cbd5e1; /* derived, one step darker than border-light */
   --color-ink: #0f172a; /* MASTER "Ink (text on light)" */
-  --color-muted: #64748b; /* derived, slate-500, muted text on light surfaces */
+  --color-muted: #4d5766; /* muted text on light surfaces. Was slate-500
+    (#64748b), which only ever cleared 4.5:1 against a near-white canvas and in
+    fact already missed it at 4.41:1 on --color-surface. The panel now carries
+    a gradient wash whose top stop is a real step darker than the flat canvas
+    ever was, and this has to clear AA at that darkest point, not just at the
+    bottom of the ramp: 5.09:1 on the worst-case top stop (coral/rose), 6.32:1
+    on the canvas it resolves to. Kept neutral rather than tinted -- see the
+    @supports block. */
 
   /* ---- Color: neutral "primary" action tone (buttons/links on light
      surfaces) — a restrained dark-ink action color, distinct from the two
@@ -80,17 +87,64 @@
      applyThemeToDocument() in lib/orgThemes.js overwrites this on <html>
      with the palette the owner picked in Organization settings.
 
-     A gradient rather than a flat fill only in this one spot: it is where
-     the tenant's color is carried. It cannot be an @theme color token like
-     --color-lime is, because a `linear-gradient()` is an <image>, not a
-     <color> — it is invalid in background-color/border-color/color. Hence a
-     plain variable consumed by the .sidebar-gradient utility in global.css.
+     A gradient rather than a flat fill, like --color-panel-gradient below:
+     both carry the tenant's color, and neither can be an @theme color token
+     the way --color-lime is, because a `linear-gradient()` is an <image>, not
+     a <color> — it is invalid in background-color/border-color/color. Hence
+     plain variables consumed by utility classes in global.css.
 
      It resolves to --color-bg-dark at its last stop rather than ending on a
      color of its own, so the rail meets the page canvas seamlessly and every
      palette shares the same footing. The default below is the 'lime' palette
      in lib/orgThemes.js; the two must match. */
   --color-sidebar-gradient: linear-gradient(180deg, #171e0b 0%, #11170d 45%, #0b0f1a 100%);
+
+  /* ---- Panel gradient: the light content panel's tinted wash ----
+     The light-side counterpart to the rail gradient above, consumed by the
+     .panel-gradient utility in global.css.
+
+     WHY A GRADIENT RATHER THAN A DEEPER FLAT TINT
+
+     A flat canvas has to hold one lightness everywhere, so the only way to
+     make it read as themed is chroma -- and next to white sRGB has almost none
+     to give (the most constrained hue clips above C≈0.016 at these
+     lightnesses). A gradient escapes that: the top stop can be genuinely
+     saturated because it is only the top, and it resolves to the flat canvas
+     token by the bottom, so the bulk of the panel stays the quiet surface that
+     text and cards sit on.
+
+     WHY THESE PARTICULAR SPANS -- IT IS MATCHED TO THE RAIL
+
+     The two washes have to read as one design decision, so this is tuned
+     against the *measured* rail rather than by eye. Averaged over the twelve
+     palettes the rail ramps 0.066 of oklch lightness and 0.026 of chroma from
+     its top stop to --color-bg-dark. This ramps 0.067 and 0.026 -- the same
+     gesture and very nearly the same magnitude, just carried out at the light
+     end of the scale.
+
+     "Slightly less dramatic" is then a property of where it sits, not of a
+     weaker ramp: an identical span reads as much softer against near-white
+     than it does against near-black, because the eye is far less sensitive to
+     equal lightness steps up here. Shrinking the span as well would have put
+     it back where the previous two attempts were -- technically present,
+     visually absent.
+
+     The last stop is var(--color-surface) rather than a literal, for the same
+     reason the rail ends on --color-bg-dark: that token is itself derived from
+     the accent, so a hardcoded end stop would leave the foot of the panel a
+     different hue from the surface it runs into.
+
+     Contrast is checked at the TOP stop, the darkest point, and it is what
+     forced --color-muted down to #4d5766 (see there): muted clears 4.5:1 on
+     every palette (5.09 worst, coral/rose), ink is 12.4:1, and cards sit
+     1.323x above it, so they gain separation rather than losing it. Vertical,
+     matching the rail. */
+  --color-panel-gradient: linear-gradient(
+    180deg,
+    oklch(from var(--color-lime) 0.885 0.042 h) 0%,
+    oklch(from var(--color-lime) 0.918 0.028 h) 45%,
+    var(--color-surface) 100%
+  );
 
   /* ---- Color: Accent 2 — Violet (second card "type" / Mid priority) ---- */
   --color-violet: #8b7cf0;
@@ -249,6 +303,45 @@
     --color-card-dark: oklch(from var(--color-lime) 0.225 0.034 h);
     --color-card-dark-hover: oklch(from var(--color-lime) 0.26 0.041 h);
     --color-border-dark: oklch(from var(--color-lime) 0.316 0.037 h);
+
+    /* The light scaffold follows the same rule as the dark one above: only the
+     * hue channel comes from the accent, lightness and chroma are pinned, so a
+     * vivid tenant accent can tint these surfaces but never brighten, darken or
+     * saturate them.
+     *
+     * WHY THESE SIT WELL BELOW THE OLD NEAR-WHITES
+     *
+     * The first attempt at this kept the original lightnesses (canvas 0.9735,
+     * card ~1.0) and only added chroma. That is invisible, and not by a little:
+     * sRGB simply has no room for chroma next to white -- at L=0.985 the most
+     * constrained hue (violet) tops out at C=0.006, which is under three 8-bit
+     * steps away from grey. Every value past that ceiling clips, which is worse
+     * than useless: clipping distorts the hue, so slate drifted blue and coral
+     * washed out. Lightness, not chroma, is what buys a visible tint here, so
+     * the ladder drops: canvas 0.952 against the old 0.9735, and the card sits
+     * at 0.982 rather than pure white.
+     *
+     * Every pairing below is verified in-gamut on all twelve hues (no clipping
+     * anywhere), and the minimum tint delta against a same-lightness grey is
+     * ~9 of 255 per channel -- roughly four times the old ~2.3, which is the
+     * difference between "themed" and "did anything change?".
+     *
+     * Chroma still ramps down the ladder rather than staying flat: a single
+     * chroma reads as a cast on the near-white card and as nothing on the
+     * border. The card keeps its lift over the canvas (1.089x, slightly better
+     * than the 1.080x it had as pure white) because the two moved together.
+     *
+     * --color-ink and --color-muted stay neutral and are deliberately absent,
+     * for the same reason --color-muted-dark is: they are read, not decorated.
+     * Holding the text hue fixed also guarantees a hue delta against the surface
+     * on every palette -- if both followed the accent they would converge and
+     * contrast would rest on lightness alone. */
+    --color-bg-light: oklch(from var(--color-lime) 0.982 0.008 h);
+    --color-card-light: oklch(from var(--color-lime) 0.982 0.008 h);
+    --color-surface: oklch(from var(--color-lime) 0.952 0.016 h);
+    --color-surface-2: oklch(from var(--color-lime) 0.922 0.022 h);
+    --color-border-light: oklch(from var(--color-lime) 0.878 0.026 h);
+    --color-border-light-strong: oklch(from var(--color-lime) 0.800 0.032 h);
 
     /* Chart series 1-3 walk a lightness ladder along the tenant hue so they
      * stay distinguishable from each other; 4 and 5 are fixed hues and are

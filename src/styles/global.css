@@ -17,10 +17,14 @@
  * here — every value below is a direct alias of a --color-* token.
  */
 :root {
-  /* Page canvas is the faint off-white --color-surface token, distinct from
-     --card's pure white — this is what lets light cards read as separated
-     from the canvas via border + shadow (MASTER.md: soft shadows are back
-     in use for depth). See card.jsx. */
+  /* Page canvas is --color-surface, one lightness step below --card — that
+     step is what lets light cards read as separated from the canvas, together
+     with border + shadow (MASTER.md: soft shadows are back in use for depth).
+     Both are near-white rather than white: tokens.css tints the whole light
+     scaffold toward the tenant accent's hue, so the separation is a lightness
+     delta rather than white-against-off-white -- 1.089x against the flat
+     canvas, and 1.323x against the top of the panel gradient that now washes
+     over it. Preserve that delta if either token moves. See card.jsx. */
   --background: var(--color-surface);
   --foreground: var(--color-ink);
   --card: var(--color-bg-light);
@@ -260,6 +264,30 @@ textarea:focus-visible,
      fixed blue and only the sidebar needed tinting; the tokens themselves
      handle it now, so keeping a second mechanism here would just be two
      definitions of one color waiting to disagree. */
+}
+
+/* The light content panel's wash — the right-hand pane in MasterDetailLayout
+   and the main content column in AppShell. The counterpart to
+   .sidebar-gradient above, and it carries the tenant's color on the light side
+   the way that one does on the dark side.
+
+   Paired with `bg-background` on the same element rather than replacing it,
+   exactly as .sidebar-gradient is paired with `bg-dark`: if the image fails to
+   paint, or --color-panel-gradient is somehow unset, the panel falls back to
+   its own opaque canvas instead of going transparent over the page.
+
+   `background-size: 100% 100%` against the padding box is load-bearing here
+   for the same reason it is on the rail, and the panes it is applied to are
+   `lg:overflow-y-auto`: at the default sizing the gradient would be sized to
+   the *scrollable* content, so on a long record the tinted top would scroll
+   away and the panel would go flat halfway down. Pinning it to the element's
+   own box keeps the wash fixed to the visible panel however far it scrolls. */
+.panel-gradient {
+  background-image: var(--color-panel-gradient);
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 
