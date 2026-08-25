@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useOutletContext, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext.jsx'
+import { canManageStudents } from '../../lib/roles.js'
 import { useLanguage } from '@/lib/LanguageContext'
 import { listMessages, sendMessage, markThreadRead } from '../../api/client.js'
 import { cn } from '@/lib/utils'
@@ -12,7 +13,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import InsightCard from '@/components/records/InsightCard'
-import { LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
+import { PageContainer, BackLink, LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
 import { formatMessageTimestamp } from '@/utils/formatSlotTime'
 
 const POLL_INTERVAL_MS = 15000
@@ -145,8 +146,16 @@ export default function MessageThreadPage() {
   const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null
 
   return (
-    <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-start">
+    // Same PageContainer as the student table, so the thread lines up with the
+    // page you opened it from instead of running to the window edge -- it is a
+    // page in its own right now, not a detail pane inside a list layout. The
+    // wider cap gives the bubbles and the insight rail room to sit side by side.
+    <PageContainer className="[--content-max-width:76rem] lg:flex-row lg:items-start">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
+        {/* The table this thread opened from is a page of its own now, not a
+            rail still visible beside it, so the way back has to be on the
+            thread itself. Only Elle has a table to go back to. */}
+        {canManageStudents(user) && <BackLink to="/messages">{t('messages.backToList')}</BackLink>}
         <div className="flex flex-col gap-1">
           <h2 className="m-0">{heading}</h2>
           {student && <p className="m-0 text-sm text-muted-foreground">{student.email}</p>}
@@ -270,6 +279,6 @@ export default function MessageThreadPage() {
           </InsightCard>
         </aside>
       )}
-    </div>
+    </PageContainer>
   )
 }

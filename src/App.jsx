@@ -305,12 +305,12 @@ export default function App() {
             }
           />
           {/*
-            Email-style master-detail: every student on the left (elle only
-            — a student has just one correspondent, so MessagesLayout skips
-            the list panel and renders the thread directly for them), the
-            selected thread on the right. Same nested-routing composition as
-            /students, /videos — /messages/:studentId keeps
-            working exactly as it did as a standalone route.
+            A student table at /messages, the full-width thread at
+            /messages/:studentId. Still nested so MessagesLayout owns the
+            student fetch for both (the thread reads its correspondent out of
+            the same list via outletContext) and so a student — who has one
+            correspondent and no table — is redirected into their own thread
+            by the index route.
           */}
           <Route
             path="/messages"
