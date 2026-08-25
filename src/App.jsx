@@ -60,11 +60,6 @@ function VideosEmptyDetail() {
   return <EmptyDetailState>{t('videos.emptyDetail')}</EmptyDetailState>
 }
 
-function CoursesEmptyDetail() {
-  const { t } = useLanguage()
-  return <EmptyDetailState>{t('courses.emptyDetail')}</EmptyDetailState>
-}
-
 function InvitationsEmptyDetail() {
   const { t } = useLanguage()
   return <EmptyDetailState>{t('invitations.emptyDetail')}</EmptyDetailState>
@@ -190,7 +185,11 @@ export default function App() {
             }
           />
           {/*
-            Courses: the same master-detail composition as /videos.
+            Courses: a catalog table at /courses, the full-width course at
+            /courses/:id. Sibling routes rather than a nested outlet -- the
+            list is a page in its own right now, not a rail the detail renders
+            beside, so there is no parent layout for :id to render into.
+
             Gated with canOpenCourses -- everyone except a manager. A
             student needs this branch (their own courses and homework), so
             canManageCourses would be too narrow; a manager is aggregates-only
@@ -200,12 +199,8 @@ export default function App() {
             '/new' is declared before ':id' so the literal path wins over the
             dynamic segment, matching the /invitations and /library precedent.
 
-            The assignment routes sit OUTSIDE the CoursesLayout branch rather
-            than nested under ':id'. An assignment detail page is a full-width
-            reading-and-answering surface -- the instruction on top, the
-            submission form inline below -- and squeezing it into the detail
-            pane beside the course list would leave the recorder and the file
-            picker fighting for a 22rem-narrower column.
+            The assignment routes are likewise full-width surfaces of their own
+            -- the instruction on top, the submission form inline below.
           */}
           <Route
             path="/courses"
@@ -214,15 +209,20 @@ export default function App() {
                 <CoursesLayout />
               </ProtectedRoute>
             }
-          >
-            <Route index element={<CoursesEmptyDetail />} />
-            <Route path=":id" element={<CourseDetailPage />} />
-          </Route>
+          />
           <Route
             path="/courses/new"
             element={
               <ProtectedRoute roles={canManageCourses}>
                 <CourseFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:id"
+            element={
+              <ProtectedRoute roles={canOpenCourses}>
+                <CourseDetailPage />
               </ProtectedRoute>
             }
           />

@@ -29,8 +29,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { PageContainer, PageHeader, ErrorAlert, LoadingText, EmptyState } from '@/components/Page'
+import { PageContainer, BackLink, ErrorAlert, LoadingText, EmptyState } from '@/components/Page'
 import { GlassPanel, RecordGroup, RecordEntry } from '@/components/records/RecordTimeline'
+import { cn } from '@/lib/utils'
 import CurriculumList from '@/components/courses/CurriculumList'
 import StudentSelect from '@/components/StudentSelect'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -81,6 +82,10 @@ export default function CourseDetailPage() {
   // Separate from `busy`: an upload in flight should not grey out Archive and
   // Delete, and the cover button needs its own label while it works.
   const [thumbnailBusy, setThumbnailBusy] = useState(false)
+  // A presigned cover URL that 403s once it expires would otherwise leave a
+  // broken-image box across the top of the page. Cleared on upload so a
+  // fresh URL gets a fresh chance to load.
+  const [coverFailed, setCoverFailed] = useState(false)
   const thumbnailInputRef = useRef(null)
   // Enrollment errors are held separately from actionError: the dialog is
   // modal, so an error rendered at page level while it is open is behind it
@@ -179,6 +184,7 @@ export default function CourseDetailPage() {
     }
 
     setThumbnailBusy(true)
+    setCoverFailed(false)
     try {
       await uploadCourseThumbnail(accessToken, id, file)
       await load()
@@ -252,29 +258,98 @@ export default function CourseDetailPage() {
           {/* gap-3 rather than the container's gap-6: the description belongs
               to the title, and at the wider gap it floats free of it. */}
           <div className="flex flex-col gap-3">
-            <PageHeader title={course.title} meta={course.teacher_name} />
-            {course.description && (
-              // max-w-prose is the fix for a description that otherwise runs
-              // the full pane as one unbroken measure.
-              <p className="text-muted-foreground max-w-prose text-sm leading-relaxed">
-                {course.description}
-              </p>
+            {/* The list is a page of its own now rather than a rail still
+                visible alongside, so the way back has to live here. */}
+            <BackLink to="/courses">{t('courses.backToList')}</BackLink>
+            {/* The cover, finally rendered. It was uploadable and removable
+                from this page but only ever displayed as a 40px thumbnail in
+                the list, so a teacher could set one and never see it.
+                Nothing is drawn when there is no cover: a full-width empty
+                placeholder is a louder absence than a missing image.
+                onError degrades the same way the list thumbnail does --
+                these are presigned URLs and they expire. */}
+            {course.thumbnail_url && !coverFailed && (
+              <img
+                src={course.thumbnail_url}
+                alt=""
+                onError={() => setCoverFailed(true)}
+                // Capped rather than a pure aspect ratio: at 21/9 across the
+                // full content column the cover pushed the title and every
+                // action below the fold, which inverts the page -- you come
+                // here for the curriculum, not the picture.
+                className="max-h-56 w-full rounded-lg object-cover"
+              />
             )}
-          </div>
+            {/* ONE header row: status, title, metadata and actions, rather
+                than a title block with a separate action row under it.
+                Those were structurally adjacent already, but `justify-between`
+                across an empty left slot (the status badge, absent on every
+                active course) left half the row doing nothing and made the
+                buttons read as floating. Opposing them against the TITLE
+                instead gives the row an anchor that is always there.
 
-          {actionError && <ErrorAlert>{actionError}</ErrorAlert>}
-
-          {isTeaching && (
-            // Status left, actions right. Three left-aligned buttons leave the
-            // rest of a wide row doing nothing; opposing them across the row
-            // gives it a job.
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                {course.status === 'archived' && (
-                  <Badge variant="outline">{t('courses.archivedBadge')}</Badge>
+                text-2xl, not PageHeader's text-4xl sm:text-5xl: that size is
+                calibrated for a standing page name -- "Courses", "Students" --
+                a short phrase the product chose, shown once. A course title is
+                arbitrary user data one level below it, under a back link that
+                has already said where we are. At 5xl a two-word title spent
+                ~120px saying nothing extra. PageHeader itself is untouched;
+                this page just stops using it. */}
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+              <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex min-w-0 items-center gap-2">
+                  {/* Status as a dot, not a permanent "Active" pill. Archived
+                      is the exception that changes what the page means, so it
+                      keeps the badge; active is the unremarkable default and a
+                      solid pill on nearly every course is noise next to an
+                      already-bold title. The dot is aria-hidden and paired
+                      with sr-only text -- color alone is not a status, and
+                      "Active" previously appeared NOWHERE in the DOM, so this
+                      is the first time the affirmative state is announced at
+                      all. Grey when archived so the dot and the badge agree
+                      rather than a live green sitting beside "Archived". */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'size-2 shrink-0 rounded-full',
+                      course.status === 'archived' ? 'bg-muted-foreground' : 'bg-success'
+                    )}
+                  />
+                  <span className="sr-only">
+                    {course.status === 'archived'
+                      ? t('courses.statusArchived')
+                      : t('courses.statusActive')}
+                  </span>
+                  {/* truncate, not wrap: a wrapping title reopens the
+                      unbounded-header-height problem this row exists to fix. */}
+                  <h1 className="font-heading m-0 truncate text-2xl leading-tight font-bold tracking-tight">
+                    {course.title}
+                  </h1>
+                  {course.status === 'archived' && (
+                    <Badge variant="outline" className="shrink-0">
+                      {t('courses.archivedBadge')}
+                    </Badge>
+                  )}
+                </div>
+                {course.teacher_name && (
+                  <p className="text-muted-foreground m-0 text-sm">{course.teacher_name}</p>
+                )}
+                {course.description && (
+                  // Inside the title block now rather than a sibling of it:
+                  // title, teacher and description are one unit. max-w-prose
+                  // is the fix for a description that otherwise runs the full
+                  // pane as one unbroken measure.
+                  <p className="text-muted-foreground mt-1 max-w-prose text-sm leading-relaxed">
+                    {course.description}
+                  </p>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+
+              {isTeaching && (
+                // Wraps to its own line when the row runs out of width, which
+                // at 64rem content width with four buttons is often -- that is
+                // the intended behaviour, not a breakpoint to design around.
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
                 {/* `render`, not asChild — see the note in CoursesLayout. */}
                 <Button
                   size="sm"
@@ -336,9 +411,15 @@ export default function CourseDetailPage() {
                 >
                   <Trash2 /> {t('courses.delete')}
                 </Button>
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Below the header, not inside it: an action's failure belongs in
+              the page's flow where it is read, not wedged into a row whose
+              width is already spoken for by the buttons that caused it. */}
+          {actionError && <ErrorAlert>{actionError}</ErrorAlert>}
 
           {/* 20rem, not narrower: at 16rem the roster's names and emails both
               truncated, which is the one thing this column exists to show, and

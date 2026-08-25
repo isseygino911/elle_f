@@ -411,7 +411,34 @@ export const translations = {
       title: 'Courses',
       loading: 'Loading courses…',
       empty: 'No courses yet.',
-      emptyDetail: 'Select a course from the list to see its homework.',
+      loadError: 'Could not load courses.',
+      // The panel subtitle, under the "Courses" heading inside the list card.
+      panelSubtitle: 'Everything you teach, active and finished.',
+      // A student is enrolled in courses, not teaching them, and never sees
+      // an archived one -- so the teaching copy would be wrong twice over.
+      panelSubtitleStudent: 'The courses you are enrolled in.',
+      // Filter chips. 'All' is client-side: the server takes one status at a
+      // time, so All fetches both and merges them.
+      filterAll: 'All',
+      // Group headers over each run of rows.
+      groupActive: 'Active',
+      groupArchived: 'Archived',
+      // Row meta line, joined with '·' under the title.
+      rowStudents: '{count} students',
+      rowStudentsOne: '1 student',
+      rowHomework: '{count} homework',
+      rowHomeworkOne: '1 homework',
+      // Count footer under the list.
+      countFooter: '{count} courses shown',
+      countFooterOne: '1 course shown',
+      // Header summary line, standing in for the stat tiles the dark rail
+      // used to carry -- the tiles are dark-surface components and this page
+      // is light, so the two numbers become one sentence instead.
+      metaSummary: '{count} courses',
+      metaSummaryOne: '1 course',
+      metaEnrolled: '{count} enrolled',
+      metaEnrolledOne: '1 enrolled',
+      backToList: '← All courses',
       new: 'New course',
       create: 'Create course',
       creating: 'Creating…',
@@ -888,7 +915,23 @@ export const translations = {
       title: '课程',
       loading: '正在加载课程…',
       empty: '暂无课程。',
-      emptyDetail: '从左侧列表中选择一门课程，查看其作业。',
+      loadError: '课程加载失败。',
+      panelSubtitle: '你教授的全部课程，进行中与已归档。',
+      panelSubtitleStudent: '你已选修的课程。',
+      filterAll: '全部',
+      groupActive: '进行中',
+      groupArchived: '已归档',
+      rowStudents: '{count} 名学生',
+      rowStudentsOne: '1 名学生',
+      rowHomework: '{count} 项作业',
+      rowHomeworkOne: '1 项作业',
+      countFooter: '显示 {count} 门课程',
+      countFooterOne: '显示 1 门课程',
+      metaSummary: '{count} 门课程',
+      metaSummaryOne: '1 门课程',
+      metaEnrolled: '{count} 人已选课',
+      metaEnrolledOne: '1 人已选课',
+      backToList: '← 全部课程',
       new: '新建课程',
       create: '创建课程',
       creating: '正在创建…',
