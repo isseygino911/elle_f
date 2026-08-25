@@ -13,11 +13,22 @@ export function PageContainer({ children, className }) {
   )
 }
 
-export function PageHeader({ title, meta }) {
+// The page's opening statement. The title carries real display weight and the
+// rule under it is gone: a heading that already reads as a heading does not
+// need a line to prove it, and the border was drawing a hard edge across every
+// page directly beneath the largest text on it. `actions` is the trailing slot
+// for a page-level control, so the header owns the full top row rather than
+// leaving pages to build their own title/button rows underneath it.
+export function PageHeader({ title, meta, actions }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-border pb-4">
-      <h1>{title}</h1>
-      {meta && <p className="m-0 text-sm text-muted-foreground">{meta}</p>}
+    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h1 className="font-heading text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
+          {title}
+        </h1>
+        {meta && <p className="m-0 text-sm text-muted-foreground">{meta}</p>}
+      </div>
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
   )
 }

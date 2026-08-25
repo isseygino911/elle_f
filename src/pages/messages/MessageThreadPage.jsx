@@ -5,6 +5,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { listMessages, sendMessage, markThreadRead } from '../../api/client.js'
 import { cn } from '@/lib/utils'
 import { withCount } from '@/utils/withCount'
+import { initials } from '@/utils/initials'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,10 +19,6 @@ const POLL_INTERVAL_MS = 15000
 
 function maxId(messages) {
   return messages.reduce((max, message) => Math.max(max, message.id), 0)
-}
-
-function initials(label) {
-  return (label || '?').trim().slice(0, 1).toUpperCase()
 }
 
 export default function MessageThreadPage() {
@@ -183,7 +180,7 @@ export default function MessageThreadPage() {
                     >
                       <Avatar className="size-7 shrink-0">
                         <AvatarFallback className="text-xs">
-                          {initials(isOwn ? t('messages.you') : message.sender_name)}
+                          {initials(isOwn ? t('messages.you') : message.sender_name, 1)}
                         </AvatarFallback>
                       </Avatar>
                       <div className={cn('flex max-w-[75%] min-w-0 flex-col gap-1', isOwn ? 'items-end' : 'items-start')}>

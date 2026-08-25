@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/lib/LanguageContext'
 
 // MASTER.md's master-detail-insight composition (Layout Pattern section):
 // a persistent dark list panel next to its own detail, implemented via
@@ -12,8 +13,22 @@ import { cn } from '@/lib/utils'
 // primary view; opening a record hides the list and shows the detail
 // full-width with a back link. Detected from the URL, not local state, so
 // each item's route is still the single source of truth for what's shown.
-export default function MasterDetailLayout({ basePath, title, actions, statTiles, list, listEmpty, outletContext }) {
+// `filters` renders full-width between the stat tiles and the list -- the row
+// a filter chip strip wants. It is deliberately NOT folded into `actions`:
+// that slot is a narrow column beside the title, sized for a button, and a
+// chip row squeezed into it would wrap every chip onto its own line.
+export default function MasterDetailLayout({
+  basePath,
+  title,
+  actions,
+  statTiles,
+  filters,
+  list,
+  listEmpty,
+  outletContext,
+}) {
   const location = useLocation()
+  const { t } = useLanguage()
   const isDetailRoute = location.pathname.replace(/\/+$/, '') !== basePath
 
   return (
@@ -29,6 +44,7 @@ export default function MasterDetailLayout({ basePath, title, actions, statTiles
           {actions}
         </div>
         {statTiles}
+        {filters}
         <ul className="flex flex-col gap-2">
           {list && list.length > 0 ? list : <li className="px-1 text-sm text-dark-muted">{listEmpty}</li>}
         </ul>
@@ -44,7 +60,7 @@ export default function MasterDetailLayout({ basePath, title, actions, statTiles
             className="m-5 mb-0 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground lg:hidden"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
-            Back to list
+            {t('nav.backToList')}
           </Link>
         )}
         <Outlet context={outletContext} />

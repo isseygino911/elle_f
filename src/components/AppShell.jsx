@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { cn } from '@/lib/utils'
+import { initials } from '@/utils/initials'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -72,16 +73,6 @@ const ICONS = {
   // BookOpen is already the library's. A course is the teaching relationship
   // rather than the shelf of resources, so it gets its own mark.
   courses: GraduationCap,
-}
-
-function initials(label) {
-  return (label || '')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
 }
 
 // The organization's brand mark, shown in all three sidebar surfaces: the
@@ -288,7 +279,7 @@ function AccountMenu({ collapsed, userLabel, roleLabel, onLogout }) {
     >
       <Avatar className="size-8 shrink-0">
         <AvatarFallback className="bg-dark-card-hover text-xs font-semibold text-white">
-          {initials(userLabel) || '?'}
+          {initials(userLabel)}
         </AvatarFallback>
       </Avatar>
       {/* Two lines: who you are, then what you are. The role was never shown
@@ -456,7 +447,7 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
           proximity scale runs the full height of the rail rather than stopping
           at the fold. */}
       <LineNav collapsed={collapsed} className="flex min-h-0 flex-1 flex-col">
-        <nav className="flex min-h-0 flex-1 flex-col" aria-label="Primary">
+        <nav className="flex min-h-0 flex-1 flex-col" aria-label={t('nav.primaryLandmark')}>
           {/* overflow-x-clip because overflow-y-auto computes overflow-x to
               `auto`, which would make the flush-right nav pills scrollable
               sideways. `clip` (unlike `hidden`) adds no scroll container. */}
@@ -677,7 +668,7 @@ export default function AppShell({ children }) {
                   variant="ghost"
                   size="icon"
                   className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
-                  aria-label="Open navigation menu"
+                  aria-label={t('nav.openMenu')}
                 >
                   <Menu className="size-5.5" aria-hidden="true" />
                 </Button>
@@ -687,8 +678,8 @@ export default function AppShell({ children }) {
                 same wash. Set here rather than in ui/sheet.jsx: SheetContent is
                 a generic primitive and the gradient is navigation styling. */}
             <SheetContent side="left" className="sidebar-gradient">
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <SheetDescription className="sr-only">Elle Coaching CRM primary navigation</SheetDescription>
+              <SheetTitle className="sr-only">{t('nav.drawerTitle')}</SheetTitle>
+              <SheetDescription className="sr-only">{t('nav.drawerDescription')}</SheetDescription>
 
               {/* Same masthead treatment as the desktop rail: the mark on the
                   drawer's own surface, not in a card of its own. */}
@@ -701,7 +692,7 @@ export default function AppShell({ children }) {
                       variant="ghost"
                       size="icon"
                       className="size-11 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white focus-visible:border-lime focus-visible:ring-lime/50"
-                      aria-label="Close navigation menu"
+                      aria-label={t('nav.closeMenu')}
                     >
                       <X className="size-5" aria-hidden="true" />
                     </Button>
@@ -764,7 +755,7 @@ export default function AppShell({ children }) {
                 className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
                 onClick={toggleCollapsed}
                 aria-expanded={!collapsed}
-                aria-label="Collapse sidebar"
+                aria-label={t('nav.collapseSidebar')}
               >
                 <ChevronLeft className="size-4.5" aria-hidden="true" />
               </Button>
@@ -786,7 +777,7 @@ export default function AppShell({ children }) {
               className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
               onClick={toggleCollapsed}
               aria-expanded={!collapsed}
-              aria-label="Expand sidebar"
+              aria-label={t('nav.expandSidebar')}
             >
               <ChevronLeft className="size-4.5 rotate-180" aria-hidden="true" />
             </Button>

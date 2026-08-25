@@ -2,6 +2,7 @@ import { GraduationCap, Users, CalendarDays, Video, CheckSquare } from 'lucide-r
 import { useLanguage } from '@/lib/LanguageContext'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Progress } from '@/components/ui/progress'
 import { EmptyState } from '@/components/Page'
 import KpiStrip from './KpiStrip.jsx'
 
@@ -49,13 +50,21 @@ function TaskSplit({ pending, done, labels }) {
                 {done} / {total} {labels.completed.toLowerCase()}
               </span>
             </div>
-            <div
-              className="h-2 w-full overflow-hidden rounded-full bg-muted"
-              role="img"
-              aria-label={`${done} of ${total} tasks complete`}
-            >
-              <div className="h-full rounded-full bg-chart-1" style={{ width: `${donePercent}%` }} />
-            </div>
+            {/* The shared Progress primitive rather than a hand-rolled pair of
+                divs: it carries the ARIA progressbar semantics for free, where
+                the previous markup had to fake them with role="img" and a
+                hand-written label.
+                Note Progress renders its own track after `children` -- passing
+                a ProgressTrack in here would draw a second bar. */}
+            <Progress
+              value={donePercent}
+              // Keeps the previous bar's weight and colour: the primitive
+              // defaults to an h-1 track with a bg-primary fill.
+              className="w-full [&_[data-slot=progress-indicator]]:bg-chart-1 [&_[data-slot=progress-track]]:h-2"
+              aria-label={labels.taskProgressLabel
+                .replace('{done}', done)
+                .replace('{total}', total)}
+            />
             <p className="m-0 text-xs text-muted-foreground">
               {pending} {labels.openTasks.toLowerCase()}
             </p>
@@ -98,18 +107,22 @@ export default function ManagerDashboard({ dashboard }) {
     <div className="flex flex-col gap-6">
       <KpiStrip cells={cells} label={t('dashboard.orgOverview')} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <TaskSplit
-          pending={tasks.pending ?? 0}
-          done={tasks.done ?? 0}
-          labels={{
-            taskProgress: t('dashboard.taskProgress'),
-            noTasks: t('dashboard.noTasks'),
-            completed: t('dashboard.completed'),
-            openTasks: t('dashboard.openTasks'),
-          }}
-        />
-      </div>
+      {/* Full width, not a half of a two-column grid. It is the only panel on
+          this row -- a lg:grid-cols-2 wrapper around a single child left it
+          stranded at half width with permanent dead space beside it, which is
+          the ragged-column problem TeacherDashboard's header comment warns
+          about. Same treatment as ReviewBacklogAge on the teacher dashboard. */}
+      <TaskSplit
+        pending={tasks.pending ?? 0}
+        done={tasks.done ?? 0}
+        labels={{
+          taskProgress: t('dashboard.taskProgress'),
+          noTasks: t('dashboard.noTasks'),
+          completed: t('dashboard.completed'),
+          openTasks: t('dashboard.openTasks'),
+          taskProgressLabel: t('dashboard.taskProgressLabel'),
+        }}
+      />
 
       <Card>
         <CardHeader className="border-b border-border pb-3">

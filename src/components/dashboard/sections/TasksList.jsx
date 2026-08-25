@@ -4,18 +4,22 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/Page'
 import { useLanguage } from '@/lib/LanguageContext'
+import { compareToEasternToday, formatSlotDate } from '@/utils/formatSlotTime'
 
 // Unlike homework, a task's due date is NOT filtered server-side --
 // serializeTask returns whatever is stored, so a task genuinely can be
 // overdue and saying so is not fiction. This is the one place on the
 // dashboard that earns an "Overdue" label.
+//
+// compareToEasternToday rather than a locally-built date string: "overdue"
+// means the EASTERN calendar day has passed, which is the same day the due
+// date was set in. Building "today" from the browser's clock flagged tasks as
+// overdue a day early for anyone east of Eastern time, and a day late for
+// anyone west -- and work due TODAY is still due, not late, which is why this
+// tests < 0 rather than <= 0.
 function isOverdue(dueDate) {
   if (!dueDate) return false
-  const today = new Date()
-  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
-    today.getDate()
-  ).padStart(2, '0')}`
-  return dueDate.slice(0, 10) < localToday
+  return compareToEasternToday(dueDate) < 0
 }
 
 export default function TasksList({ tasks, onMarkTaskDone }) {
@@ -38,7 +42,7 @@ export default function TasksList({ tasks, onMarkTaskDone }) {
                 {task.title}
                 {task.due_date && (
                   <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {t('dashboard.due')} {task.due_date}
+                    {t('dashboard.due')} {formatSlotDate(task.due_date)}
                     {overdue && <Badge variant="priorityHigh">{t('dashboard.overdue')}</Badge>}
                   </span>
                 )}

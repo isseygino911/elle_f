@@ -213,6 +213,29 @@ export function formatBookingDayParts(isoUtcStringOrYyyyMmDd) {
   return { weekday: find('weekday'), day: find('day') }
 }
 
+// Compares a date against TODAY's Eastern calendar day.
+// Returns -1 (past), 0 (today), 1 (future), used to band homework into
+// overdue/upcoming.
+//
+// Both sides are rendered to a YYYY-MM-DD string in Eastern time and compared
+// lexicographically, which for a zero-padded fixed-width format is the same as
+// comparing the dates. Doing it this way rather than with date arithmetic
+// means no local-timezone assumption and nothing to get wrong across a DST
+// boundary: whoever is looking at the page, "overdue" means the Eastern day
+// has passed, which is the same day the due date was set in.
+//
+// A due date of TODAY is 0, not -1 -- work due today is still due, not late.
+export function compareToEasternToday(isoUtcStringOrYyyyMmDd) {
+  const date = toEasternAnchoredDate(isoUtcStringOrYyyyMmDd)
+  if (Number.isNaN(date.getTime())) return 0
+
+  const target = easternCalendarDateFormatter.format(date)
+  const today = easternCalendarDateFormatter.format(new Date())
+
+  if (target < today) return -1
+  return target > today ? 1 : 0
+}
+
 // durationSec: a video's length in seconds -> "4 min" / "1 hr 12 min", or an
 // empty string when the duration is unknown (null for a video still
 // processing). Lives here with the other duration/time renderers rather than

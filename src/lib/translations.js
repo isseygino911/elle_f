@@ -17,6 +17,19 @@ export const translations = {
       messages: 'Messages',
       broadcasts: 'Announcements',
       logout: 'Log out',
+      // Sidebar and drawer controls. Screen-reader-only, which is exactly why
+      // they need translating: they are the only label a non-sighted user
+      // gets for these buttons.
+      openMenu: 'Open navigation menu',
+      closeMenu: 'Close navigation menu',
+      collapseSidebar: 'Collapse sidebar',
+      expandSidebar: 'Expand sidebar',
+      drawerTitle: 'Navigation',
+      drawerDescription: 'Elle Coaching CRM primary navigation',
+      primaryLandmark: 'Primary',
+      // The mobile back link in MasterDetailLayout, shared by every
+      // master-detail page, so it names no particular list.
+      backToList: 'Back to list',
       // Sidebar group headings. The teaching pair has a student-facing
       // wording (myLearning/myWork) so a student is not asked to read
       // "Student work" and translate it into "mine".
@@ -70,6 +83,9 @@ export const translations = {
       noTeachers: 'No teachers in this organization yet.',
       noTeachersHint: 'Invite a teacher from the Invitations page to start seeing activity here.',
       taskProgress: 'Task progress',
+      // The progress bar's screen-reader label. Substituted at the call site,
+      // like oldestWaiting below.
+      taskProgressLabel: '{done} of {total} tasks complete',
       noTasks: 'No tasks yet.',
       // KPI strip labels. `sessionsNext24h` and `homeworkDue14d` name their
       // window deliberately: the API returns bookings for the next 24 hours
@@ -90,6 +106,9 @@ export const translations = {
       tasks: 'Tasks',
       upcomingBookings: 'Upcoming bookings',
       noUpcomingBookings: 'No upcoming bookings.',
+      activeCourses: 'Active courses',
+      noActiveCourses: 'No active courses.',
+      publishedHomework: 'Published homework',
       waitingForReview: 'Waiting for review',
       // Row-level actions and states.
       markRead: 'Mark read',
@@ -398,7 +417,12 @@ export const translations = {
       teacherHelp: 'The teacher who will set homework for this course.',
       teacherRequired: 'Please choose which teacher owns this course.',
       backToCourse: 'Back to course',
+      curriculum: 'Curriculum',
+      homeworkCount: 'Homework',
       enrolled: 'Enrolled students',
+      // The stat tile above the list. Terser than `enrolled` on purpose: a
+      // tile is a number with a word under it, not a sentence.
+      enrolledCount: 'Enrolled',
       enrollStudent: 'Add a student',
       enroll: 'Enroll',
       remove: 'Remove',
@@ -407,11 +431,30 @@ export const translations = {
       unarchive: 'Restore',
       delete: 'Delete course',
       deleteTitle: 'Delete this course?',
+      // The confirm dialog's body. Placeholders are substituted at the call
+      // site with .replace(), the way dashboard.oldestWaiting is -- t() does
+      // no interpolation of its own.
+      deleteDescription:
+        '{submissions} submission(s) from {students} student(s) across {assignments} assignment(s) will be permanently deleted. All {enrolled} enrolled student(s) will be notified.',
+      archivedBadge: 'Archived',
+      enrollTitle: 'Add a student to this course',
+      enrollDescription: 'They will see this course and its published homework.',
+      enrolling: 'Adding…',
+      cancel: 'Cancel',
+      progress: 'Homework handed in',
+      filterLabel: 'Filter courses by status',
+      statusActive: 'Active',
+      statusArchived: 'Archived',
+      coverAdd: 'Add cover',
+      coverReplace: 'Change cover',
+      coverRemove: 'Remove cover',
+      coverUploading: 'Uploading…',
+      coverWrongType: 'The cover must be a PNG, JPEG or WebP image.',
+      coverTooLarge: 'The cover must be 5MB or smaller.',
     },
     assignments: {
       title: 'Homework',
       loading: 'Loading homework…',
-      empty: 'No homework in this course yet.',
       new: 'New homework',
       create: 'Create homework',
       creating: 'Creating…',
@@ -426,6 +469,13 @@ export const translations = {
       dueLabel: 'Due date',
       due: 'Due',
       noDueDate: 'No due date',
+      overdue: 'Overdue',
+      // The kind of thing a curriculum row is. Spelled out because the course
+      // list will hold more than homework one day, and a row showing only a
+      // date does not say what it is.
+      itemType: 'Homework',
+      emptyTitle: 'No homework yet',
+      emptyHint: 'Homework you add to this course appears here.',
       attemptsLabel: 'Attempts allowed',
       attemptsHelp: 'Leave blank for unlimited.',
       attemptsAllowed: 'Attempts allowed:',
@@ -499,6 +549,14 @@ export const translations = {
       messages: '消息',
       broadcasts: '公告',
       logout: '退出登录',
+      openMenu: '打开导航菜单',
+      closeMenu: '关闭导航菜单',
+      collapseSidebar: '收起侧边栏',
+      expandSidebar: '展开侧边栏',
+      drawerTitle: '导航',
+      drawerDescription: 'Elle Coaching CRM 主导航',
+      primaryLandmark: '主导航',
+      backToList: '返回列表',
       section: {
         teaching: '教学',
         studentWork: '学生作业',
@@ -544,6 +602,7 @@ export const translations = {
       noTeachers: '本机构暂无教师。',
       noTeachersHint: '前往“邀请”页面邀请教师后，即可在此查看活动数据。',
       taskProgress: '任务进度',
+      taskProgressLabel: '{total} 项任务中已完成 {done} 项',
       noTasks: '暂无任务。',
       videosToReview: '待审阅视频',
       unreadMessagesFull: '未读消息',
@@ -559,6 +618,9 @@ export const translations = {
       tasks: '任务',
       upcomingBookings: '即将开始的预约',
       noUpcomingBookings: '暂无即将开始的预约。',
+      activeCourses: '进行中的课程',
+      noActiveCourses: '暂无进行中的课程。',
+      publishedHomework: '已发布作业',
       waitingForReview: '等待审阅',
       markRead: '标为已读',
       markDone: '标为完成',
@@ -826,7 +888,10 @@ export const translations = {
       teacherHelp: '负责为这门课程布置作业的老师。',
       teacherRequired: '请选择这门课程的授课老师。',
       backToCourse: '返回课程',
+      curriculum: '课程内容',
+      homeworkCount: '作业',
       enrolled: '已选课学生',
+      enrolledCount: '已选课',
       enrollStudent: '添加学生',
       enroll: '加入课程',
       remove: '移除',
@@ -835,11 +900,27 @@ export const translations = {
       unarchive: '恢复',
       delete: '删除课程',
       deleteTitle: '确定删除这门课程吗？',
+      deleteDescription:
+        '将永久删除 {students} 名学生在 {assignments} 项作业中提交的 {submissions} 份作业。所有 {enrolled} 名已选课学生都会收到通知。',
+      archivedBadge: '已归档',
+      enrollTitle: '添加学生到这门课程',
+      enrollDescription: '该学生将看到这门课程及其已发布的作业。',
+      enrolling: '添加中…',
+      cancel: '取消',
+      progress: '已交作业',
+      filterLabel: '按状态筛选课程',
+      statusActive: '进行中',
+      statusArchived: '已归档',
+      coverAdd: '添加封面',
+      coverReplace: '更换封面',
+      coverRemove: '移除封面',
+      coverUploading: '上传中…',
+      coverWrongType: '封面必须是 PNG、JPEG 或 WebP 图片。',
+      coverTooLarge: '封面大小不能超过 5MB。',
     },
     assignments: {
       title: '作业',
       loading: '正在加载作业…',
-      empty: '这门课程还没有作业。',
       new: '新建作业',
       create: '创建作业',
       creating: '正在创建…',
@@ -854,6 +935,10 @@ export const translations = {
       dueLabel: '截止日期',
       due: '截止',
       noDueDate: '无截止日期',
+      overdue: '已逾期',
+      itemType: '作业',
+      emptyTitle: '暂无作业',
+      emptyHint: '添加到本课程的作业会显示在这里。',
       attemptsLabel: '可提交次数',
       attemptsHelp: '留空表示不限次数。',
       attemptsAllowed: '可提交次数：',

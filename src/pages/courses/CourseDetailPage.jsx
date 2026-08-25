@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Plus, Trash2, UserPlus, FileText, CalendarClock } from 'lucide-react'
+import { ClipboardList, ImagePlus, Plus, Trash2, UserPlus, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { canManageCourses } from '../../lib/roles.js'
 import { useStudents } from '../../hooks/useStudents.js'
+import { initials } from '@/utils/initials'
 import {
   getCourse,
   listAssignments,
@@ -12,20 +13,55 @@ import {
   unenrollStudent,
   updateCourse,
   deleteCourse,
+  uploadCourseThumbnail,
+  deleteCourseThumbnail,
 } from '../../api/client.js'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Progress, ProgressValue } from '@/components/ui/progress'
 import { Field, FieldLabel } from '@/components/ui/field'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { PageContainer, PageHeader, ErrorAlert, LoadingText, EmptyState } from '@/components/Page'
+import { GlassPanel, RecordGroup, RecordEntry } from '@/components/records/RecordTimeline'
+import CurriculumList from '@/components/courses/CurriculumList'
 import StudentSelect from '@/components/StudentSelect'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
-// A course: its assignments, and (for the teaching side) its roster.
+// Mirrors the server's cover-image limits (middleware/upload.js). The server
+// stays the real boundary -- these exist only to fail a doomed upload before
+// it costs the user a round-trip.
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024
+
+// A course: its homework, and (for the teaching side) its roster.
 //
-// A STUDENT sees the assignment list and nothing else. The server withholds the
+// A STUDENT sees the homework list and nothing else. The server withholds the
 // roster from them entirely -- getCourse returns an empty `students` array --
 // so there is no enrollment section to hide here; it simply has no data.
+//
+// TWO COLUMNS, not one. Homework is what the page is for and takes the width;
+// the roster is a reference list of a handful of people and reads fine in a
+// 16rem rail beside it. StudentDetailPage pulled its own 18rem rail out for
+// costing the bookings timeline too much room -- the difference is that a
+// booking row carries a dual-timezone time that truncates, where a roster row
+// is a name, an email and a short count. Under lg: this collapses and the
+// roster stacks below, which is also where the pane itself goes full-width.
+//
+// Homework renders as ONE FLAT CURRICULUM LIST, not grouped. It was banded by
+// urgency (Drafts / Overdue / Upcoming / No due date) until the user removed
+// the bands: a course's contents read as a single ordered body of work, and
+// four headers over what is typically three or four rows spent more height on
+// labels than on the homework itself. Urgency survives as the badge on each
+// row -- see CurriculumList, which owns that decision now.
+
 export default function CourseDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -41,6 +77,15 @@ export default function CourseDetailPage() {
   const [actionError, setActionError] = useState(null)
   const [enrollId, setEnrollId] = useState('')
   const [busy, setBusy] = useState(false)
+  const [enrollOpen, setEnrollOpen] = useState(false)
+  // Separate from `busy`: an upload in flight should not grey out Archive and
+  // Delete, and the cover button needs its own label while it works.
+  const [thumbnailBusy, setThumbnailBusy] = useState(false)
+  const thumbnailInputRef = useRef(null)
+  // Enrollment errors are held separately from actionError: the dialog is
+  // modal, so an error rendered at page level while it is open is behind it
+  // and effectively invisible.
+  const [enrollError, setEnrollError] = useState(null)
   // The server's two-step delete: the first call comes back 409 with the counts
   // of what would be destroyed, which is what this holds.
   const [pendingDelete, setPendingDelete] = useState(null)
@@ -71,14 +116,15 @@ export default function CourseDetailPage() {
   async function handleEnroll(event) {
     event.preventDefault()
     if (!enrollId) return
-    setActionError(null)
+    setEnrollError(null)
     setBusy(true)
     try {
       await enrollStudent(accessToken, id, enrollId)
       setEnrollId('')
+      setEnrollOpen(false)
       await load()
     } catch (err) {
-      setActionError((err.body && err.body.message) || err.message)
+      setEnrollError((err.body && err.body.message) || err.message)
     } finally {
       setBusy(false)
     }
@@ -109,6 +155,50 @@ export default function CourseDetailPage() {
       setActionError((err.body && err.body.message) || err.message)
     } finally {
       setBusy(false)
+    }
+  }
+
+  // Validated client-side before upload as a courtesy -- the server's multer
+  // filter is the real boundary and enforces the same allowlist and cap.
+  // Checking here just saves a doomed 5MB round-trip.
+  async function handleThumbnailChange(event) {
+    const file = event.target.files?.[0]
+    // Reset immediately so picking the same file twice still fires onChange.
+    event.target.value = ''
+    if (!file) return
+
+    setActionError(null)
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setActionError(t('courses.coverWrongType'))
+      return
+    }
+    if (file.size > MAX_THUMBNAIL_BYTES) {
+      setActionError(t('courses.coverTooLarge'))
+      return
+    }
+
+    setThumbnailBusy(true)
+    try {
+      await uploadCourseThumbnail(accessToken, id, file)
+      await load()
+    } catch (err) {
+      setActionError((err.body && err.body.message) || err.message)
+    } finally {
+      setThumbnailBusy(false)
+    }
+  }
+
+  async function handleThumbnailRemove() {
+    setActionError(null)
+    setThumbnailBusy(true)
+    try {
+      await deleteCourseThumbnail(accessToken, id)
+      await load()
+    } catch (err) {
+      setActionError((err.body && err.body.message) || err.message)
+    } finally {
+      setThumbnailBusy(false)
     }
   }
 
@@ -151,129 +241,287 @@ export default function CourseDetailPage() {
     )
   }
 
+  const totalHomework = course.published_assignment_count ?? 0
+
   return (
-    <PageContainer>
-      <PageHeader
-        title={course.title}
-        meta={`${course.teacher_name}${course.status === 'archived' ? ' · Archived' : ''}`}
-      />
+    // p-6 here and p-0 on the container: PageContainer carries its own px-5,
+    // and keeping both stacks the two paddings, which overflows a narrow pane.
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <div className="min-w-0">
+        <PageContainer className="p-0">
+          {/* gap-3 rather than the container's gap-6: the description belongs
+              to the title, and at the wider gap it floats free of it. */}
+          <div className="flex flex-col gap-3">
+            <PageHeader title={course.title} meta={course.teacher_name} />
+            {course.description && (
+              // max-w-prose is the fix for a description that otherwise runs
+              // the full pane as one unbroken measure.
+              <p className="text-muted-foreground max-w-prose text-sm leading-relaxed">
+                {course.description}
+              </p>
+            )}
+          </div>
 
-      {course.description && <p className="text-muted-foreground text-sm">{course.description}</p>}
+          {actionError && <ErrorAlert>{actionError}</ErrorAlert>}
 
-      {actionError && <ErrorAlert>{actionError}</ErrorAlert>}
-
-      {isTeaching && (
-        <div className="flex flex-wrap gap-2">
-          {/* `render`, not asChild — see the note in CoursesLayout. */}
-          <Button
-            size="sm"
-            render={
-              <Link to={`/courses/${course.id}/assignments/new`}>
-                <Plus /> {t('assignments.new')}
-              </Link>
-            }
-          />
-          <Button size="sm" variant="outline" onClick={handleArchiveToggle} disabled={busy}>
-            {course.status === 'archived' ? t('courses.unarchive') : t('courses.archive')}
-          </Button>
-          <Button size="sm" variant="destructive" onClick={() => handleDelete({})} disabled={busy}>
-            <Trash2 /> {t('courses.delete')}
-          </Button>
-        </div>
-      )}
-
-      <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-lg font-bold">{t('assignments.title')}</h2>
-        {assignments.length === 0 ? (
-          <EmptyState>{t('assignments.empty')}</EmptyState>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {assignments.map((assignment) => (
-              <li key={assignment.id}>
-                <Link
-                  to={`/courses/${course.id}/assignments/${assignment.id}`}
-                  className="flex items-center gap-3 rounded-md border border-border bg-card p-3 transition-colors hover:bg-muted"
+          {isTeaching && (
+            // Status left, actions right. Three left-aligned buttons leave the
+            // rest of a wide row doing nothing; opposing them across the row
+            // gives it a job.
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                {course.status === 'archived' && (
+                  <Badge variant="outline">{t('courses.archivedBadge')}</Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* `render`, not asChild — see the note in CoursesLayout. */}
+                <Button
+                  size="sm"
+                  render={
+                    <Link to={`/courses/${course.id}/assignments/new`}>
+                      <Plus /> {t('assignments.new')}
+                    </Link>
+                  }
+                />
+                {/* The cover control. A hidden input driven by a visible
+                    button, the same shape OrganizationSettingsPage uses for
+                    the brand logo -- a bare file input cannot be styled to
+                    match the buttons beside it. */}
+                <input
+                  ref={thumbnailInputRef}
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                  className="hidden"
+                  onChange={handleThumbnailChange}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                  disabled={busy || thumbnailBusy}
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <FileText className="size-4" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{assignment.title}</span>
-                    <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                      {assignment.due_date ? (
-                        <>
-                          <CalendarClock className="size-3" aria-hidden="true" />
-                          {t('assignments.due')} {assignment.due_date}
-                        </>
-                      ) : (
-                        t('assignments.noDueDate')
-                      )}
-                    </span>
-                  </span>
-                  {/* Draft is only ever visible to the teaching side -- the
-                      server filters the list for a student. */}
-                  <Badge variant={assignment.status === 'published' ? 'priorityLow' : 'outline'}>
-                    {assignment.status === 'published' ? t('assignments.published') : t('assignments.draft')}
-                  </Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {isTeaching && (
-        <section className="flex flex-col gap-3">
-          <h2 className="font-heading text-lg font-bold">
-            {t('courses.enrolled')} ({students.length})
-          </h2>
-
-          <Card>
-            <CardContent className="flex flex-col gap-3 pt-4">
-              <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={handleEnroll}>
-                <Field className="flex-1">
-                  <FieldLabel htmlFor="enroll-student">{t('courses.enrollStudent')}</FieldLabel>
-                  <StudentSelect
-                    id="enroll-student"
-                    value={enrollId}
-                    onChange={setEnrollId}
-                    students={roster}
-                    status={rosterStatus}
-                  />
-                </Field>
-                <Button type="submit" disabled={!enrollId || busy}>
-                  <UserPlus /> {t('courses.enroll')}
+                  <ImagePlus />
+                  {thumbnailBusy
+                    ? t('courses.coverUploading')
+                    : course.thumbnail_url
+                      ? t('courses.coverReplace')
+                      : t('courses.coverAdd')}
                 </Button>
-              </form>
+                {course.thumbnail_url && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleThumbnailRemove}
+                    disabled={busy || thumbnailBusy}
+                  >
+                    {t('courses.coverRemove')}
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" onClick={handleArchiveToggle} disabled={busy}>
+                  {course.status === 'archived' ? t('courses.unarchive') : t('courses.archive')}
+                </Button>
+                {/* Ghost, not destructive. The loudest treatment on the page
+                    was going to its rarest and most dangerous action, which is
+                    backwards -- and the two-step ConfirmDialog is what
+                    actually carries the safety here, not the button's fill.
+                    destructive/10 is an opacity fraction of an existing token,
+                    so it follows the tenant palette. */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => handleDelete({})}
+                  disabled={busy}
+                >
+                  <Trash2 /> {t('courses.delete')}
+                </Button>
+              </div>
+            </div>
+          )}
 
-              {students.length === 0 ? (
-                <EmptyState>{t('courses.noStudents')}</EmptyState>
-              ) : (
-                <ul className="divide-border divide-y">
-                  {students.map((student) => (
-                    <li key={student.id} className="flex items-center gap-3 py-2">
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{student.name}</span>
-                        <span className="text-muted-foreground block truncate text-xs">
-                          {student.email}
-                        </span>
-                      </span>
+          {/* 20rem, not narrower: at 16rem the roster's names and emails both
+              truncated, which is the one thing this column exists to show, and
+              at 18rem the homework column still stopped short of the canvas
+              edge on a wide viewport. grid-cols-[minmax(0,1fr)] on the stacked
+              case is load-bearing -- a default `auto` track takes its width
+              from the widest row's intrinsic content and refuses to shrink
+              under it, which pushes the whole page into horizontal scroll on a
+              narrow pane. items-start keeps the roster from stretching to the
+              homework column's height. */}
+          <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <GlassPanel className="rounded-lg">
+              <div className="flex flex-col gap-4">
+                {/* The panel names what it holds, as the reference's
+                    "Curriculum: <course>" heading does. Without it the list
+                    sits under the page header with nothing saying what the
+                    rows are. */}
+                <h2 className="text-base font-semibold">
+                  {t('courses.curriculum')}
+                  <span className="text-muted-foreground ml-2 text-sm font-normal tabular-nums">
+                    {assignments.length}
+                  </span>
+                </h2>
+
+                {assignments.length === 0 ? (
+                  // A framed empty state, echoing the reference's panel -- but
+                  // NOT a drop target. There is no create-by-drop flow here, and
+                  // an area that looks droppable but is not is a dead
+                  // affordance. The action inside it is the same route the
+                  // header button uses.
+                  <div className="border-border flex flex-col items-center gap-3 rounded-lg border border-dashed px-4 py-10 text-center">
+                    <ClipboardList className="text-muted-foreground size-6" aria-hidden="true" />
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm font-medium">{t('assignments.emptyTitle')}</p>
+                      <p className="text-muted-foreground text-sm">{t('assignments.emptyHint')}</p>
+                    </div>
+                    {isTeaching && (
                       <Button
                         size="sm"
+                        variant="outline"
+                        render={
+                          <Link to={`/courses/${course.id}/assignments/new`}>
+                            <Plus /> {t('assignments.new')}
+                          </Link>
+                        }
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <CurriculumList assignments={assignments} courseId={course.id} />
+                )}
+              </div>
+            </GlassPanel>
+
+            {isTeaching && (
+              <GlassPanel className="h-fit rounded-lg">
+                <RecordGroup
+                  label={t('courses.enrolled')}
+                  meta={
+                    // The enroll control rides in the group header rather than
+                    // sitting in the content as a form. It is a rare admin
+                    // action, and as a permanently-open card it was the
+                    // heaviest object on the page -- above the roster it
+                    // appends to.
+                    <span className="flex items-center gap-1.5">
+                      <span className="tabular-nums">{students.length}</span>
+                      <Button
+                        size="icon-xs"
                         variant="ghost"
-                        onClick={() => handleUnenroll(student.id)}
+                        onClick={() => {
+                          setEnrollError(null)
+                          setEnrollOpen(true)
+                        }}
                         disabled={busy}
+                        aria-label={t('courses.enrollStudent')}
                       >
-                        {t('courses.remove')}
+                        <UserPlus />
                       </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </section>
-      )}
+                    </span>
+                  }
+                >
+                  {students.length === 0 ? (
+                    <EmptyState>{t('courses.noStudents')}</EmptyState>
+                  ) : (
+                    students.map((student) => (
+                      // No `to`: a roster row carries a Remove button, and a
+                      // <button> nested inside RecordEntry's <Link> branch
+                      // would be invalid HTML.
+                      <RecordEntry
+                        key={student.id}
+                        tone="muted"
+                        lead={
+                          <Avatar size="sm" className="mt-0.5 shrink-0">
+                            <AvatarFallback className="text-[0.625rem] font-semibold">
+                              {initials(student.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        }
+                        title={student.name}
+                        meta={student.email}
+                        // The bar goes UNDER the name rather than in its own
+                        // column: in a 16rem rail a third column costs the name
+                        // more width than the progress needs. Only rendered
+                        // when there is published homework to be measured
+                        // against -- n/0 is not a ratio.
+                        below={
+                          totalHomework > 0 ? (
+                            <Progress
+                              value={((student.submitted_count ?? 0) / totalHomework) * 100}
+                              className="w-full gap-1"
+                              aria-label={`${student.name}: ${student.submitted_count ?? 0} ${t('courses.progress')} ${totalHomework}`}
+                            >
+                              <ProgressValue className="ml-0 text-[0.625rem]">
+                                {student.submitted_count ?? 0}/{totalHomework}
+                              </ProgressValue>
+                            </Progress>
+                          ) : null
+                        }
+                        trailing={
+                          // Icon-only: spelled out, "Remove" was as wide as
+                          // the name it sat beside. aria-label keeps it named
+                          // for a screen reader, and the student's name is in
+                          // it so the control is unambiguous out of context.
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-destructive shrink-0"
+                            onClick={() => handleUnenroll(student.id)}
+                            disabled={busy}
+                            aria-label={`${t('courses.remove')} — ${student.name}`}
+                            title={t('courses.remove')}
+                          >
+                            <X />
+                          </Button>
+                        }
+                      />
+                    ))
+                  )}
+                </RecordGroup>
+              </GlassPanel>
+            )}
+          </div>
+        </PageContainer>
+      </div>
+
+      {/* Dialog, not AlertDialog: enrolling is a constructive one-decision
+          form, where AlertDialog (what ConfirmDialog wraps) is for destructive
+          confirmation. Open is driven from state with a plain Button rather
+          than DialogTrigger asChild, which sidesteps the render-vs-asChild
+          trap entirely. */}
+      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
+        <DialogContent>
+          <form onSubmit={handleEnroll}>
+            <DialogHeader>
+              <DialogTitle>{t('courses.enrollTitle')}</DialogTitle>
+              <DialogDescription>{t('courses.enrollDescription')}</DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col gap-3 py-4">
+              {enrollError && <ErrorAlert>{enrollError}</ErrorAlert>}
+              <Field>
+                <FieldLabel htmlFor="enroll-student">{t('courses.enrollStudent')}</FieldLabel>
+                <StudentSelect
+                  id="enroll-student"
+                  value={enrollId}
+                  onChange={setEnrollId}
+                  students={roster}
+                  status={rosterStatus}
+                />
+              </Field>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEnrollOpen(false)} disabled={busy}>
+                {t('courses.cancel')}
+              </Button>
+              <Button type="submit" disabled={!enrollId || busy}>
+                <UserPlus /> {busy ? t('courses.enrolling') : t('courses.enroll')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Named counts, not a generic "are you sure": the whole point of the
           server's confirm gate is that the teacher sees WHAT is destroyed. */}
@@ -283,13 +531,17 @@ export default function CourseDetailPage() {
         title={t('courses.deleteTitle')}
         description={
           pendingDelete
-            ? `${pendingDelete.submission_count} submission(s) from ${pendingDelete.student_count} student(s) across ${pendingDelete.assignment_count} assignment(s) will be permanently deleted. All ${pendingDelete.enrolled_count} enrolled student(s) will be notified.`
+            ? t('courses.deleteDescription')
+                .replace('{submissions}', pendingDelete.submission_count)
+                .replace('{students}', pendingDelete.student_count)
+                .replace('{assignments}', pendingDelete.assignment_count)
+                .replace('{enrolled}', pendingDelete.enrolled_count)
             : ''
         }
         confirmLabel={t('courses.delete')}
         pending={busy}
         onConfirm={() => handleDelete({ confirm: true })}
       />
-    </PageContainer>
+    </div>
   )
 }

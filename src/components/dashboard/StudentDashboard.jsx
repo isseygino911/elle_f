@@ -71,7 +71,7 @@ export default function StudentDashboard({
     return (
       <div className="flex flex-col gap-6">
         <div className="h-[6.5rem] animate-pulse rounded-md border border-border bg-card" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
           <SectionCardSkeleton />
           <SectionCardSkeleton />
         </div>
@@ -87,18 +87,19 @@ export default function StudentDashboard({
 
       {nextBooking && <NextSessionSpotlight booking={nextBooking} onCancelBooking={onCancelBooking} />}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-5">
           {dashboard.assignments_due && (
             <SectionCard
-              title={`${t('dashboard.homeworkDue')} (${dashboard.assignments_due.count})`}
+              title={t('dashboard.homeworkDue')}
+              count={dashboard.assignments_due.count}
               icon={GraduationCap}
             >
               <AssignmentsDueList assignments={dashboard.assignments_due} showCourse={false} />
             </SectionCard>
           )}
 
-          <SectionCard title={`${t('dashboard.tasks')} (${dashboard.tasks.count})`} icon={CheckSquare}>
+          <SectionCard title={t('dashboard.tasks')} count={dashboard.tasks.count} icon={CheckSquare}>
             <TasksList tasks={dashboard.tasks} onMarkTaskDone={onMarkTaskDone} />
           </SectionCard>
         </div>
@@ -114,7 +115,8 @@ export default function StudentDashboard({
           </SectionCard>
 
           <SectionCard
-            title={`${t('dashboard.awaitingReview')} (${dashboard.pending_video_reviews.count})`}
+            title={t('dashboard.awaitingReview')}
+            count={dashboard.pending_video_reviews.count}
             icon={Video}
           >
             <PendingVideoReviewsList reviews={dashboard.pending_video_reviews} showStudent={false} />

@@ -10,6 +10,7 @@ import {
   createTask,
   updateTaskStatus,
   cancelBooking,
+  listCourses,
 } from '../api/client.js'
 import { useStudents } from '../hooks/useStudents.js'
 import { PageContainer, PageHeader, ErrorAlert, LoadingText } from '@/components/Page'
@@ -33,6 +34,32 @@ export default function DashboardPage() {
   const [dashboardStatus, setDashboardStatus] = useState('loading') // loading | success | error
   const [dashboard, setDashboard] = useState(null)
   const [dashboardError, setDashboardError] = useState(null)
+
+  // The active-courses section. Fetched here rather than added to the
+  // dashboard payload: /courses already returns exactly these fields
+  // (student_count, published_assignment_count, thumbnail_url) and is
+  // already scoped to the caller, so a new endpoint would duplicate it.
+  // A failure is silent -- the section simply does not render, because a
+  // courses error should not replace a working dashboard with an alert.
+  const [courses, setCourses] = useState([])
+
+  useEffect(() => {
+    if (!isElle) return undefined
+
+    let cancelled = false
+
+    listCourses(accessToken, { status: 'active' })
+      .then((body) => {
+        if (!cancelled) setCourses(body.courses)
+      })
+      .catch(() => {
+        if (!cancelled) setCourses([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [accessToken, isElle])
 
   useEffect(() => {
     let cancelled = false
@@ -136,6 +163,7 @@ export default function DashboardPage() {
         students={students}
         studentsStatus={studentsStatus}
         studentsError={studentsError}
+        courses={courses}
         user={user}
       />
     </PageContainer>

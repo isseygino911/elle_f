@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'
 import { CalendarClock, ExternalLink, Send, Undo2 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
+import { cn } from '@/lib/utils'
+import { compareToEasternToday, formatSlotDate } from '@/utils/formatSlotTime'
 import { canManageCourses, canSubmitWork } from '../../lib/roles.js'
 import {
   getAssignment,
@@ -203,6 +205,8 @@ export default function AssignmentDetailPage() {
   }
 
   const published = assignment.status === 'published'
+  // Work due TODAY is still due, not late -- hence < 0 rather than <= 0.
+  const overdue = Boolean(assignment.due_date) && compareToEasternToday(assignment.due_date) < 0
   // A student's own attempts, newest first -- the latest is what they are
   // working on, and the earlier ones are the record of how it got there.
   const ownSubmissions = [...submissions].sort((a, b) => b.attempt - a.attempt)
@@ -213,36 +217,53 @@ export default function AssignmentDetailPage() {
   return (
     <PageContainer>
       <BackLink to={`/courses/${courseId}`}>{t('courses.backToCourse')}</BackLink>
-      <PageHeader
-        title={assignment.title}
-        meta={assignment.course_title ?? undefined}
-      />
+      {/* Title left, status and due date stacked right.
+          These three facts used to sit in one flat wrap-row at equal weight,
+          which read as a sentence of unrelated fragments. Status and deadline
+          are what you check first on arriving, so they get their own column
+          against the title; attempts is a footnote and stays below. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <div className="min-w-0 flex-1">
+          <PageHeader title={assignment.title} meta={assignment.course_title ?? undefined} />
+        </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {isTeaching && (
-          <Badge variant={published ? 'priorityLow' : 'outline'}>
-            {published ? t('assignments.published') : t('assignments.draft')}
-          </Badge>
-        )}
-        {assignment.due_date && (
-          <span className="text-muted-foreground flex items-center gap-1 text-sm">
-            <CalendarClock className="size-3.5" aria-hidden="true" />
-            {t('assignments.due')} {assignment.due_date}
-          </span>
-        )}
-        {assignment.allowed_attempts !== null && (
-          <span className="text-muted-foreground text-sm">
-            {t('assignments.attemptsAllowed')} {assignment.allowed_attempts}
-          </span>
-        )}
+        <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
+          {isTeaching && (
+            <Badge variant={published ? 'priorityLow' : 'outline'}>
+              {published ? t('assignments.published') : t('assignments.draft')}
+            </Badge>
+          )}
+          {assignment.due_date && (
+            <span
+              className={cn(
+                'flex items-center gap-1 text-sm',
+                // Overdue is a fact the row should carry, not something the
+                // reader has to work out by comparing to today's date.
+                overdue ? 'text-destructive font-medium' : 'text-muted-foreground'
+              )}
+            >
+              <CalendarClock className="size-3.5 shrink-0" aria-hidden="true" />
+              {/* formatSlotDate, never the raw column: a bare YYYY-MM-DD is an
+                  Eastern calendar date and rendering the string directly
+                  printed an ISO value at the user. */}
+              {t('assignments.due')} {formatSlotDate(assignment.due_date)}
+            </span>
+          )}
+        </div>
       </div>
+
+      {assignment.allowed_attempts !== null && (
+        <span className="text-muted-foreground text-sm">
+          {t('assignments.attemptsAllowed')} {assignment.allowed_attempts}
+        </span>
+      )}
 
       {actionError && <ErrorAlert>{actionError}</ErrorAlert>}
 
       {/* The instruction, the link and the due date -- everything the student
           needs to read before answering. */}
       <Card>
-        <CardContent className="flex flex-col gap-3 pt-4">
+        <CardContent className="flex flex-col gap-3">
           {assignment.body ? (
             <p className="text-sm whitespace-pre-wrap">{assignment.body}</p>
           ) : (
@@ -309,7 +330,7 @@ export default function AssignmentDetailPage() {
 
           {canStillSubmit ? (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent>
                 <SubmissionForm
                   assignment={assignment}
                   onSubmitted={(created) => setSubmissions((current) => [...current, created])}

@@ -1,10 +1,10 @@
 import { useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
-// A hand-rolled tablist. There is no Tabs primitive in components/ui, and this
-// is the only place in the app that needs one, so it lives beside its caller
-// rather than being promoted to a shared primitive before there is a second
-// user for it.
+// A hand-rolled tablist. There is no Tabs primitive in components/ui, so this
+// is it. It began beside its only caller in components/students/ and was
+// promoted here alongside the rest of the record vocabulary (RecordTimeline)
+// once a second detail pane needed the same parts.
 //
 // WHY THE KEYBOARD CODE IS NOT OPTIONAL
 // A row of <button>s is not a tab bar. Under the APG's tabs pattern the strip
@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 // caller, and aria-controls/aria-labelledby only work if both halves derive
 // their ids from the SAME base. A useId() local to this component would
 // produce ids no panel could match.
-export function StudentTabs({ tabs, activeId, onChange, label, baseId }) {
+export function RecordTabs({ tabs, activeId, onChange, label, baseId }) {
   const refs = useRef({})
 
   const tabId = (id) => `${baseId}-tab-${id}`
@@ -141,7 +141,7 @@ export function StudentTabs({ tabs, activeId, onChange, label, baseId }) {
 
 // The panel half of the pattern. Kept here so the id convention that links it
 // to its tab cannot drift from the tablist above.
-export function StudentTabPanel({ baseId, id, activeId, children }) {
+export function RecordTabPanel({ baseId, id, activeId, children }) {
   if (id !== activeId) return null
   return (
     <div

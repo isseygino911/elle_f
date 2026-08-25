@@ -115,7 +115,7 @@ export default function AssignmentFormPage() {
       {error && <ErrorAlert>{error}</ErrorAlert>}
 
       <Card>
-        <CardContent className="pt-4">
+        <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>

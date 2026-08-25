@@ -25,14 +25,28 @@ import { Skeleton } from '@/components/ui/skeleton'
 // tag fills, which is why color was confined to the header band and never
 // allowed into the list body. Anything that reintroduces a colored surface
 // here has to re-verify that pairing.
-export default function SectionCard({ title, icon: Icon, actions, children }) {
+// `count` is separate from `title` on purpose. Call sites used to build
+// `${title} (${n})`, which made the number part of the sentence -- it wrapped
+// with the title, truncated with it, and could not be styled. As its own
+// element it sits at a fixed place on the row and reads as a quantity, which
+// is how the header's leading icon and trailing action already work.
+//
+// h-full so a card fills its grid cell: the sections sit in a 2x2 whose rows
+// are as tall as their tallest card, and a content-sized card left a ragged
+// gap under the shorter one.
+export default function SectionCard({ title, icon: Icon, count, actions, children }) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="border-b border-border pb-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
             <h2 className="m-0 truncate text-base leading-snug font-medium">{title}</h2>
+            {count !== undefined && count !== null && (
+              <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums">
+                {count}
+              </span>
+            )}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </div>

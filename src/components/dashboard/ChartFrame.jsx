@@ -53,7 +53,13 @@ export default function ChartFrame({ title, message, aspect = 'aspect-[16/10]', 
       ) : (
         <div
           className={cn(
-            'flex w-full flex-col items-center justify-center gap-3 rounded-sm bg-background p-4 text-center',
+            // max-h caps the reserved block. Rule 2 above keeps the aspect
+            // ratio so the real chart lands without reflow, but an aspect
+            // ratio alone scales with WIDTH: on a full-width dashboard panel
+            // 16/10 reserves ~1000px of empty cream and pushes every section
+            // below it off the screen. The cap only ever binds on the empty
+            // state -- a real chart passes `children` and never reaches here.
+            'flex max-h-56 w-full flex-col items-center justify-center gap-3 rounded-sm bg-background p-4 text-center',
             aspect
           )}
         >

@@ -1,26 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { BookOpen, Users, Archive, Plus } from 'lucide-react'
+import { BookOpen, Users, Archive, ClipboardList, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
 import { canManageCourses } from '../../lib/roles.js'
 import { listCourses } from '../../api/client.js'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import MasterDetailLayout from '@/components/records/MasterDetailLayout'
 import RecordCard from '@/components/records/RecordCard'
 import StatTiles from '@/components/records/StatTiles'
 
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'archived', label: 'Archived' },
+  { value: 'active', labelKey: 'courses.statusActive' },
+  { value: 'archived', labelKey: 'courses.statusArchived' },
 ]
-
-// Dark-themed override for the (light-by-default) shadcn Select, matching the
-// filter in VideosLayout -- these sit inside the dark list panel.
-const DARK_TRIGGER_CLASS =
-  'h-7 w-full border-dark-border bg-dark-card-hover text-xs text-white data-placeholder:text-dark-muted focus-visible:border-lime focus-visible:ring-lime/50 [&_svg]:text-dark-muted'
 
 // The persistent master list panel + stat tiles for /courses and /courses/:id,
 // following the VideosLayout composition exactly (MASTER.md Layout Pattern).
@@ -74,8 +69,10 @@ export default function CoursesLayout() {
     status === 'success' && courses.length > 0 ? (
       <StatTiles
         tiles={[
-          { label: 'Courses', value: courses.length, icon: BookOpen },
-          ...(isTeaching ? [{ label: 'Enrolled', value: studentTotal, icon: Users }] : []),
+          { label: t('courses.title'), value: courses.length, icon: BookOpen },
+          ...(isTeaching
+            ? [{ label: t('courses.enrolledCount'), value: studentTotal, icon: Users }]
+            : []),
         ]}
       />
     ) : null
@@ -87,13 +84,38 @@ export default function CoursesLayout() {
             <RecordCard
               to={`/courses/${course.id}`}
               icon={course.status === 'archived' ? Archive : BookOpen}
+              // Falls back to the icon above when the course has no cover.
+              imageUrl={course.thumbnail_url ?? undefined}
               title={course.title}
-              meta={
+              // The enrolled count moved out of this string and into a metric
+              // chip: it is a number you scan down the column, and as the head
+              // of a concatenated meta line it was the half that got truncated.
+              meta={course.teacher_name}
+              metrics={
                 isTeaching
-                  ? `${course.student_count ?? 0} enrolled · ${course.teacher_name}`
-                  : course.teacher_name
+                  ? [
+                      {
+                        icon: Users,
+                        value: course.student_count ?? 0,
+                        label: t('courses.enrolled'),
+                      },
+                      // The reference shows a module count here. This app has
+                      // no modules, so the chip carries what a course actually
+                      // holds: its published homework. Already on the list
+                      // payload -- no extra request.
+                      {
+                        icon: ClipboardList,
+                        value: course.published_assignment_count ?? 0,
+                        label: t('courses.homeworkCount'),
+                      },
+                    ]
+                  : undefined
               }
-              pillLabel={course.status === 'archived' ? 'Archived' : 'Active'}
+              pillLabel={
+                course.status === 'archived'
+                  ? t('courses.statusArchived')
+                  : t('courses.statusActive')
+              }
               pillVariant={course.status === 'archived' ? 'outlineDark' : 'priorityLow'}
               selected={String(activeId) === String(course.id)}
             />
@@ -110,35 +132,54 @@ export default function CoursesLayout() {
       listEmpty={
         status === 'loading' ? t('courses.loading') : status === 'error' ? error : t('courses.empty')
       }
+      filters={
+        isTeaching ? (
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('courses.filterLabel')}>
+            {STATUS_OPTIONS.map((option) => {
+              const active = statusFilter === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setStatusFilter(option.value)}
+                  aria-pressed={active}
+                  className={cn(
+                    'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                    'focus-visible:ring-[3px] focus-visible:ring-lime/50 focus-visible:outline-none',
+                    active
+                      ? 'border-transparent bg-lime text-on-lime'
+                      : 'border-dark-border bg-dark-card text-dark-muted hover:bg-dark-card-hover hover:text-white'
+                  )}
+                >
+                  {t(option.labelKey)}
+                  {/* Only the active filter carries a count. The list is
+                      fetched already filtered, so the inactive one's total is
+                      not on hand -- and a number that might be wrong is worse
+                      than no number. */}
+                  {active && status === 'success' && (
+                    <span className="ml-1 tabular-nums opacity-70">{courses.length}</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        ) : null
+      }
       actions={
         isTeaching ? (
-          <div className="flex w-32 flex-col gap-1.5">
-            {/* Base UI's Button composes via `render`, not asChild — asChild
-                is not a prop it knows, so React forwards it to the <button>
-                and warns about an unrecognized DOM attribute. Same pattern as
-                LibraryPage and the Sheet/Tooltip triggers. */}
-            <Button
-              size="sm"
-              className="h-7 text-xs"
-              render={
-                <Link to="/courses/new">
-                  <Plus /> {t('courses.new')}
-                </Link>
-              }
-            />
-            <Select value={statusFilter} onValueChange={setStatusFilter} items={STATUS_OPTIONS}>
-              <SelectTrigger className={DARK_TRIGGER_CLASS}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          // Base UI's Button composes via `render`, not asChild — asChild
+          // is not a prop it knows, so React forwards it to the <button>
+          // and warns about an unrecognized DOM attribute. Same pattern as
+          // LibraryPage and the Sheet/Tooltip triggers.
+          <Button
+            size="sm"
+            className="h-7 text-xs"
+            render={
+              <Link to="/courses/new">
+                <Plus /> {t('courses.new')}
+              </Link>
+            }
+          />
         ) : null
       }
     />

@@ -1,12 +1,17 @@
-import { Video, MessageSquare, CalendarDays, CheckSquare, CalendarClock } from 'lucide-react'
+import {
+  Video,
+  MessageSquare,
+  CalendarDays,
+  CheckSquare,
+  CalendarClock,
+  GraduationCap,
+} from 'lucide-react'
 import KpiStrip from './KpiStrip.jsx'
 import SectionCard, { SectionCardSkeleton } from './SectionCard.jsx'
 import NextSessionSpotlight from './sections/NextSessionSpotlight.jsx'
-import PendingVideoReviewsList from './sections/PendingVideoReviewsList.jsx'
-import AssignmentsDueList from './sections/AssignmentsDueList.jsx'
 import TasksList from './sections/TasksList.jsx'
+import ActiveCoursesList from './sections/ActiveCoursesList.jsx'
 import CreateTaskDialog from './sections/CreateTaskDialog.jsx'
-import ReviewBacklogAge from './insights/ReviewBacklogAge.jsx'
 import BookingList from '@/components/BookingList'
 import { useLanguage } from '@/lib/LanguageContext'
 
@@ -18,12 +23,12 @@ import { useLanguage } from '@/lib/LanguageContext'
 // teacher with two cards on one side and five on the other -- columns of
 // wildly different height that had to be read as one long ragged block.
 //
-// The four queue sections -- tasks, video reviews, homework due, upcoming
-// bookings -- are peers, so they sit in an even 2x2 where no card's width
-// implies it matters more than its neighbour. Student progress then takes a
-// full-width row underneath: its rows are one per student and grow with the
-// roster, and a name against a trailing completion pill reads as a table
-// only when the row is long enough to separate them.
+// The queue sections were once four peers in an even 2x2. They are now split
+// by KIND rather than by rank: tasks, video reviews and homework due are debts
+// you work down, so they stay 2-up in the main column; upcoming bookings is
+// time-ordered, so it joins the next-session spotlight in a right-hand rail.
+// The old arrangement gave the page no reading order -- every section was a
+// full-width peer and the eye had nowhere to start.
 //
 // Notifications no longer appear here at all: they live in the app shell's
 // bell and drawer, where the count stays live on every page rather than only
@@ -40,6 +45,7 @@ export default function TeacherDashboard({
   students,
   studentsStatus,
   studentsError,
+  courses = [],
 }) {
   const { t } = useLanguage()
   const upcomingBookings = dashboard?.upcoming_bookings?.bookings ?? []
@@ -68,6 +74,14 @@ export default function TeacherDashboard({
           label: t('dashboard.unreadMessagesFull'),
           value: dashboard.unread_messages.total_count,
           to: '/messages',
+          attention: true,
+        },
+        {
+          key: 'homework',
+          icon: CalendarClock,
+          label: t('dashboard.homeworkDue'),
+          value: dashboard.assignments_due?.count ?? 0,
+          to: '/courses',
           attention: true,
         },
         {
@@ -104,68 +118,70 @@ export default function TeacherDashboard({
     <div className="flex flex-col gap-6">
       <KpiStrip cells={cells} label={t('dashboard.keyMetrics')} />
 
-      {nextBooking && (
-        <NextSessionSpotlight booking={nextBooking} showStudent onCancelBooking={onCancelBooking} />
-      )}
+      {/* Two-column body: the queues you work through on the left, the
+          time-ordered rail on the right. Previously every section was a
+          full-width row in one column, so the page read as a single long
+          scroll with no sense of what to look at first. The rail is fixed at
+          20rem and the main column takes the rest, so neither collapses into
+          the other on a wide screen. */}
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-w-0 flex-col gap-6">
+          {/* The queue sections stack full-width in the main column, matching
+              the reference's "Needs Attention" / "Active Courses" rhythm: one
+              section per row, each as wide as the column. A 2-up grid halved
+              every row and left each list fighting for width. */}
+          <div className="flex flex-col gap-6">
+            <SectionCard
+              title={t('dashboard.tasks')}
+              count={dashboard.tasks.count}
+              icon={CheckSquare}
+              actions={
+                onCreateTask && (
+                  <CreateTaskDialog
+                    onCreateTask={onCreateTask}
+                    students={students}
+                    studentsStatus={studentsStatus}
+                    studentsError={studentsError}
+                  />
+                )
+              }
+            >
+              <TasksList tasks={dashboard.tasks} onMarkTaskDone={onMarkTaskDone} />
+            </SectionCard>
 
-      {/* The insight panel. Built entirely from data the API already returns
-          -- no trend query needed -- and it stays meaningful for a studio with
-          three students, which a weekly trend line would not. It sits full
-          width: it used to share a two-column row with a roster-progress
-          chart, and leaving the grid in place would strand it in a half-width
-          cell with dead space beside it. */}
-      <ReviewBacklogAge reviews={dashboard.pending_video_reviews} />
+            <SectionCard
+              title={t('dashboard.activeCourses')}
+              count={courses.length}
+              icon={GraduationCap}
+            >
+              <ActiveCoursesList courses={courses} />
+            </SectionCard>
+          </div>
+        </div>
 
-      {/* Four peer sections in a 2x2. None of them outranks the others enough
-          to earn a wider column, and at equal width each row keeps its own
-          card's rhythm instead of one column running twice as long as the
-          other. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <SectionCard
-          title={`${t('dashboard.tasks')} (${dashboard.tasks.count})`}
-          icon={CheckSquare}
-          actions={
-            onCreateTask && (
-              <CreateTaskDialog
-                onCreateTask={onCreateTask}
-                students={students}
-                studentsStatus={studentsStatus}
-                studentsError={studentsError}
-              />
-            )
-          }
-        >
-          <TasksList tasks={dashboard.tasks} onMarkTaskDone={onMarkTaskDone} />
-        </SectionCard>
+        {/* The rail: what happens next, in time order. */}
+        <div className="flex min-w-0 flex-col gap-6">
+          {nextBooking && (
+            <NextSessionSpotlight
+              booking={nextBooking}
+              showStudent
+              onCancelBooking={onCancelBooking}
+            />
+          )}
 
-        <SectionCard
-          title={`${t('dashboard.pendingVideoReviews')} (${dashboard.pending_video_reviews.count})`}
-          icon={Video}
-        >
-          <PendingVideoReviewsList reviews={dashboard.pending_video_reviews} showStudent />
-        </SectionCard>
-
-        {dashboard.assignments_due && (
-          <SectionCard
-            title={`${t('dashboard.homeworkDue')} (${dashboard.assignments_due.count})`}
-            icon={CalendarClock}
-          >
-            <AssignmentsDueList assignments={dashboard.assignments_due} showCourse />
+          <SectionCard title={t('dashboard.upcomingBookings')} icon={CalendarDays}>
+            {/* emptyMessage is passed rather than relying on BookingList's
+                default, which is hardcoded English. The component is shared
+                with the Bookings page, so translating it here keeps the
+                dashboard fully localised without changing that page. */}
+            <BookingList
+              bookings={laterBookings}
+              showStudent
+              onCancel={onCancelBooking}
+              emptyMessage={t('dashboard.noUpcomingBookings')}
+            />
           </SectionCard>
-        )}
-
-        <SectionCard title={t('dashboard.upcomingBookings')} icon={CalendarDays}>
-          {/* emptyMessage is passed rather than relying on BookingList's
-              default, which is hardcoded English. The component is shared
-              with the Bookings page, so translating it here keeps the
-              dashboard fully localised without changing that page. */}
-          <BookingList
-            bookings={laterBookings}
-            showStudent
-            onCancel={onCancelBooking}
-            emptyMessage={t('dashboard.noUpcomingBookings')}
-          />
-        </SectionCard>
+        </div>
       </div>
     </div>
   )

@@ -528,6 +528,33 @@ export async function updateCourse(accessToken, id, updates) {
   })
 }
 
+// Upload or replace a course's cover image. Bypasses request() for the same
+// reason uploadOrganizationLogo does: a multipart body must not carry a JSON
+// Content-Type, and the boundary has to be set by the browser.
+export async function uploadCourseThumbnail(accessToken, courseId, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(
+    `${API_BASE_URL}/courses/${encodeURIComponent(courseId)}/thumbnail`,
+    {
+      method: 'POST',
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      body: formData,
+    }
+  )
+
+  return parseJsonResponse(response)
+}
+
+// Remove the cover image. The list row falls back to the status icon.
+export async function deleteCourseThumbnail(accessToken, courseId) {
+  return request(`/courses/${encodeURIComponent(courseId)}/thumbnail`, {
+    method: 'DELETE',
+    accessToken,
+  })
+}
+
 // Hard delete, and the server gates it: without confirm it answers 409 with
 // confirmation_required and the counts to put in the prompt. Call it once
 // without confirm, show the user what will be destroyed, then call again with

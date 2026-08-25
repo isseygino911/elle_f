@@ -4,16 +4,21 @@ import { cn } from '@/lib/utils'
 // The dashboard's at-a-glance layer: the handful of numbers that answer
 // "what is the state of my day" before you read a single list.
 //
-// WHY ONE CONTAINER AND NOT N CARDS
+// WHY N CARDS AND NOT ONE CONTAINER
 //
-// The previous manager dashboard rendered each figure as its own bordered,
-// shadowed tile. A shadow on each of several adjacent cells reads as several
-// separate floating objects, so the eye has to first work out whether they
-// are related at all. These numbers are facets of one panel, not independent
-// records, so they share a single flat surface and are separated by hairlines
-// instead. Shadow is reserved for cards you can act on individually (the list
-// sections below, the next-session spotlight) -- see the elevation note in
-// the dashboard plan.
+// This component used to render one flat surface with hairline dividers. The
+// reason recorded here was that "a shadow on each of several ADJACENT cells
+// reads as several separate floating objects" -- true, and the fix it chose
+// (collapse them into one panel) was the wrong one. The actual fault was
+// adjacency, not elevation: tiles flush against each other with a shadow on
+// each do fragment. Separate them by a real gap and the same three cards read
+// as three deliberate objects, which is what a KPI row is.
+//
+// The flat strip's cost was that the numbers -- the most scannable thing on
+// the dashboard -- carried the least visual weight on the page. Each cell is
+// now its own card: elevated, gapped, with the figure at display size and the
+// icon in a tinted tile. Shadow is no longer "reserved" for actionable cards;
+// it marks a discrete object, which these are.
 //
 // This component is deliberately PRESENTATIONAL and knows nothing about
 // roles. Each role's dashboard builds its own array of cells and passes it
@@ -32,22 +37,34 @@ function KpiCell({ icon: Icon, label, value, to, attention }) {
 
   const body = (
     <>
-      <span className="flex items-center gap-1.5">
-        {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
-        <span className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase" title={label}>
-          {label}
+      <span className="flex items-start justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span
+            className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            title={label}
+          >
+            {label}
+          </span>
+          {showDot && (
+            // Decorative: the count beside it already carries the meaning, so
+            // color is reinforcing rather than the sole signal.
+            <span className="size-1.5 shrink-0 rounded-full bg-lime" aria-hidden="true" />
+          )}
         </span>
-        {showDot && (
-          // Decorative: the count beside it already carries the meaning, so
-          // color is reinforcing rather than the sole signal.
-          <span className="size-1.5 shrink-0 rounded-full bg-lime" aria-hidden="true" />
+        {/* The icon moves into a tinted tile on the trailing edge. Inline
+            beside the label it competed with the text for the row; parked
+            here it reads as the cell's mark and leaves the label its width. */}
+        {Icon && (
+          <span className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-md">
+            <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+          </span>
         )}
       </span>
       {/* Muted at zero. The figure itself still reads as "0", so this is a
           second channel on top of the text, never a replacement for it. */}
       <span
         className={cn(
-          'font-heading text-2xl leading-tight font-extrabold tabular-nums',
+          'font-heading text-3xl leading-tight font-extrabold tabular-nums',
           isZero ? 'text-muted-foreground' : 'text-foreground'
         )}
       >
@@ -56,9 +73,10 @@ function KpiCell({ icon: Icon, label, value, to, attention }) {
     </>
   )
 
-  // min-h-16 keeps the cell above the 44px touch-target floor even when a
-  // label wraps short; py-2.5 alone would not guarantee it.
-  const cellClass = 'flex min-h-16 flex-col justify-center gap-1 px-3 py-2.5'
+  // Each cell is its own card now: border + shadow + its own radius, with the
+  // gap between them supplied by the parent grid.
+  const cellClass =
+    'flex min-h-24 flex-col justify-between gap-3 rounded-lg border border-border bg-card p-4 shadow-md'
 
   if (!to) {
     return <div className={cellClass}>{body}</div>
@@ -70,7 +88,7 @@ function KpiCell({ icon: Icon, label, value, to, attention }) {
       className={cn(
         cellClass,
         // bg-accent is the registered utility for --color-surface-2.
-        'transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
+        'transition-shadow transition-colors hover:bg-accent hover:shadow-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
       )}
     >
       {body}
@@ -87,14 +105,10 @@ export default function KpiStrip({ cells, label }) {
   return (
     <section
       aria-label={label}
-      className={cn(
-        'grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card',
-        // Hairlines between cells rather than around them. divide-y is needed
-        // for the 2-col mobile stack; divide-y is cleared once the strip is a
-        // single row.
-        'divide-x divide-y divide-border sm:divide-y-0',
-        columnsClass
-      )}
+      // The gap is what makes separate elevated cards work -- see the note at
+      // the top of this file. Without it they would be the flush, fragmented
+      // row the old comment rightly warned about.
+      className={cn('grid grid-cols-2 gap-4', columnsClass)}
     >
       {cells.map((cell) => (
         <KpiCell
