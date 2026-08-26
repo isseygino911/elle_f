@@ -349,7 +349,13 @@ export default function CourseDetailPage() {
                 // Wraps to its own line when the row runs out of width, which
                 // at 64rem content width with four buttons is often -- that is
                 // the intended behaviour, not a breakpoint to design around.
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                //
+                // No shrink-0 here: it pinned this row to the width of its
+                // buttons laid out in ONE line, so flex-wrap above could never
+                // fire and the row pushed the whole page 171px wider than a
+                // 430px viewport instead. Letting it shrink is what lets the
+                // wrap actually happen.
+                <div className="flex flex-wrap items-center gap-2">
                 {/* `render`, not asChild — see the note in CoursesLayout. */}
                 <Button
                   size="sm"
