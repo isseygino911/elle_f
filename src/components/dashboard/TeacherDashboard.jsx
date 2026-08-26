@@ -146,7 +146,7 @@ export default function TeacherDashboard({
                 )
               }
             >
-              <TasksList tasks={dashboard.tasks} onMarkTaskDone={onMarkTaskDone} />
+              <TasksList tasks={dashboard.tasks} onMarkTaskDone={onMarkTaskDone} students={students} />
             </SectionCard>
 
             <SectionCard

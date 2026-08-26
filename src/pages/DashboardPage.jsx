@@ -87,11 +87,16 @@ export default function DashboardPage() {
   async function handleMarkTaskDone(taskId) {
     try {
       await updateTaskStatus(accessToken, taskId, 'done')
+      // Flipped in place rather than filtered out: a completed task stays on
+      // the list with a check, so the teacher who assigned it still sees it.
+      // count tracks pending only, matching buildTasksSection.
       setDashboard((prev) => ({
         ...prev,
         tasks: {
           count: prev.tasks.count - 1,
-          tasks: prev.tasks.tasks.filter((task) => task.id !== taskId),
+          tasks: prev.tasks.tasks.map((task) =>
+            task.id === taskId ? { ...task, status: 'done' } : task
+          ),
         },
       }))
     } catch {
