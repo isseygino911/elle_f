@@ -58,6 +58,26 @@
   padding-left: calc(var(--line-nav-marker-length) + var(--line-nav-marker-gap));
 }
 
+/* The marker column's indent, without the column. For a row that sits beside
+   the nav rows and must line up with them, but draws no marker and joins no
+   scale -- the notification bell at the foot of the rail.
+ *
+ * The two lengths are re-declared here rather than read off .line-nav: this
+ * class is used *outside* that element (the bell sits below the LineNav
+ * wrapper, deliberately, so it stays out of the proximity scale), and a
+ * var() lookup there would find nothing and fall back silently. Re-declaring
+ * them keeps the failure visible -- these must be changed together with the
+ * block above, and a bare fallback would have hidden that.
+ *
+ * Not applied on the collapsed rail: the list drops its own padding there
+ * (see .line-nav--collapsed below), and this rule's caller drops this one. */
+.line-nav__gutter {
+  --line-nav-marker-length: 28px;
+  --line-nav-marker-gap: 10px;
+
+  padding-left: calc(var(--line-nav-marker-length) + var(--line-nav-marker-gap));
+}
+
 .line-nav__row {
   position: relative;
 }

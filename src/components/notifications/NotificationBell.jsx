@@ -48,7 +48,15 @@ function UnreadBadge({ count }) {
 // dashboard-only card could not serve. `collapsed` matches the sidebar rail's
 // own state so the trigger gets a tooltip when the label is hidden, the same
 // treatment AccountMenu gives its own trigger.
-export default function NotificationBell({ collapsed = false, className }) {
+//
+// `navRow` swaps the bare icon button for a labelled full-width row, for the
+// rail's foot where the bell sits above the identity divider. Naming it there
+// is what makes the row legible: at the top of the rail the bell sat beside
+// the brand mark, in a masthead where an unlabelled glyph reads as chrome, but
+// dropped into the nav stack an unlabelled icon reads as a nav destination
+// whose label failed to render. The count moves inline with it for the same
+// reason -- a corner badge on a full-width row has nothing to anchor to.
+export default function NotificationBell({ collapsed = false, navRow = false, className }) {
   const { t } = useLanguage()
   const notificationState = useNotifications()
 
@@ -63,7 +71,7 @@ export default function NotificationBell({ collapsed = false, className }) {
     ? `${t('notifications.title')} (${unreadCount} ${t('dashboard.notificationsUnread')})`
     : t('notifications.title')
 
-  const trigger = (
+  const iconTrigger = (
     <Button
       type="button"
       variant="ghost"
@@ -80,6 +88,61 @@ export default function NotificationBell({ collapsed = false, className }) {
       <UnreadBadge count={unreadCount} />
     </Button>
   )
+
+  // A plain <button>, not the Button primitive: this has to line up with the
+  // NavLink rows above it, and those are bare anchors carrying their own
+  // layout classes. Routing through Button's variants would mean overriding
+  // its height, padding and radius to get back to the same box.
+  //
+  // Deliberately not a NavLinkItem: this opens a drawer, it has no route and
+  // no active state, so it takes the idle row treatment only -- and it takes
+  // no ordinal, because the numbered scale counts destinations you can be
+  // *at*, and a row that can never be current would leave a gap in it.
+  const rowTrigger = (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      className={cn(
+        'group flex w-full items-center gap-3 rounded-sm border border-transparent px-2.5 py-2',
+        'text-sm font-medium whitespace-nowrap text-dark-muted transition-colors duration-150',
+        'hover:bg-dark-card-hover hover:text-white',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime',
+        collapsed && 'justify-center px-0',
+        className
+      )}
+    >
+      {/* Collapsed, the label is gone and the inline count with it, so the
+          badge returns to its corner-anchored form against the icon -- the
+          same dot-sized treatment the collapsed nav rows use for a count. */}
+      {collapsed ? (
+        <span className="relative flex shrink-0">
+          <Bell className="size-4.5 shrink-0 text-current" aria-hidden="true" />
+          {unreadCount > 0 && (
+            <span
+              className="absolute -top-1 -right-1 size-2 rounded-full bg-lime ring-2 ring-dark"
+              aria-hidden="true"
+            />
+          )}
+        </span>
+      ) : (
+        <Bell className="size-4.5 shrink-0 text-current" aria-hidden="true" />
+      )}
+      <span className={cn('min-w-0 truncate', collapsed && 'sr-only')}>{t('notifications.title')}</span>
+      {/* ml-auto rather than the nav rows' conditional: there is no ordinal
+          behind it here, so the count is always the trailing element. */}
+      {!collapsed && unreadCount > 0 && (
+        <span
+          className="ml-auto flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-lime px-1 font-heading text-[0.625rem] leading-none font-bold text-on-lime tabular-nums"
+          aria-hidden="true"
+        >
+          {unreadCount > BADGE_OVERFLOW_AT ? `${BADGE_OVERFLOW_AT}+` : unreadCount}
+        </span>
+      )}
+    </button>
+  )
+
+  const trigger = navRow ? rowTrigger : iconTrigger
 
   return (
     <Sheet>

@@ -458,6 +458,31 @@ function SidebarNavList({ navSections, showHeaders, collapsed, userLabel, roleLa
         </nav>
       </LineNav>
 
+      {/* The bell, at the foot of the nav and above the identity divider
+          rather than up in the masthead beside the brand mark.
+
+          It sits outside <nav> on purpose: the drawer it opens is content, not
+          a destination, so folding it into the primary landmark would have a
+          screen reader announce one more navigation link than there are pages.
+          Outside the LineNav wrapper for the matching reason -- the proximity
+          scale and its marker column belong to the numbered rows, and a row
+          that leans and lights its rule without carrying an index would read
+          as a nav item whose number went missing.
+
+          mt-1 rather than the gap-1 inside a section: it is adjacent to the
+          pinned rows but not one of them.
+
+          line-nav__gutter reproduces the marker column's width as padding so
+          this row's icon and label line up with the nav rows above it. It
+          takes the indent without joining the scale, which is the whole point:
+          .line-nav__list applies the same padding to the rows that *do* draw a
+          marker in it, and sitting outside that list would otherwise leave the
+          bell 38px to their left. Read from the same custom properties rather
+          than a literal, so retuning the column moves both together. */}
+      <div className={cn('mt-1', !collapsed && 'line-nav__gutter')}>
+        <NotificationBell navRow collapsed={collapsed} />
+      </div>
+
       {/* One identity block anchoring the foot of the rail, in place of the
           three stacked controls (language switch, avatar row, full-width
           logout) this used to be. Language and logout move into the menu it
@@ -744,32 +769,33 @@ export default function AppShell({ children }) {
             collapsed={collapsed}
           />
           {/* Hidden when collapsed so the mark can sit centred in the 72px
-              rail on its own; the toggle moves below it there. */}
+              rail on its own; the toggle moves below it there.
+
+              The collapse toggle alone now -- the bell that used to sit beside
+              it has moved to the foot of the nav, where it can carry a label.
+              No wrapper left: a flex row around a single child positions it
+              exactly as justify-between already does. */}
           {!collapsed && (
-            <div className="flex items-center gap-0.5">
-              <NotificationBell />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
-                onClick={toggleCollapsed}
-                aria-expanded={!collapsed}
-                aria-label={t('nav.collapseSidebar')}
-              >
-                <ChevronLeft className="size-4.5" aria-hidden="true" />
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-dark-muted hover:bg-dark-card-hover hover:text-white"
+              onClick={toggleCollapsed}
+              aria-expanded={!collapsed}
+              aria-label={t('nav.collapseSidebar')}
+            >
+              <ChevronLeft className="size-4.5" aria-hidden="true" />
+            </Button>
           )}
         </div>
 
-        {/* Collapsed, the masthead has no room beside the mark, so the bell
-            joins the expand toggle in the stacked column below it -- and takes
-            a tooltip there for the same reason the nav rows do, since its
-            label is no longer readable. */}
+        {/* Collapsed, the masthead has no room beside the mark, so the expand
+            toggle drops below it. The bell used to share this column; it now
+            sits at the foot of the nav in both states, which is what keeps it
+            from moving between two places as the rail collapses. */}
         {collapsed && (
-          <div className="flex flex-col items-center gap-1">
-            <NotificationBell collapsed />
+          <div className="flex flex-col items-center">
             <Button
               type="button"
               variant="ghost"
