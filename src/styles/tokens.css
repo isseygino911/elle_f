@@ -146,6 +146,64 @@
     var(--color-surface) 100%
   );
 
+  /* ---- Auth gradient: the wash behind the signed-out screens on MOBILE ----
+     Consumed by the .auth-gradient utility in global.css, which scopes itself
+     below the md breakpoint. Desktop keeps the aurora split-screen and never
+     paints this.
+
+     WHY THIS EXISTS ONLY ON SMALL SCREENS
+
+     The desktop layout carries the tenant's colour in its decorative half, so
+     the form column can stay a quiet light surface. Below md that half is
+     display:none and the colour goes with it, leaving the phone screen a flat
+     near-white form with no brand on it at all. This puts the accent back on
+     the one viewport that had lost it.
+
+     Diagonal at 135deg rather than the 180deg the rail and panel washes use:
+     those dress a tall narrow rail and a scrolling panel, where a diagonal
+     bunches its stops in a corner. A phone screen is tall too, but here the
+     ramp only has to travel behind a single centred card, and the diagonal is
+     what keeps the corner behind the card from matching the corner beside it.
+
+     Four stops rather than two: a straight accent-to-dark ramp puts its whole
+     midtone range in one narrow band and reads as a seam. The middle stops
+     hold a deepened, still-chromatic accent across the bulk of the screen so
+     the colour occupies most of the surface and only resolves to the canvas at
+     the far corner.
+
+     Lightness and chroma are pinned per stop and only the hue comes from
+     --color-lime, the same discipline the dark scaffold uses: a tenant with a
+     vivid accent must not be able to blow out the surface the glass card sits
+     on.
+
+     Written with inline `oklch(from ...)` and no @supports fallback, matching
+     --color-panel-gradient above rather than the dark-scaffold tokens: a
+     `linear-gradient()` is an <image>, so it cannot be re-declared inside that
+     block the way a <color> token can, and a literal fallback would mean a
+     second gradient string kept in sync by hand. The last stop is
+     var(--color-bg-dark), which IS derived per tenant, so the far corner meets
+     the same near-black the rest of the app resolves to.
+
+     The first stop is lighter than the ramp would otherwise start, and that is
+     for the logo rather than for looks: the mark sits in the top-left corner
+     on mobile, and its brown line work measured 1.84:1 to 2.30:1 against the
+     old 0.62 opening stop — under the 3:1 WCAG floor for graphics on all
+     twelve palettes, not just the warm ones. Lightening the whole ramp to fix
+     that washed the gradient out, so the light stop is confined to the corner
+     and the ramp rejoins its original values by 18%. Measured at L=0.80
+     C=0.10: 3.72:1 (rose, the worst) to 4.07:1 (teal). Backing the mark with
+     a solid chip was the other option and was rejected — it read as a sticker
+     pasted on the gradient. */
+  --color-auth-gradient: linear-gradient(
+    135deg,
+    oklch(from var(--color-lime) 0.86 0.075 h) 0%,
+    oklch(from var(--color-lime) 0.8 0.1 h) 14%,
+    oklch(from var(--color-lime) 0.62 0.155 h) 30%,
+    oklch(from var(--color-lime) 0.42 0.12 h) 45%,
+    oklch(from var(--color-lime) 0.26 0.062 h) 74%,
+    var(--color-bg-dark) 100%
+  );
+
   /* ---- Color: Accent 2 — Violet (second card "type" / Mid priority) ---- */
   --color-violet: #8b7cf0;
   --color-violet-hover: #7a69ec; /* derived, darker violet for hover */

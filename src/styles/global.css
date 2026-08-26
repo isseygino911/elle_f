@@ -438,6 +438,145 @@ textarea:focus-visible,
 }
 
 /* ---------------------------------------------------------------------------
+   Auth surfaces: mobile-only gradient + glass
+
+   Both rules below live inside a max-width query, so they exist ONLY under the
+   md breakpoint (768px, Tailwind's default --breakpoint-md). At md and up the
+   auth screens are exactly what they have always been: the aurora split-screen
+   with a plain light form column. That is deliberate and load-bearing — the
+   desktop layout already carries the tenant's colour in its decorative half,
+   and layering a second treatment on top of it made the two compete.
+
+   Below md that decorative half is display:none, which is the actual problem
+   these rules solve: the phone screen loses all of the palette and renders a
+   flat near-white form. The gradient puts the accent back, and the glass card
+   is what keeps the form legible on top of it.
+
+   A media query rather than Tailwind `max-md:` variants on the elements: the
+   glass card needs backdrop-filter, box-shadow and a color-mix background that
+   all have to switch off together, and expressing that as five arbitrary-value
+   variants on one className is far harder to read than one scoped block.
+   --------------------------------------------------------------------------- */
+@media (width < 48rem) {
+  /* The full-bleed wash behind the auth frame on small screens. Follows
+     .sidebar-gradient and .panel-gradient above in every mechanical detail:
+     the image comes from a palette variable so applyThemeToDocument()
+     restyles it with no re-render, and the sizing properties are stated
+     rather than left to defaults.
+
+     Paired with `bg-dark` on the same element, exactly as .sidebar-gradient
+     is: if the image fails to paint or --color-auth-gradient is somehow
+     unset, the frame falls back to its own opaque near-black rather than
+     going transparent. */
+  .auth-gradient {
+    background-image: var(--color-auth-gradient);
+    background-attachment: scroll;
+    background-origin: padding-box;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  /* The frosted form card. This is the one deliberate exception to the
+     "restrained single-layer shadows" discipline stated beside the shadow
+     tokens in the @theme block above — that rule governs content surfaces,
+     where cards sit on a near-white canvas and a blur has nothing to refract.
+     Here the card sits on a saturated gradient, which is the one condition
+     under which the effect carries information: the accent reads *through*
+     the form rather than only around it.
+
+     backdrop-filter is progressive enhancement, and the fallback is why the
+     rule is ordered this way. `background` is a translucent light surface
+     opaque enough (0.74) to hold text contrast on its own, so a browser that
+     ignores backdrop-filter renders a plain light card on the gradient —
+     legible, just not frosted. The blur is layered on, never depended on.
+
+     0.74 and not higher: at 0.88 the card was so nearly opaque that none of
+     the gradient came through and it rendered as a flat beige panel, with the
+     frost doing no visible work. Composited over the BRIGHTEST stop the card
+     can overlap, ink measures 12.35:1 and muted 5.06:1 at worst across all
+     twelve palettes (rose is the floor for both), so body text clears AA on
+     every tenant. Any further drop eats that muted margin first — re-measure
+     before lowering it.
+
+     The saturate() is not decoration: a plain blur of a dark chromatic ground
+     averages toward grey and the card comes out looking dirty rather than
+     tinted. Pushing saturation back up keeps the accent's hue legible.
+
+     The inset highlight fakes the lit top edge of a physical pane, which is
+     most of what sells the material at rest. */
+  .auth-glass {
+    /* A DARK scrim, not a light frost. The card carries light text now, and
+       the gradient runs from a pale top-left corner to a near-black bottom
+       one, so a light fill left the heading and labels at 1.89:1 where the
+       card overlapped the pale corner. Darkening the card is what makes one
+       text colour work across the whole of it: measured at this alpha the
+       worst point under the card gives 6.32:1 for the heading and labels and
+       4.59:1 for muted text, both past AA. */
+    background: color-mix(in srgb, var(--color-bg-dark) 55%, transparent);
+    /* Prefixed first, standard second, and that ORDER is load-bearing: with
+       the standard property written first the build's CSS minifier treats the
+       two as duplicate declarations of one property and keeps only the last it
+       sees, which dropped the unprefixed line from the bundle entirely and
+       left the blur off in every non-WebKit engine. Verified in dist/ after
+       building — both declarations survive in this order. */
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    /* border: 1px solid color-mix(in srgb, #ffffff 55%, transparent); */
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    /* box-shadow:
+      0 24px 48px -12px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 color-mix(in srgb, #ffffff 65%, transparent); */
+  }
+
+  /* Light text on the glass card, which is a dark scrim over the gradient
+     rather than the light frosted pane it used to be. The dark ink the auth
+     forms use everywhere else would be unreadable on it.
+
+     Scoped to .auth-glass, which only exists below md, so the desktop form
+     column -- still an opaque cream panel -- keeps its original dark ink.
+     Inputs are included: the typed value is otherwise the same dark
+     foreground and invisible against the card. The auth forms use visible
+     labels and set no placeholder, so there is nothing to style there. The
+     submit button keeps its own dark fill and white label, so it is
+     deliberately left alone. */
+  .auth-glass {
+    color: var(--color-bg-light);
+  }
+
+  /* :not() keeps the muted rule below from having to out-specify this one. */
+  .auth-glass :is(h1, label, p, span, a):not([class*='text-muted-foreground']) {
+    color: var(--color-bg-light);
+  }
+
+  /* Muted stays a visible step below the heading without failing AA. The rule
+     above excludes these, so no specificity fight is needed. Measured over the
+     lightest point the card covers: 4.73:1 here against the heading's 6.63:1 —
+     quieter, but still past the 4.5 floor for body text. */
+  /* :not(input) because the Input primitive's class string contains a
+     muted-foreground utility for its placeholder; without this the typed
+     value would be dimmed to the muted level instead of full strength. */
+  .auth-glass [class*='text-muted-foreground']:not(input) {
+    color: color-mix(in srgb, var(--color-bg-light) 76%, transparent);
+  }
+
+  .auth-glass input {
+    color: var(--color-bg-light);
+  }
+
+
+  /* Reserves the corner for the logo. The form column centres its card in the
+     frame, so on the tallest form (create-organization) the card's top edge
+     came within 5px of the mark — and a validation message or a longer
+     heading would have closed that gap and overlapped it. Padding the column
+     rather than nudging the card keeps the centring intact: the card still
+     centres, just within the space left below the logo. */
+  .auth-form {
+    padding-top: 8.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Auth surfaces
 
    Scoped to `.auth-form`, which AuthLayout puts on its form column. Everything

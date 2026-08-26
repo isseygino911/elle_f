@@ -1,4 +1,5 @@
 import AuroraPanel from './AuroraPanel.jsx'
+import arcoLogo from '@/assets/arco-logo.png'
 
 /*
   The shared shell for every public auth screen: an inset rounded frame on a
@@ -38,20 +39,61 @@ export default function AuthLayout({ title, description, aside, footer, children
 
   return (
     // overflow-hidden on the frame is load-bearing: the aurora blobs are wider
-    // than their panel and would otherwise paint over the rounded corners.
+    // than their panel and would otherwise paint over the rounded corners. It
+    // clips the mobile gradient to those corners too.
+    //
+    // `bg-dark` is the frame's fallback ground under .auth-gradient on mobile;
+    // md:bg-background restores the original light frame at the breakpoint
+    // where the gradient rule stops existing. Both are needed — dropping
+    // either leaves one viewport with the wrong canvas behind its form.
     <div className="min-h-screen bg-dark p-3 sm:p-4">
       <div
-        className={`grid min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-2xl border border-dark-border bg-background sm:min-h-[calc(100vh-2rem)] ${
+        className={`auth-gradient relative grid min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-2xl border border-dark-border bg-dark sm:min-h-[calc(100vh-2rem)] md:bg-background ${
           hasAside ? 'md:grid-cols-2' : ''
         }`}
       >
+        {/*
+          The product logo, not the tenant's BrandMark: nobody is signed in on
+          these pages, so there is no organization whose logo we could show.
+          It is absolutely positioned rather than placed in the grid so that
+          adding it cannot shift the form column's vertical centring, which is
+          what makes the login card sit on the optical centre of the frame.
+
+          z-10 puts it above the aurora canvas on desktop and above the mobile
+          gradient; the frame's overflow-hidden clips it to the rounded corner.
+
+          The artwork already draws the word "Arco", so the alt text is the
+          product name and no text wordmark sits beside it -- a second "Arco"
+          in Nunito next to the script one reads as a duplicate, not a lockup.
+          Height-capped with w-auto for the same reason BrandMark is: it keeps
+          the mark from crowding the corner if the source art is ever replaced
+          with a wider lockup.
+
+          On desktop the mark has the light form column behind it. Below md
+          that column is gone and it sits on the gradient, whose top stop is
+          lightened in tokens.css specifically so the brown line work still
+          holds contrast there -- see the measurements on that stop.
+        */}
+        <img
+          src={arcoLogo}
+          alt="Arco"
+          className="pointer-events-none absolute left-3 top-3 z-10 h-20 w-auto select-none sm:left-5 sm:top-5 sm:h-24"
+        />
+
         {/*
           `auth-form` is the hook for the auth-only control density and the
           field entrance in global.css. It is set here rather than per page so
           no page can forget it.
         */}
-        <main className="auth-form flex flex-col justify-center gap-6 px-5 py-10 sm:px-8">
-          <div className="mx-auto flex w-full max-w-(--narrow-max-width) flex-col gap-5 [--narrow-max-width:26rem]">
+        <main className="auth-form flex flex-col justify-center gap-6 px-5 py-10 sm:px-8 md:pt-36">
+          {/*
+            `auth-glass` is inert at md and up — the rule only exists inside a
+            max-width query in global.css — so this div is the plain layout box
+            it has always been on desktop, and becomes a frosted card only on
+            the small screens where the decorative panel is hidden and the
+            gradient is showing through behind it.
+          */}
+          <div className="auth-glass mx-auto flex w-full max-w-(--narrow-max-width) flex-col gap-5 [--narrow-max-width:26rem]">
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl leading-tight">{title}</h1>
               {description && (
