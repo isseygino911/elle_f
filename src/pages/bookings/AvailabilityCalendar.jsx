@@ -94,7 +94,10 @@ function segmentsForDate(date, windows, exceptionsByDate) {
   return { recurring, added, blocked }
 }
 
-export default function AvailabilityCalendar({ accessToken }) {
+// `adminId` names whose calendar this is. Undefined for a teacher, who always
+// acts on their own; an owner must pass one, because they have no calendar of
+// their own for the server to fall back to.
+export default function AvailabilityCalendar({ accessToken, adminId }) {
   const [status, setStatus] = useState('loading') // loading | success | error
   const [windows, setWindows] = useState([])
   const [exceptions, setExceptions] = useState([])
@@ -116,10 +119,10 @@ export default function AvailabilityCalendar({ accessToken }) {
   function loadAll(isCancelled = () => false) {
     setStatus('loading')
     return Promise.all([
-      listAvailability(accessToken),
+      listAvailability(accessToken, adminId),
       // Exceptions are fetched for exactly the visible span, so switching
       // month or week refetches only what is on screen.
-      listAvailabilityExceptions(accessToken, { from: rangeFrom, to: rangeTo }),
+      listAvailabilityExceptions(accessToken, { from: rangeFrom, to: rangeTo, admin_id: adminId }),
     ])
       .then(([availabilityBody, exceptionsBody]) => {
         if (isCancelled()) return
@@ -141,7 +144,7 @@ export default function AvailabilityCalendar({ accessToken }) {
       cancelled = true
     }
     // Refetch when the visible span moves, not on every render.
-  }, [accessToken, rangeFrom, rangeTo])
+  }, [accessToken, adminId, rangeFrom, rangeTo])
 
   const exceptionsByDate = new Map()
   for (const exception of exceptions) {
@@ -223,6 +226,7 @@ export default function AvailabilityCalendar({ accessToken }) {
           type: payload.type,
           start_time: payload.start_time,
           end_time: payload.end_time,
+          admin_id: adminId,
         }
         if (payload.kind === 'exception' && payload.id) {
           await updateAvailabilityException(accessToken, payload.id, body)
@@ -234,6 +238,7 @@ export default function AvailabilityCalendar({ accessToken }) {
           day_of_week: payload.day_of_week,
           start_time: payload.start_time,
           end_time: payload.end_time,
+          admin_id: adminId,
         }
         if (payload.kind === 'recurring' && payload.id) {
           await updateAvailability(accessToken, payload.id, body)
@@ -256,9 +261,9 @@ export default function AvailabilityCalendar({ accessToken }) {
     setFormError(null)
     try {
       if (editing.kind === 'exception') {
-        await deleteAvailabilityException(accessToken, editing.id)
+        await deleteAvailabilityException(accessToken, editing.id, adminId)
       } else {
-        await deleteAvailability(accessToken, editing.id)
+        await deleteAvailability(accessToken, editing.id, adminId)
       }
       await loadAll()
       setDialogOpen(false)

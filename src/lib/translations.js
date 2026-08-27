@@ -224,6 +224,12 @@ export const translations = {
       title: 'Bookings',
       yourUpcoming: 'Your upcoming bookings',
       emptyUpcoming: 'No upcoming bookings.',
+      // Owner-only: an owner has no calendar of their own and has to say whose
+      // schedule they are looking at before anything else on the page loads.
+      teacher: 'Teacher',
+      teacherHint: 'Whose calendar to show. An owner has no calendar of their own.',
+      noTeachers: 'No teachers yet. Invite one before scheduling lessons.',
+      pickTeacher: 'Choose a teacher to see their slots and availability.',
     },
     broadcasts: {
       title: 'Announcements',
@@ -753,6 +759,10 @@ export const translations = {
       title: '预约',
       yourUpcoming: '即将开始的预约',
       emptyUpcoming: '暂无即将开始的预约。',
+      teacher: '老师',
+      teacherHint: '选择要查看的日程。管理者本人没有独立的日程表。',
+      noTeachers: '尚无老师。请先邀请一位老师，然后再安排课程。',
+      pickTeacher: '请选择一位老师，以查看其可预约时段与空闲时间。',
     },
     broadcasts: {
       title: '公告',

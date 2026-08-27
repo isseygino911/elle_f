@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { canManageStudents } from '../../lib/roles.js'
+import { canManageStudents, isOwner } from '../../lib/roles.js'
 import { CalendarDays, Clock3, X } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -16,10 +16,12 @@ import { formatSlotTime, formatSlotDate } from '../../utils/formatSlotTime.js'
 // utils/calendarDates.js now, shared with the week/month calendar.
 import { todayEasternDate, shiftDate } from '../../utils/calendarDates.js'
 import { useStudents } from '../../hooks/useStudents.js'
+import { useAdmins } from '../../hooks/useAdmins.js'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { LoadingText, EmptyState, ErrorAlert } from '@/components/Page'
 import StudentSelect from '@/components/StudentSelect'
+import TeacherSelect from '@/components/TeacherSelect'
 import { JoinClassLink } from '@/components/BookingList'
 import RecordCard from '@/components/records/RecordCard'
 import StatTiles from '@/components/records/StatTiles'
@@ -31,6 +33,31 @@ export default function BookingCalendarPage() {
   const { t } = useLanguage()
   const isElle = canManageStudents(user)
   const { students, status: studentsStatus, error: studentsError } = useStudents(accessToken, { enabled: isElle })
+
+  // Only an owner picks a calendar. A teacher acts on their own and a student
+  // on their teacher's, both resolved server-side from identity alone — so for
+  // them `calendarAdminId` stays undefined and no admin_id is ever sent.
+  const ownerPicksTeacher = isOwner(user)
+  const { admins, status: adminsStatus, error: adminsError } = useAdmins(accessToken, {
+    enabled: ownerPicksTeacher,
+  })
+  const [selectedAdminId, setSelectedAdminId] = useState('')
+  const calendarAdminId = ownerPicksTeacher ? selectedAdminId : undefined
+
+  // Default to the first teacher so the page lands on a working calendar
+  // rather than an empty prompt. Only fills a blank choice, so it never
+  // overrides a teacher the owner picked themselves.
+  useEffect(() => {
+    if (!ownerPicksTeacher) return
+    if (selectedAdminId) return
+    if (admins.length === 0) return
+    setSelectedAdminId(String(admins[0].id))
+  }, [ownerPicksTeacher, admins, selectedAdminId])
+
+  // An owner with no teacher chosen yet has nothing to fetch. Without this the
+  // page fired every scheduling request unscoped and painted the resolver's
+  // raw "admin_id is required" where the slots and calendar belong.
+  const calendarReady = !ownerPicksTeacher || Boolean(selectedAdminId)
 
   const [selectedDate, setSelectedDate] = useState(todayEasternDate)
 
@@ -54,7 +81,7 @@ export default function BookingCalendarPage() {
   // a check that always returns false.
   function loadSlots(isCancelled = () => false) {
     setSlotsStatus('loading')
-    return listOpenSlots(accessToken, selectedDate)
+    return listOpenSlots(accessToken, selectedDate, calendarAdminId)
       .then((body) => {
         if (isCancelled()) return
         setSlots(body.slots)
@@ -83,12 +110,13 @@ export default function BookingCalendarPage() {
   }
 
   useEffect(() => {
+    if (!calendarReady) return undefined
     let cancelled = false
     loadSlots(() => cancelled)
     return () => {
       cancelled = true
     }
-  }, [accessToken, selectedDate])
+  }, [accessToken, selectedDate, calendarAdminId, calendarReady])
 
   useEffect(() => {
     let cancelled = false
@@ -204,6 +232,28 @@ export default function BookingCalendarPage() {
               </Button>
             </div>
 
+            {/* Owner-only, and above the student picker: which teacher's
+                calendar this is has to be settled before "which slot" or
+                "for which student" means anything. */}
+            {ownerPicksTeacher && (
+              <Field className="max-w-sm">
+                <FieldLabel htmlFor="booking-teacher-id">{t('bookings.teacher')}</FieldLabel>
+                <TeacherSelect
+                  id="booking-teacher-id"
+                  value={selectedAdminId}
+                  onChange={setSelectedAdminId}
+                  admins={admins}
+                  status={adminsStatus}
+                />
+                <FieldDescription>
+                  {adminsStatus === 'success' && admins.length === 0
+                    ? t('bookings.noTeachers')
+                    : t('bookings.teacherHint')}
+                </FieldDescription>
+                {adminsStatus === 'error' && <FieldDescription>{adminsError}</FieldDescription>}
+              </Field>
+            )}
+
             {isElle && (
               <Field className="max-w-sm">
                 <FieldLabel htmlFor="booking-student-id">Student ID (required to book)</FieldLabel>
@@ -219,10 +269,13 @@ export default function BookingCalendarPage() {
             )}
 
             {bookingError && <ErrorAlert>{bookingError}</ErrorAlert>}
-            {slotsStatus === 'loading' && <LoadingText>Loading slots...</LoadingText>}
-            {slotsStatus === 'error' && <ErrorAlert>{slotsError}</ErrorAlert>}
-            {slotsStatus === 'success' && slots.length === 0 && <EmptyState>No open slots for this day.</EmptyState>}
-            {slotsStatus === 'success' && slots.length > 0 && (
+            {!calendarReady && <EmptyState>{t('bookings.pickTeacher')}</EmptyState>}
+            {calendarReady && slotsStatus === 'loading' && <LoadingText>Loading slots...</LoadingText>}
+            {calendarReady && slotsStatus === 'error' && <ErrorAlert>{slotsError}</ErrorAlert>}
+            {calendarReady && slotsStatus === 'success' && slots.length === 0 && (
+              <EmptyState>No open slots for this day.</EmptyState>
+            )}
+            {calendarReady && slotsStatus === 'success' && slots.length > 0 && (
               <ul className="flex flex-wrap gap-2">
                 {slots.map((slot) => (
                   <li key={slot}>
@@ -240,7 +293,16 @@ export default function BookingCalendarPage() {
             )}
           </section>
 
-          {isElle && <AvailabilityCalendar accessToken={accessToken} />}
+          {isElle && calendarReady && (
+            // Keyed on the teacher so switching rebuilds the calendar from
+            // scratch rather than briefly showing the previous teacher's
+            // windows under the new one's heading.
+            <AvailabilityCalendar
+              key={calendarAdminId || 'self'}
+              accessToken={accessToken}
+              adminId={calendarAdminId}
+            />
+          )}
         </div>
 
         {nextBooking && (

@@ -272,8 +272,15 @@ export async function updateTaskStatus(accessToken, taskId, status) {
   return request(`/tasks/${encodeURIComponent(taskId)}`, { method: 'PATCH', body: { status }, accessToken })
 }
 
-export async function listOpenSlots(accessToken, date) {
-  return request(`/bookings/open-slots?date=${encodeURIComponent(date)}`, { accessToken })
+// `adminId` names WHOSE calendar to read. A teacher and a student both resolve
+// it server-side from their own identity and must omit it; an owner has no
+// calendar of their own, so the server rejects the request without it. Every
+// scheduling call below carries the same optional parameter for that reason —
+// see the server's utils/calendarAdmin.js.
+export async function listOpenSlots(accessToken, date, adminId) {
+  const params = new URLSearchParams({ date })
+  if (adminId) params.set('admin_id', String(adminId))
+  return request(`/bookings/open-slots?${params.toString()}`, { accessToken })
 }
 
 // Open slots for a whole date range in ONE request. The month view needs ~30
@@ -287,11 +294,10 @@ export async function listOpenSlots(accessToken, date) {
 // single-day listOpenSlots above will NOT complain if you pass extra params:
 // zod strips unknown query keys, so `?date=…&to=…` returns 200 for one day
 // with `to` silently discarded. A wrong-endpoint mistake looks like it worked.
-export async function listOpenSlotsRange(accessToken, from, to) {
-  return request(
-    `/bookings/open-slots-range?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-    { accessToken }
-  )
+export async function listOpenSlotsRange(accessToken, from, to, adminId) {
+  const params = new URLSearchParams({ from, to })
+  if (adminId) params.set('admin_id', String(adminId))
+  return request(`/bookings/open-slots-range?${params.toString()}`, { accessToken })
 }
 
 export async function listBookings(accessToken, { status, upcoming } = {}) {
@@ -314,8 +320,9 @@ export async function cancelBooking(accessToken, bookingId) {
   })
 }
 
-export async function listAvailability(accessToken) {
-  return request('/availability', { accessToken })
+export async function listAvailability(accessToken, adminId) {
+  const query = adminId ? `?admin_id=${encodeURIComponent(adminId)}` : ''
+  return request(`/availability${query}`, { accessToken })
 }
 
 export async function listStudents(accessToken) {
@@ -350,18 +357,32 @@ export async function reassignStudent(accessToken, studentId, adminId) {
   })
 }
 
-export async function createAvailability(accessToken, { day_of_week, start_time, end_time } = {}) {
-  return request('/availability', { method: 'POST', body: { day_of_week, start_time, end_time }, accessToken })
+export async function createAvailability(
+  accessToken,
+  { day_of_week, start_time, end_time, admin_id } = {}
+) {
+  return request('/availability', {
+    method: 'POST',
+    body: { day_of_week, start_time, end_time, admin_id },
+    accessToken,
+  })
 }
 
-export async function deleteAvailability(accessToken, id) {
-  return request(`/availability/${encodeURIComponent(id)}`, { method: 'DELETE', accessToken })
+// DELETE carries no body, so an owner's admin_id has to ride in the query
+// string — the resolver reads either.
+export async function deleteAvailability(accessToken, id, adminId) {
+  const query = adminId ? `?admin_id=${encodeURIComponent(adminId)}` : ''
+  return request(`/availability/${encodeURIComponent(id)}${query}`, { method: 'DELETE', accessToken })
 }
 
-export async function updateAvailability(accessToken, id, { day_of_week, start_time, end_time } = {}) {
+export async function updateAvailability(
+  accessToken,
+  id,
+  { day_of_week, start_time, end_time, admin_id } = {}
+) {
   return request(`/availability/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: { day_of_week, start_time, end_time },
+    body: { day_of_week, start_time, end_time, admin_id },
     accessToken,
   })
 }
@@ -375,21 +396,22 @@ export async function updateAvailability(accessToken, id, { day_of_week, start_t
 // Blocking a date never cancels a booking already made on it — it only stops
 // new bookings being offered. Cancelling stays an explicit, separate action.
 
-export async function listAvailabilityExceptions(accessToken, { from, to } = {}) {
+export async function listAvailabilityExceptions(accessToken, { from, to, admin_id } = {}) {
   const params = new URLSearchParams()
   if (from) params.set('from', from)
   if (to) params.set('to', to)
+  if (admin_id) params.set('admin_id', String(admin_id))
   const query = params.toString() ? `?${params.toString()}` : ''
   return request(`/availability-exceptions${query}`, { accessToken })
 }
 
 export async function createAvailabilityException(
   accessToken,
-  { date, type, start_time, end_time } = {}
+  { date, type, start_time, end_time, admin_id } = {}
 ) {
   return request('/availability-exceptions', {
     method: 'POST',
-    body: { date, type, start_time, end_time },
+    body: { date, type, start_time, end_time, admin_id },
     accessToken,
   })
 }
@@ -397,17 +419,18 @@ export async function createAvailabilityException(
 export async function updateAvailabilityException(
   accessToken,
   id,
-  { date, type, start_time, end_time } = {}
+  { date, type, start_time, end_time, admin_id } = {}
 ) {
   return request(`/availability-exceptions/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: { date, type, start_time, end_time },
+    body: { date, type, start_time, end_time, admin_id },
     accessToken,
   })
 }
 
-export async function deleteAvailabilityException(accessToken, id) {
-  return request(`/availability-exceptions/${encodeURIComponent(id)}`, {
+export async function deleteAvailabilityException(accessToken, id, adminId) {
+  const query = adminId ? `?admin_id=${encodeURIComponent(adminId)}` : ''
+  return request(`/availability-exceptions/${encodeURIComponent(id)}${query}`, {
     method: 'DELETE',
     accessToken,
   })
