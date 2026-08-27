@@ -20,6 +20,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import StatusPage from './pages/StatusPage.jsx'
+import ManualPage from './pages/manual/ManualPage.jsx'
 import InvitationsLayout from './components/invitations/InvitationsLayout.jsx'
 import InvitationCreatePage from './pages/invitations/InvitationCreatePage.jsx'
 import InvitationDetailPage from './pages/invitations/InvitationDetailPage.jsx'
@@ -101,6 +102,8 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/status" element={<StatusPage />} />
+          {/* Public: someone invited to a studio reads this before they have an account. */}
+          <Route path="/manual" element={<ManualPage />} />
           <Route
             path="/dashboard"
             element={
