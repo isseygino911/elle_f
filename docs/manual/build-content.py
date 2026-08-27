@@ -2,7 +2,12 @@
 """Turn the manual Markdown into the structured data the /manual page renders.
 
 Run: python3 docs/manual/build-content.py
-Screenshots referenced here live in public/manual/screenshots/.
+Screenshots referenced here live in public/manual-assets/screenshots/.
+
+"/manual" is a React route, so the assets must NOT sit at that path: a real
+dist/manual/ directory makes the web server answer /manual itself (301 to
+/manual/, then 403 for the missing index.html) instead of falling through to
+index.html for the SPA.
 
 Output is a JS module of plain data — not HTML strings — so the page renders it
 with real components and the app's own styling, and nothing is injected as raw
@@ -97,7 +102,7 @@ def convert(md):
         if m:
             blocks.append({
                 "k": "img",
-                "src": "/manual/screenshots/" + os.path.basename(m.group(2)),
+                "src": "/manual-assets/screenshots/" + os.path.basename(m.group(2)),
                 "cap": m.group(1),
             })
             i += 1

@@ -410,7 +410,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-01-create-org-empty.jpg",
+        "src": "/manual-assets/screenshots/signup-01-create-org-empty.jpg",
         "cap": "Create your organization"
       },
       {
@@ -444,7 +444,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-02-create-org-filled.jpg",
+        "src": "/manual-assets/screenshots/signup-02-create-org-filled.jpg",
         "cap": "Filled in"
       },
       {
@@ -471,7 +471,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-03-login-account-created.jpg",
+        "src": "/manual-assets/screenshots/signup-03-login-account-created.jpg",
         "cap": "Account created"
       },
       {
@@ -501,7 +501,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/owner-01-dashboard.jpg",
         "cap": "Owner dashboard"
       },
       {
@@ -587,7 +587,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-02-organization-top.jpg",
+        "src": "/manual-assets/screenshots/owner-02-organization-top.jpg",
         "cap": "Organization settings"
       },
       {
@@ -635,7 +635,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-03-organization-accent-colors.jpg",
+        "src": "/manual-assets/screenshots/owner-03-organization-accent-colors.jpg",
         "cap": "Accent colors"
       },
       {
@@ -659,7 +659,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-04-accent-changed-ocean.jpg",
+        "src": "/manual-assets/screenshots/owner-04-accent-changed-ocean.jpg",
         "cap": "Ocean applied"
       },
       {
@@ -684,7 +684,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-05-invite-form.jpg",
+        "src": "/manual-assets/screenshots/owner-05-invite-form.jpg",
         "cap": "Invitations"
       },
       {
@@ -716,7 +716,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-06-invite-role-options.jpg",
+        "src": "/manual-assets/screenshots/owner-06-invite-role-options.jpg",
         "cap": "Role options"
       },
       {
@@ -803,7 +803,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-07-invitation-created-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-07-invitation-created-teacher.jpg",
         "cap": "Invitation created"
       },
       {
@@ -862,7 +862,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-10-invitation-detail.jpg",
+        "src": "/manual-assets/screenshots/owner-10-invitation-detail.jpg",
         "cap": "Invitation detail"
       },
       {
@@ -884,7 +884,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "Accepting an invitation"
       },
       {
@@ -928,7 +928,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-11-student-detail-no-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-11-student-detail-no-teacher.jpg",
         "cap": "Student with no teacher"
       },
       {
@@ -997,7 +997,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-12-student-assigned-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-12-student-assigned-teacher.jpg",
         "cap": "Teacher assigned"
       },
       {
@@ -1063,7 +1063,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-13-new-course-form.jpg",
+        "src": "/manual-assets/screenshots/owner-13-new-course-form.jpg",
         "cap": "New course"
       },
       {
@@ -1100,7 +1100,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-14-course-created.jpg",
+        "src": "/manual-assets/screenshots/owner-14-course-created.jpg",
         "cap": "Course created"
       },
       {
@@ -1177,7 +1177,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-15-course-student-enrolled.jpg",
+        "src": "/manual-assets/screenshots/owner-15-course-student-enrolled.jpg",
         "cap": "Student enrolled"
       },
       {
@@ -1221,7 +1221,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-16-library-empty.jpg",
+        "src": "/manual-assets/screenshots/owner-16-library-empty.jpg",
         "cap": "Library"
       },
       {
@@ -1270,7 +1270,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-17-library-upload-form.jpg",
+        "src": "/manual-assets/screenshots/owner-17-library-upload-form.jpg",
         "cap": "Upload form"
       },
       {
@@ -1325,7 +1325,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-18-announcement-audience.jpg",
+        "src": "/manual-assets/screenshots/owner-18-announcement-audience.jpg",
         "cap": "Choose audience"
       },
       {
@@ -1394,7 +1394,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-19-announcement-sent.jpg",
+        "src": "/manual-assets/screenshots/owner-19-announcement-sent.jpg",
         "cap": "Announcement sent"
       },
       {
@@ -1449,7 +1449,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-21-message-sent.jpg",
+        "src": "/manual-assets/screenshots/owner-21-message-sent.jpg",
         "cap": "Message sent"
       },
       {
@@ -1527,7 +1527,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-20-bookings-fixed.jpg",
+        "src": "/manual-assets/screenshots/owner-20-bookings-fixed.jpg",
         "cap": "Bookings as owner"
       },
       {
@@ -1646,7 +1646,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-26-availability-dialog.jpg",
+        "src": "/manual-assets/screenshots/owner-26-availability-dialog.jpg",
         "cap": "Adding availability"
       },
       {
@@ -1655,7 +1655,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-27-availability-saved.jpg",
+        "src": "/manual-assets/screenshots/owner-27-availability-saved.jpg",
         "cap": "Availability saved"
       },
       {
@@ -1750,7 +1750,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-25-task-created.jpg",
+        "src": "/manual-assets/screenshots/owner-25-task-created.jpg",
         "cap": "Task created"
       },
       {
@@ -1782,7 +1782,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-22-notifications.jpg",
+        "src": "/manual-assets/screenshots/owner-22-notifications.jpg",
         "cap": "Notifications"
       },
       {
@@ -1821,7 +1821,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-23-profile-menu-language.jpg",
+        "src": "/manual-assets/screenshots/owner-23-profile-menu-language.jpg",
         "cap": "Profile menu"
       },
       {
@@ -1921,7 +1921,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-24-dashboard-populated.jpg",
+        "src": "/manual-assets/screenshots/owner-24-dashboard-populated.jpg",
         "cap": "Dashboard in use"
       }
     ],
@@ -1977,7 +1977,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "Accepting an invitation"
       },
       {
@@ -1994,7 +1994,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/teacher-01-dashboard.jpg",
         "cap": "Teacher dashboard"
       },
       {
@@ -2143,7 +2143,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-12-roster-two-students.jpg",
+        "src": "/manual-assets/screenshots/teacher-12-roster-two-students.jpg",
         "cap": "Your roster"
       },
       {
@@ -2163,7 +2163,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-02-student-detail.jpg",
+        "src": "/manual-assets/screenshots/teacher-02-student-detail.jpg",
         "cap": "A student record"
       },
       {
@@ -2268,7 +2268,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-09-invite-student-only.jpg",
+        "src": "/manual-assets/screenshots/teacher-09-invite-student-only.jpg",
         "cap": "Inviting a student"
       },
       {
@@ -2346,7 +2346,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-03-new-homework-form.jpg",
+        "src": "/manual-assets/screenshots/teacher-03-new-homework-form.jpg",
         "cap": "New homework"
       },
       {
@@ -2424,7 +2424,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-04-homework-accepts.jpg",
+        "src": "/manual-assets/screenshots/teacher-04-homework-accepts.jpg",
         "cap": "Submission types"
       },
       {
@@ -2461,7 +2461,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-05-homework-filled.jpg",
+        "src": "/manual-assets/screenshots/teacher-05-homework-filled.jpg",
         "cap": "Filled in"
       },
       {
@@ -2500,7 +2500,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-06-homework-draft.jpg",
+        "src": "/manual-assets/screenshots/teacher-06-homework-draft.jpg",
         "cap": "A draft"
       },
       {
@@ -2520,7 +2520,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-07-homework-published.jpg",
+        "src": "/manual-assets/screenshots/teacher-07-homework-published.jpg",
         "cap": "Published"
       },
       {
@@ -2611,7 +2611,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-10-video-upload-form.jpg",
+        "src": "/manual-assets/screenshots/teacher-10-video-upload-form.jpg",
         "cap": "Uploading a video"
       },
       {
@@ -2698,7 +2698,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-11-message-thread.jpg",
+        "src": "/manual-assets/screenshots/teacher-11-message-thread.jpg",
         "cap": "A conversation"
       },
       {
@@ -2766,7 +2766,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-08-announcement-sent.jpg",
+        "src": "/manual-assets/screenshots/teacher-08-announcement-sent.jpg",
         "cap": "An announcement"
       },
       {
@@ -2995,7 +2995,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-13-open-slots-dual-tz.jpg",
+        "src": "/manual-assets/screenshots/teacher-13-open-slots-dual-tz.jpg",
         "cap": "Open slots"
       },
       {
@@ -3015,7 +3015,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-14-booking-made.jpg",
+        "src": "/manual-assets/screenshots/teacher-14-booking-made.jpg",
         "cap": "Booked"
       },
       {
@@ -3376,7 +3376,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "Accepting an invitation"
       },
       {
@@ -3393,7 +3393,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/manager-01-dashboard.jpg",
         "cap": "Manager dashboard"
       },
       {
@@ -3569,7 +3569,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-03-announcement-redacted.jpg",
+        "src": "/manual-assets/screenshots/manager-03-announcement-redacted.jpg",
         "cap": "An announcement as a manager"
       },
       {
@@ -3656,7 +3656,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-04-notifications.jpg",
+        "src": "/manual-assets/screenshots/manager-04-notifications.jpg",
         "cap": "Notifications"
       },
       {
@@ -3692,7 +3692,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-02-no-access.jpg",
+        "src": "/manual-assets/screenshots/manager-02-no-access.jpg",
         "cap": "No access"
       },
       {
@@ -3944,7 +3944,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "Accepting an invitation"
       },
       {
@@ -3961,7 +3961,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/student-01-dashboard.jpg",
         "cap": "Student dashboard"
       },
       {
@@ -4118,7 +4118,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-02-course-curriculum.jpg",
+        "src": "/manual-assets/screenshots/student-02-course-curriculum.jpg",
         "cap": "Your courses"
       },
       {
@@ -4167,7 +4167,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-03-homework-detail.jpg",
+        "src": "/manual-assets/screenshots/student-03-homework-detail.jpg",
         "cap": "A piece of homework"
       },
       {
@@ -4249,7 +4249,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-04-submitted.jpg",
+        "src": "/manual-assets/screenshots/student-04-submitted.jpg",
         "cap": "Handed in"
       },
       {
@@ -4351,7 +4351,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-06-video-upload.jpg",
+        "src": "/manual-assets/screenshots/student-06-video-upload.jpg",
         "cap": "Uploading a practice video"
       },
       {
@@ -4433,7 +4433,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/student-01-dashboard.jpg",
         "cap": "Your bookings"
       },
       {
@@ -4550,7 +4550,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-05-messages.jpg",
+        "src": "/manual-assets/screenshots/student-05-messages.jpg",
         "cap": "Your messages"
       },
       {
@@ -4608,7 +4608,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-07-library-readonly.jpg",
+        "src": "/manual-assets/screenshots/student-07-library-readonly.jpg",
         "cap": "The library"
       },
       {
@@ -5182,7 +5182,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-01-create-org-empty.jpg",
+        "src": "/manual-assets/screenshots/signup-01-create-org-empty.jpg",
         "cap": "创建机构"
       },
       {
@@ -5216,7 +5216,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-02-create-org-filled.jpg",
+        "src": "/manual-assets/screenshots/signup-02-create-org-filled.jpg",
         "cap": "填写完成"
       },
       {
@@ -5243,7 +5243,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/signup-03-login-account-created.jpg",
+        "src": "/manual-assets/screenshots/signup-03-login-account-created.jpg",
         "cap": "账号已创建"
       },
       {
@@ -5273,7 +5273,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/owner-01-dashboard.jpg",
         "cap": "所有者仪表盘"
       },
       {
@@ -5377,7 +5377,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-02-organization-top.jpg",
+        "src": "/manual-assets/screenshots/owner-02-organization-top.jpg",
         "cap": "机构设置"
       },
       {
@@ -5425,7 +5425,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-03-organization-accent-colors.jpg",
+        "src": "/manual-assets/screenshots/owner-03-organization-accent-colors.jpg",
         "cap": "主题色"
       },
       {
@@ -5449,7 +5449,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-04-accent-changed-ocean.jpg",
+        "src": "/manual-assets/screenshots/owner-04-accent-changed-ocean.jpg",
         "cap": "已切换为海洋蓝"
       },
       {
@@ -5474,7 +5474,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-05-invite-form.jpg",
+        "src": "/manual-assets/screenshots/owner-05-invite-form.jpg",
         "cap": "邀请"
       },
       {
@@ -5506,7 +5506,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-06-invite-role-options.jpg",
+        "src": "/manual-assets/screenshots/owner-06-invite-role-options.jpg",
         "cap": "身份选项"
       },
       {
@@ -5593,7 +5593,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-07-invitation-created-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-07-invitation-created-teacher.jpg",
         "cap": "邀请已创建"
       },
       {
@@ -5652,7 +5652,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-10-invitation-detail.jpg",
+        "src": "/manual-assets/screenshots/owner-10-invitation-detail.jpg",
         "cap": "邀请详情"
       },
       {
@@ -5674,7 +5674,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "接受邀请"
       },
       {
@@ -5718,7 +5718,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-11-student-detail-no-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-11-student-detail-no-teacher.jpg",
         "cap": "尚未指定教师的学生"
       },
       {
@@ -5787,7 +5787,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-12-student-assigned-teacher.jpg",
+        "src": "/manual-assets/screenshots/owner-12-student-assigned-teacher.jpg",
         "cap": "已指定教师"
       },
       {
@@ -5853,7 +5853,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-13-new-course-form.jpg",
+        "src": "/manual-assets/screenshots/owner-13-new-course-form.jpg",
         "cap": "新建课程"
       },
       {
@@ -5890,7 +5890,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-14-course-created.jpg",
+        "src": "/manual-assets/screenshots/owner-14-course-created.jpg",
         "cap": "课程已创建"
       },
       {
@@ -5967,7 +5967,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-15-course-student-enrolled.jpg",
+        "src": "/manual-assets/screenshots/owner-15-course-student-enrolled.jpg",
         "cap": "学生已加入课程"
       },
       {
@@ -6011,7 +6011,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-16-library-empty.jpg",
+        "src": "/manual-assets/screenshots/owner-16-library-empty.jpg",
         "cap": "资料库"
       },
       {
@@ -6060,7 +6060,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-17-library-upload-form.jpg",
+        "src": "/manual-assets/screenshots/owner-17-library-upload-form.jpg",
         "cap": "上传表单"
       },
       {
@@ -6115,7 +6115,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-18-announcement-audience.jpg",
+        "src": "/manual-assets/screenshots/owner-18-announcement-audience.jpg",
         "cap": "选择接收对象"
       },
       {
@@ -6184,7 +6184,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-19-announcement-sent.jpg",
+        "src": "/manual-assets/screenshots/owner-19-announcement-sent.jpg",
         "cap": "公告已发送"
       },
       {
@@ -6236,7 +6236,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-21-message-sent.jpg",
+        "src": "/manual-assets/screenshots/owner-21-message-sent.jpg",
         "cap": "消息已发送"
       },
       {
@@ -6314,7 +6314,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-20-bookings-fixed.jpg",
+        "src": "/manual-assets/screenshots/owner-20-bookings-fixed.jpg",
         "cap": "所有者视角的预约页"
       },
       {
@@ -6433,7 +6433,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-26-availability-dialog.jpg",
+        "src": "/manual-assets/screenshots/owner-26-availability-dialog.jpg",
         "cap": "添加可预约时间"
       },
       {
@@ -6442,7 +6442,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-27-availability-saved.jpg",
+        "src": "/manual-assets/screenshots/owner-27-availability-saved.jpg",
         "cap": "可预约时间已保存"
       },
       {
@@ -6537,7 +6537,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-25-task-created.jpg",
+        "src": "/manual-assets/screenshots/owner-25-task-created.jpg",
         "cap": "任务已创建"
       },
       {
@@ -6569,7 +6569,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-22-notifications.jpg",
+        "src": "/manual-assets/screenshots/owner-22-notifications.jpg",
         "cap": "通知"
       },
       {
@@ -6608,7 +6608,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-23-profile-menu-language.jpg",
+        "src": "/manual-assets/screenshots/owner-23-profile-menu-language.jpg",
         "cap": "个人菜单"
       },
       {
@@ -6708,7 +6708,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/owner-24-dashboard-populated.jpg",
+        "src": "/manual-assets/screenshots/owner-24-dashboard-populated.jpg",
         "cap": "运营中的仪表盘"
       }
     ],
@@ -6764,7 +6764,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "接受邀请"
       },
       {
@@ -6781,7 +6781,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/teacher-01-dashboard.jpg",
         "cap": "教师仪表盘"
       },
       {
@@ -6930,7 +6930,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-12-roster-two-students.jpg",
+        "src": "/manual-assets/screenshots/teacher-12-roster-two-students.jpg",
         "cap": "你的学生名单"
       },
       {
@@ -7050,7 +7050,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-09-invite-student-only.jpg",
+        "src": "/manual-assets/screenshots/teacher-09-invite-student-only.jpg",
         "cap": "邀请学生"
       },
       {
@@ -7128,7 +7128,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-03-new-homework-form.jpg",
+        "src": "/manual-assets/screenshots/teacher-03-new-homework-form.jpg",
         "cap": "新建作业"
       },
       {
@@ -7206,7 +7206,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-04-homework-accepts.jpg",
+        "src": "/manual-assets/screenshots/teacher-04-homework-accepts.jpg",
         "cap": "提交形式"
       },
       {
@@ -7243,7 +7243,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-05-homework-filled.jpg",
+        "src": "/manual-assets/screenshots/teacher-05-homework-filled.jpg",
         "cap": "填写完成"
       },
       {
@@ -7282,7 +7282,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-06-homework-draft.jpg",
+        "src": "/manual-assets/screenshots/teacher-06-homework-draft.jpg",
         "cap": "草稿状态"
       },
       {
@@ -7302,7 +7302,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-07-homework-published.jpg",
+        "src": "/manual-assets/screenshots/teacher-07-homework-published.jpg",
         "cap": "已发布"
       },
       {
@@ -7393,7 +7393,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-10-video-upload-form.jpg",
+        "src": "/manual-assets/screenshots/teacher-10-video-upload-form.jpg",
         "cap": "上传视频"
       },
       {
@@ -7480,7 +7480,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-11-message-thread.jpg",
+        "src": "/manual-assets/screenshots/teacher-11-message-thread.jpg",
         "cap": "一段对话"
       },
       {
@@ -7548,7 +7548,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-08-announcement-sent.jpg",
+        "src": "/manual-assets/screenshots/teacher-08-announcement-sent.jpg",
         "cap": "一条公告"
       },
       {
@@ -7777,7 +7777,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-13-open-slots-dual-tz.jpg",
+        "src": "/manual-assets/screenshots/teacher-13-open-slots-dual-tz.jpg",
         "cap": "空闲时段"
       },
       {
@@ -7797,7 +7797,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/teacher-14-booking-made.jpg",
+        "src": "/manual-assets/screenshots/teacher-14-booking-made.jpg",
         "cap": "已预约"
       },
       {
@@ -8158,7 +8158,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "接受邀请"
       },
       {
@@ -8175,7 +8175,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/manager-01-dashboard.jpg",
         "cap": "主管仪表盘"
       },
       {
@@ -8351,7 +8351,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-03-announcement-redacted.jpg",
+        "src": "/manual-assets/screenshots/manager-03-announcement-redacted.jpg",
         "cap": "主管视角的公告"
       },
       {
@@ -8435,7 +8435,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-04-notifications.jpg",
+        "src": "/manual-assets/screenshots/manager-04-notifications.jpg",
         "cap": "通知"
       },
       {
@@ -8471,7 +8471,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/manager-02-no-access.jpg",
+        "src": "/manual-assets/screenshots/manager-02-no-access.jpg",
         "cap": "无访问权限"
       },
       {
@@ -8723,7 +8723,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/shared-01-accept-invite-register.jpg",
+        "src": "/manual-assets/screenshots/shared-01-accept-invite-register.jpg",
         "cap": "接受邀请"
       },
       {
@@ -8740,7 +8740,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/student-01-dashboard.jpg",
         "cap": "学生仪表盘"
       },
       {
@@ -8891,7 +8891,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-02-course-curriculum.jpg",
+        "src": "/manual-assets/screenshots/student-02-course-curriculum.jpg",
         "cap": "你的课程"
       },
       {
@@ -8940,7 +8940,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-03-homework-detail.jpg",
+        "src": "/manual-assets/screenshots/student-03-homework-detail.jpg",
         "cap": "一项作业"
       },
       {
@@ -9022,7 +9022,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-04-submitted.jpg",
+        "src": "/manual-assets/screenshots/student-04-submitted.jpg",
         "cap": "已提交"
       },
       {
@@ -9124,7 +9124,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-06-video-upload.jpg",
+        "src": "/manual-assets/screenshots/student-06-video-upload.jpg",
         "cap": "上传练习视频"
       },
       {
@@ -9206,7 +9206,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-01-dashboard.jpg",
+        "src": "/manual-assets/screenshots/student-01-dashboard.jpg",
         "cap": "你的预约"
       },
       {
@@ -9329,7 +9329,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-05-messages.jpg",
+        "src": "/manual-assets/screenshots/student-05-messages.jpg",
         "cap": "你的消息"
       },
       {
@@ -9387,7 +9387,7 @@ export const MANUAL_CONTENT = {
       },
       {
         "k": "img",
-        "src": "/manual/screenshots/student-07-library-readonly.jpg",
+        "src": "/manual-assets/screenshots/student-07-library-readonly.jpg",
         "cap": "资料库"
       },
       {
